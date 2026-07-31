@@ -5,51 +5,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, Github, ArrowUpRight, ChevronDown } from "lucide-react";
 import { products, type Product } from "@/lib/content";
 import { Reveal, StaggerReveal, StaggerItem } from "@/components/ui/reveal";
+import { BrowserFrame } from "@/components/ui/browser-frame";
 
 function ProductMockup({ product, active }: { product: Product; active: boolean }) {
   return (
     <motion.div
-      className={`relative rounded-2xl overflow-hidden accent-${product.accent}`}
-      style={{
-        background: "var(--bg-elevated)",
-        border: "1px solid var(--line)",
-        boxShadow: active ? "var(--shadow-lg)" : "var(--shadow-sm)",
-      }}
       animate={{ scale: active ? 1 : 0.98, opacity: active ? 1 : 0.7 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div
-        className="flex items-center gap-2 px-4 py-3"
-        style={{ borderBottom: "1px solid var(--line)", background: "var(--bg-subtle)" }}
-      >
-        <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
-        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/80" />
-        <span className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
-        <span className="ml-2 text-[11px] font-medium" style={{ color: "var(--ink-muted)" }}>
-          {product.name}
-        </span>
-      </div>
-      <div className="p-6 md:p-8 min-h-[280px] relative">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{ background: `radial-gradient(ellipse at 30% 20%, var(--product-glow, rgba(99,102,241,0.2)), transparent 60%)` }}
-        />
-        <div className="relative grid grid-cols-[80px_1fr] gap-4 h-full">
-          <div className="space-y-2">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-8 rounded-lg" style={{ background: "var(--accent-soft)" }} />
-            ))}
-          </div>
-          <div className="space-y-3">
-            <div className="h-6 w-2/3 rounded-lg" style={{ background: "var(--product-accent, #8b5cf6)", opacity: 0.3 }} />
-            <div className="grid grid-cols-2 gap-3 flex-1">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-20 rounded-xl" style={{ background: "var(--accent-soft)", border: "1px solid var(--line)" }} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <BrowserFrame
+        title={product.name}
+        url={product.liveUrl}
+        image={product.image}
+        accent={product.accent}
+        aspectRatio="aspect-[16/10]"
+      />
     </motion.div>
   );
 }

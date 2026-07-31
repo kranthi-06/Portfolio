@@ -7,6 +7,7 @@ import { projects } from "@/lib/constants";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { ProjectModal } from "@/components/ui/project-modal";
+import { BrowserFrame } from "@/components/ui/browser-frame";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/constants";
@@ -52,39 +53,18 @@ export function Projects() {
                   {/* Image / Visual Side */}
                   <div
                     className={cn(
-                      "relative h-64 lg:h-auto min-h-[300px] overflow-hidden",
+                      "relative p-4 lg:p-6 flex items-center justify-center bg-zinc-950/30",
                       i % 2 !== 0 && "lg:order-2"
                     )}
                   >
-                    {/* Gradient placeholder for project image */}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20"
+                    <BrowserFrame
+                      title={project.title}
+                      url={project.liveUrl}
+                      image={project.image}
+                      accent={i % 2 === 0 ? "violet" : "ocean"}
+                      aspectRatio="aspect-[16/10]"
+                      className="w-full shadow-2xl"
                     />
-                    <div className="absolute inset-0 dot-grid opacity-20" />
-
-                    {/* Project title overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <motion.h3
-                          className="text-4xl md:text-5xl font-bold font-heading gradient-text"
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          {project.title}
-                        </motion.h3>
-                        <p className="text-muted mt-2 text-sm">{project.subtitle}</p>
-                      </div>
-                    </div>
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
-                      <button
-                        onClick={() => setSelectedProject(project)}
-                        className="px-6 py-3 rounded-xl bg-primary/20 border border-primary/40 text-white font-medium text-sm hover:bg-primary/30 transition-colors"
-                      >
-                        View Case Study
-                      </button>
-                    </div>
                   </div>
 
                   {/* Content Side */}

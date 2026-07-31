@@ -140,6 +140,7 @@ export interface Product {
   tagline: string;
   category: string;
   liveUrl: string;
+  image: string;
   githubUrl?: string;
   problem: string;
   solution: string;
@@ -159,6 +160,7 @@ export const products: Product[] = [
     tagline: "AI-powered goal tracking that adapts to how you actually work.",
     category: "Full-Stack AI Product",
     liveUrl: links.lakshyaTrack,
+    image: "/assets/projects/lakshyatrack.png",
     githubUrl: "https://github.com/kranthi-06/lakshyatrack",
     problem:
       "Most goal apps treat every user the same. They track tasks but never learn — leading to abandoned goals and dashboards nobody opens.",
@@ -197,6 +199,8 @@ export const products: Product[] = [
     tagline: "A connected campus experience for students, faculty, and admins.",
     category: "Community Platform",
     liveUrl: links.srecCommunity,
+    image: "/assets/projects/srec-community.png",
+    githubUrl: "https://github.com/kranthi-06/srec-community",
     problem:
       "Campus life is fragmented — events, resources, and communication scattered across channels nobody checks.",
     solution:

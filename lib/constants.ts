@@ -320,7 +320,7 @@ export const projects: Project[] = [
       "Chart.js",
     ],
     githubUrl: "https://github.com/kranthi-06/lakshyatrack",
-    liveUrl: "#",
+    liveUrl: "https://lakshyatrack.vercel.app/",
     image: "/assets/projects/lakshyatrack.png",
     category: "Full-Stack AI",
     featured: true,
@@ -338,20 +338,20 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "campuspulse",
-    title: "CampusPulse",
-    subtitle: "Smart Campus Management System",
+    id: "srec-community",
+    title: "SREC Community",
+    subtitle: "Smart Campus & Sentiment Intelligence Platform",
     description:
-      "A comprehensive campus management platform that streamlines communication, events, and resources for students, faculty, and administrators.",
+      "A comprehensive campus management platform that streamlines communication, events, sentiment feedback, and resources for students, faculty, and administrators.",
     longDescription:
-      "CampusPulse is a full-featured campus management system designed to bridge the communication gap between students, faculty, and administration. It provides real-time event management, resource booking, complaint tracking, and an AI-powered campus assistant.",
+      "SREC Community is a full-featured campus intelligence system designed to bridge the communication gap between students, faculty, and administration. It provides real-time event management, resource booking, feedback tracking, and AI-powered sentiment analytics.",
     problem:
       "University campuses struggle with fragmented communication channels, manual event management, and lack of centralized resource allocation — leading to confusion and inefficiency.",
     solution:
       "Created a unified platform with real-time notifications, smart scheduling, AI-powered assistance, and comprehensive dashboards for all campus stakeholders.",
     features: [
       "Real-time campus event management and discovery",
-      "AI-powered campus assistant chatbot",
+      "AI-powered campus sentiment analysis and feedback",
       "Smart resource and room booking system",
       "Complaint management with auto-routing",
       "Faculty-student communication portal",
@@ -367,13 +367,13 @@ export const projects: Project[] = [
       "Firebase",
       "Tailwind CSS",
     ],
-    githubUrl: "https://github.com/kranthi-06/campuspulse",
-    liveUrl: "#",
-    image: "/assets/projects/campuspulse.png",
-    category: "Full-Stack Platform",
+    githubUrl: "https://github.com/kranthi-06/srec-community",
+    liveUrl: "https://srec-community.vercel.app/",
+    image: "/assets/projects/srec-community.png",
+    category: "Community Platform",
     featured: true,
     architecture:
-      "MERN stack with Socket.io for real-time features, Firebase for authentication and push notifications, and Python microservice for AI chatbot functionality.",
+      "MERN stack with Socket.io for real-time features, Firebase for authentication and push notifications, and Python microservice for AI sentiment analysis.",
     challenges: [
       "Building real-time features that scale to thousands of concurrent users",
       "Implementing role-based access control across multiple user types",

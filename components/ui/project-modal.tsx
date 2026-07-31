@@ -7,6 +7,7 @@ import { X, ExternalLink, Github, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project } from "@/lib/constants";
 import { MagneticButton } from "./magnetic-button";
+import { BrowserFrame } from "./browser-frame";
 import { modalOverlay, modalContent } from "@/lib/animations";
 
 interface ProjectModalProps {
@@ -83,14 +84,16 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
               <X className="w-5 h-5" />
             </button>
 
-            {/* Header image area */}
-            <div className="relative h-48 sm:h-64 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20 rounded-t-3xl overflow-hidden">
-              <div className="absolute inset-0 dot-grid opacity-30" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <h3 className="text-4xl sm:text-5xl font-bold font-heading gradient-text">
-                  {project.title}
-                </h3>
-              </div>
+            {/* Header Browser Preview */}
+            <div className="p-4 sm:p-6 bg-zinc-950/60 rounded-t-3xl border-b border-white/10">
+              <BrowserFrame
+                title={project.title}
+                url={project.liveUrl}
+                image={project.image}
+                accent="violet"
+                aspectRatio="aspect-[16/9]"
+                className="w-full shadow-2xl"
+              />
             </div>
 
             {/* Content */}
