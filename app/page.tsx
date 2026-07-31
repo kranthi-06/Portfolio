@@ -1,69 +1,32 @@
 "use client";
 
-/* Layout Components */
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
-import { ScrollProgress } from "@/components/layout/scroll-progress";
-import { LoadingScreen } from "@/components/layout/loading-screen";
-import { BackToTop } from "@/components/layout/back-to-top";
-import { FloatingDock } from "@/components/layout/floating-dock";
-import { CommandPalette } from "@/components/layout/command-palette";
-import { CustomCursor } from "@/components/layout/custom-cursor";
-import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
-import { NoiseOverlay } from "@/components/effects/noise-overlay";
+import { FormEvent, useEffect, useState } from "react";
+import { ArrowDownRight, ArrowUpRight, Bot, Check, ChevronRight, Code2, Download, Github, Layers3, Linkedin, Mail, Menu, Moon, Send, Sparkles, Sun, Trophy, X, Zap } from "lucide-react";
 
-/* Section Components */
-import { Hero } from "@/components/sections/hero";
-import { About } from "@/components/sections/about";
-import { Skills } from "@/components/sections/skills";
-import { Experience } from "@/components/sections/experience";
-import { Projects } from "@/components/sections/projects";
-import { Achievements } from "@/components/sections/achievements";
-import { Certifications } from "@/components/sections/certifications";
-import { Education } from "@/components/sections/education";
-import { Contact } from "@/components/sections/contact";
+const projects = [
+  { number: "01", name: "LakshyaTrack", type: "Intelligent goal OS", year: "2025", description: "A personal operating system that turns ambition into a plan, then uses AI to keep the plan honest.", stack: ["Next.js", "Python", "TensorFlow", "MongoDB"], detail: "Behaviour-aware prompts · predictive progress · calm analytics", tone: "plum" },
+  { number: "02", name: "CampusPulse", type: "Connected campus platform", year: "2025", description: "One reliable place for campus events, spaces, conversations, and the questions students ask every day.", stack: ["React", "Socket.io", "OpenAI", "Firebase"], detail: "Real-time signals · role-aware workflows · AI campus guide", tone: "blue" },
+];
+const skillSets = { "AI systems": ["Python", "LangChain", "PyTorch", "OpenCV", "RAG", "TensorFlow"], "Product web": ["Next.js", "React", "TypeScript", "Tailwind", "Framer Motion", "Figma"], "Backend": ["Node.js", "FastAPI", "PostgreSQL", "MongoDB", "Docker", "AWS"] };
+const timeline = [["2025 — now", "AI builder", "Prototyping useful AI products with a full-stack lens."], ["2025", "Full-stack developer", "Shipped web experiences where clarity and reliability matter."], ["2024", "Hackathon finalist", "Learned to turn an ambitious idea into a working story—fast."]];
+function Logo() { return <a href="#top" className="brand" aria-label="Kranthi Kiran home"><i>kk</i><span>Kranthi Kiran</span></a>; }
 
-/**
- * Main portfolio page — assembles all sections with layout chrome
- */
 export default function Home() {
-  return (
-    <SmoothScrollProvider>
-      {/* Loading Screen */}
-      <LoadingScreen />
-
-      {/* Custom Cursor */}
-      <CustomCursor />
-
-      {/* Noise Texture Overlay */}
-      <NoiseOverlay />
-
-      {/* Scroll Progress Bar */}
-      <ScrollProgress />
-
-      {/* Navigation */}
-      <Navbar />
-
-      {/* Main Content */}
-      <main className="relative">
-        <Hero />
-        <About />
-        <Skills />
-        <Experience />
-        <Projects />
-        <Achievements />
-        <Certifications />
-        <Education />
-        <Contact />
-      </main>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Floating Elements */}
-      <FloatingDock />
-      <BackToTop />
-      <CommandPalette />
-    </SmoothScrollProvider>
-  );
+  const [theme, setTheme] = useState("pearl"); const [menu, setMenu] = useState(false); const [skill, setSkill] = useState<keyof typeof skillSets>("AI systems"); const [submitted, setSubmitted] = useState(false);
+  useEffect(() => { const saved = localStorage.getItem("kk-theme"); if (saved) setTheme(saved); }, []);
+  const changeTheme = (next: string) => { setTheme(next); localStorage.setItem("kk-theme", next); };
+  const send = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSubmitted(true); };
+  const nav = ["Work", "Story", "Capabilities", "Notes"];
+  return <div className="site" data-theme={theme} id="top">
+    <header className="topbar"><Logo /><nav className={menu ? "nav nav-open" : "nav"} aria-label="Primary navigation">{nav.map((item, index) => <a onClick={() => setMenu(false)} href={["#work", "#story", "#capabilities", "#contact"][index]} key={item}>{item}</a>)}<a className="nav-resume" href="/assets/resume.pdf" target="_blank"><Download size={15} /> Resume</a></nav><div className="top-actions"><div className="theme-switch" aria-label="Choose appearance">{(["pearl", "midnight", "aurora"] as const).map(option => <button onClick={() => changeTheme(option)} className={theme === option ? "chosen" : ""} key={option} aria-label={`${option} theme`}>{option === "pearl" ? <Sun size={15} /> : option === "midnight" ? <Moon size={15} /> : <Sparkles size={15} />}</button>)}</div><button className="menu-button" onClick={() => setMenu(!menu)} aria-label="Toggle menu">{menu ? <X /> : <Menu />}</button></div></header>
+    <main>
+      <section className="hero" aria-labelledby="hero-title"><div className="hero-copy"><p className="eyebrow"><span /> Independent developer · India</p><h1 id="hero-title">Making AI feel<br /><em>useful.</em></h1><p className="hero-intro">I&apos;m Kranthi Kiran—an AI and full-stack developer who turns complex systems into products people can actually enjoy using.</p><div className="hero-cta"><a href="#work" className="button button-ink">Explore selected work <ArrowDownRight size={18} /></a><a href="https://github.com/kranthi-06" className="plain-link" target="_blank" rel="noreferrer"><Github size={18} /> GitHub</a></div></div><div className="hero-art" aria-label="Abstract developer portrait"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portrait-card"><div className="portrait-glow" /><div className="portrait-mark">KK</div><div className="portrait-info"><span>Generative AI developer</span><b>Building at the intersection<br />of intelligence &amp; interface.</b></div></div><div className="art-note note-one"><Bot size={15} /> AI-native thinking</div><div className="art-note note-two"><Code2 size={15} /> Product-minded code</div></div><div className="hero-strip"><span>01 / 04</span><div /><span>Available for ambitious teams</span></div></section>
+      <section className="manifesto" id="story"><p className="eyebrow">A little context</p><div className="manifesto-grid"><h2>I like the moment a difficult problem becomes <em>legible.</em></h2><div className="story-copy"><p>It started with the joy of making things work. That curiosity led me from web interfaces to AI systems—and to hackathons, where a rough idea has just hours to prove it deserves to exist.</p><p>Now I build products that bring capable technology closer to people: thoughtful, dependable, and unafraid of a hard technical question.</p><a href="#contact" className="text-arrow">Let&apos;s make something useful <ArrowUpRight size={17} /></a></div></div><div className="proof-row"><div><b>15<span>+</span></b><p>things built<br />and iterated</p></div><div><b>08<span>+</span></b><p>hackathons<br />and sprints</p></div><div><b>30<span>+</span></b><p>tools in a<br />working toolkit</p></div><div className="proof-statement"><Zap size={20} /><p>Move with intention.<br />Learn in public.</p></div></div></section>
+      <section id="work" className="work-section"><div className="section-title"><p className="eyebrow">Selected work / 2024—25</p><h2>Built like a product,<br />not a portfolio piece.</h2></div><div className="project-list">{projects.map(project => <article className={`project ${project.tone}`} key={project.name}><div className="project-index">{project.number}<span>{project.year}</span></div><div className="project-visual"><div className="visual-ui"><div className="ui-top"><i /><i /><i /></div><div className="ui-body"><aside /><main><div /><div /><div /></main></div></div><span className="visual-label">{project.type}</span></div><div className="project-content"><p className="project-kicker">{project.type}</p><h3>{project.name}</h3><p>{project.description}</p><div className="project-meta"><span>{project.detail}</span><div>{project.stack.map(item => <i key={item}>{item}</i>)}</div></div><a href="https://github.com/kranthi-06" target="_blank" rel="noreferrer" className="case-link">Read the build story <ArrowUpRight size={18} /></a></div></article>)}</div></section>
+      <section id="capabilities" className="capabilities"><div className="skills-intro"><p className="eyebrow">Capabilities</p><h2>Equal parts<br /><em>curious &amp; practical.</em></h2><p>I work across the product surface, from a model&apos;s behaviour to the last interaction in its interface.</p></div><div className="skills-lab"><div className="skill-tabs">{(Object.keys(skillSets) as Array<keyof typeof skillSets>).map(item => <button key={item} onClick={() => setSkill(item)} className={item === skill ? "active" : ""}><span>{item === "AI systems" ? "01" : item === "Product web" ? "02" : "03"}</span>{item}<ChevronRight size={16} /></button>)}</div><div className="skills-stage"><p>Working vocabulary / {skill}</p><div className="skill-cloud">{skillSets[skill].map(item => <span key={item}>{item}</span>)}</div><div className="skill-footer"><Layers3 size={19} /><span>Strong foundations, always expanding.</span></div></div></div></section>
+      <section className="trajectory" aria-labelledby="trajectory-title"><div className="trajectory-head"><p className="eyebrow">The trajectory</p><h2 id="trajectory-title">Learning by<br />shipping.</h2></div><div className="timeline">{timeline.map(([date, role, text], index) => <div className="timeline-item" key={date}><span className="dot">0{index + 1}</span><p className="date">{date}</p><h3>{role}</h3><p>{text}</p></div>)}</div><div className="achievement"><div className="medal"><Trophy size={29} /></div><div><p className="eyebrow">A proud moment</p><h3>Hackathons taught me to build under pressure—and to care deeply about the story behind the solution.</h3></div><span>2024—25</span></div><div className="credentials"><p className="eyebrow">Credentials in the toolkit</p><div>{["Deep Learning / Coursera", "AWS Cloud Practitioner", "TensorFlow Developer"].map((credential, index) => <article key={credential}><span>0{index + 1}</span><h3>{credential}</h3><ArrowUpRight size={18} /></article>)}</div></div></section>
+      <section className="github-section"><div><p className="eyebrow">Open source / in progress</p><h2>The workshop is<br /><em>always open.</em></h2><a className="text-arrow" href="https://github.com/kranthi-06" target="_blank" rel="noreferrer">Visit @kranthi-06 <ArrowUpRight size={17} /></a></div><div className="github-card"><div className="github-top"><Github size={22} /><span>GitHub activity</span><i>● live</i></div><div className="contributions">{Array.from({ length: 84 }, (_, i) => <span className={`c${(i * 7 + i % 5) % 5}`} key={i} />)}</div><div className="repo-row"><div><b>LakshyaTrack</b><span>AI-powered goals</span></div><p><i /> TypeScript</p><ArrowUpRight size={18} /></div><div className="repo-row"><div><b>CampusPulse</b><span>Connected campus</span></div><p><i /> JavaScript</p><ArrowUpRight size={18} /></div></div></section>
+      <section id="contact" className="contact-section"><div className="contact-pitch"><p className="eyebrow">Your next idea</p><h2>Worth a<br /><em>conversation?</em></h2><p>Whether it&apos;s an AI concept, a product problem, or a team looking for a builder—I&apos;d love to hear where you&apos;re headed.</p><div className="contact-links"><a href="mailto:kasakk2006@gmail.com"><Mail size={17} /> kasakk2006@gmail.com</a><a href="https://linkedin.com/in/kranthi-06" target="_blank" rel="noreferrer"><Linkedin size={17} /> LinkedIn</a></div></div><form className="contact-form" onSubmit={send}>{submitted ? <div className="sent"><Check size={30} /><h3>Message queued.</h3><p>Thanks for reaching out. I&apos;ll get back to you soon.</p><button type="button" onClick={() => setSubmitted(false)}>Send another</button></div> : <><label>Your name<input required name="name" placeholder="How should I address you?" /></label><label>Email address<input required type="email" name="email" placeholder="you@company.com" /></label><label>What are we thinking about?<textarea required name="message" rows={4} placeholder="A short note is perfect." /></label><button className="button button-ink" type="submit">Send a note <Send size={17} /></button></>}</form></section>
+    </main><footer><Logo /><p>Designed and developed by Kranthi Kiran © 2026</p><a href="#top">Back to top <ArrowUpRight size={15} /></a></footer>
+  </div>;
 }
