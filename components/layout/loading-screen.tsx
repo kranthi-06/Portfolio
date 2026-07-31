@@ -48,7 +48,7 @@ export function LoadingScreen() {
             className="relative mb-8"
           >
             <span className="text-4xl md:text-5xl font-bold font-heading gradient-text">
-              RB
+              KKK
             </span>
             {/* Glow ring */}
             <div className="absolute -inset-4 rounded-full bg-primary/10 blur-xl animate-pulse" />
