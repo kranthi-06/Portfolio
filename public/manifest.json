@@ -1,0 +1,10 @@
+{
+  "name": "Rahul Bariki Portfolio",
+  "short_name": "RB Portfolio",
+  "description": "AI Systems Engineer building intelligent products",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050816",
+  "theme_color": "#6C63FF",
+  "icons": []
+}
