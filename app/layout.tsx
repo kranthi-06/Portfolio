@@ -23,11 +23,11 @@ const inter = Inter({
    SEO Metadata
    ============================================ */
 export const metadata: Metadata = {
-  title: "Rahul Bariki — AI Systems Engineer | Portfolio",
+  title: "Kasa Kranthi Kiran — AI Systems Engineer | Portfolio",
   description:
-    "Rahul Bariki is an AI Systems Engineer building intelligent products, generative systems, and computer vision experiences. Explore projects, skills, and achievements.",
+    "Kasa Kranthi Kiran is an AI Systems Engineer building intelligent products, generative systems, and computer vision experiences. Explore projects, skills, and achievements.",
   keywords: [
-    "Rahul Bariki",
+    "Kasa Kranthi Kiran",
     "AI Engineer",
     "Software Engineer",
     "Full-Stack Developer",
@@ -38,19 +38,19 @@ export const metadata: Metadata = {
     "React",
     "Next.js",
   ],
-  authors: [{ name: "Rahul Bariki" }],
-  creator: "Rahul Bariki",
+  authors: [{ name: "Kasa Kranthi Kiran" }],
+  creator: "Kasa Kranthi Kiran",
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "Rahul Bariki — AI Systems Engineer",
+    title: "Kasa Kranthi Kiran — AI Systems Engineer",
     description:
       "Building intelligent AI products, generative systems, and computer vision experiences.",
-    siteName: "Rahul Bariki Portfolio",
+    siteName: "Kasa Kranthi Kiran Portfolio",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rahul Bariki — AI Systems Engineer",
+    title: "Kasa Kranthi Kiran — AI Systems Engineer",
     description:
       "Building intelligent AI products, generative systems, and computer vision experiences.",
   },

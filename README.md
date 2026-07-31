@@ -1,4 +1,4 @@
-# Portfolio — Rahul Bariki
+# Portfolio — Kasa Kranthi Kiran
 
 A world-class personal portfolio website built with modern technologies and premium design.
 

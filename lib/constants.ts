@@ -19,9 +19,9 @@ import {
    Personal Information
    ============================================ */
 export const personalInfo = {
-  name: "Rahul Bariki",
-  firstName: "Rahul",
-  lastName: "Bariki",
+  name: "Kasa Kranthi Kiran",
+  firstName: "Kasa Kranthi",
+  lastName: "Kiran",
   title: "AI Systems Engineer",
   tagline: "Building intelligent products that shape the future",
   roles: [
@@ -31,7 +31,7 @@ export const personalInfo = {
     "Full-Stack Developer",
     "ML Engineer",
   ],
-  email: "rahulbariki.dev@gmail.com",
+  email: "kasakk2006@gmail.com",
   location: "India",
   availability: "Open to opportunities",
   bio: `I'm a passionate AI Systems Engineer with a deep focus on building intelligent products, generative systems, and computer vision experiences. I transform complex problems into elegant, scalable solutions that make a real impact.`,
@@ -73,22 +73,22 @@ export const navItems = [
 export const socialLinks = [
   {
     name: "GitHub",
-    url: "https://github.com/rahulbariki",
+    url: "https://github.com/kranthi-06",
     icon: Github,
   },
   {
     name: "LinkedIn",
-    url: "https://linkedin.com/in/rahulbariki",
+    url: "https://linkedin.com/in/kranthi-06",
     icon: Linkedin,
   },
   {
     name: "Twitter",
-    url: "https://twitter.com/rahulbariki",
+    url: "https://twitter.com/kranthi06",
     icon: Twitter,
   },
   {
     name: "Email",
-    url: "mailto:rahulbariki.dev@gmail.com",
+    url: "mailto:kasakk2006@gmail.com",
     icon: Mail,
   },
 ];
@@ -319,7 +319,7 @@ export const projects: Project[] = [
       "Tailwind CSS",
       "Chart.js",
     ],
-    githubUrl: "https://github.com/rahulbariki/lakshyatrack",
+    githubUrl: "https://github.com/kranthi-06/lakshyatrack",
     liveUrl: "#",
     image: "/assets/projects/lakshyatrack.png",
     category: "Full-Stack AI",
@@ -367,7 +367,7 @@ export const projects: Project[] = [
       "Firebase",
       "Tailwind CSS",
     ],
-    githubUrl: "https://github.com/rahulbariki/campuspulse",
+    githubUrl: "https://github.com/kranthi-06/campuspulse",
     liveUrl: "#",
     image: "/assets/projects/campuspulse.png",
     category: "Full-Stack Platform",
