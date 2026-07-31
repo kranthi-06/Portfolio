@@ -6,11 +6,11 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", weight: ["400", "500", "600", "700"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Kranthi Kiran — Generative AI Developer",
-  description: "The personal site of Kranthi Kiran, an AI and full-stack developer building useful intelligent products.",
-  keywords: ["Kranthi Kiran", "Generative AI Developer", "Full Stack Developer", "AI Builder", "Software Engineer"],
-  authors: [{ name: "Kranthi Kiran" }],
-  openGraph: { type: "website", locale: "en_IN", title: "Kranthi Kiran — Generative AI Developer", description: "Making AI feel useful." },
+  title: "Kasa Kranthi Kiran — AI Engineer & Product Builder",
+  description: "The personal site of Kasa Kranthi Kiran, building considered AI experiences and full-stack products.",
+  keywords: ["Kasa Kranthi Kiran", "AI Engineer", "Product Builder", "Full Stack Developer", "Software Engineer"],
+  authors: [{ name: "Kasa Kranthi Kiran" }],
+  openGraph: { type: "website", locale: "en_IN", title: "Kasa Kranthi Kiran — AI Engineer & Product Builder", description: "Making AI feel useful." },
   robots: { index: true, follow: true },
 };
 export const viewport: Viewport = { themeColor: "#f6f5f2", width: "device-width", initialScale: 1 };
