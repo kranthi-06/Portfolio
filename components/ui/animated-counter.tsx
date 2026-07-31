@@ -1,78 +1,49 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { motion, useSpring, useTransform } from "framer-motion";
 
-interface AnimatedCounterProps {
+interface CounterProps {
   value: number;
   suffix?: string;
-  prefix?: string;
   duration?: number;
   className?: string;
   label?: string;
 }
 
-/**
- * Number counting animation triggered on scroll
- */
-export function AnimatedCounter({
-  value,
-  suffix = "",
-  prefix = "",
-  duration = 2,
-  className,
-  label,
-}: AnimatedCounterProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
-  const [count, setCount] = useState(0);
+export function AnimatedCounter({ value, suffix = "", duration = 2, className = "", label }: CounterProps) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [started, setStarted] = useState(false);
 
   useEffect(() => {
-    if (!isInView) return;
+    const el = ref.current;
+    if (!el) return;
 
-    let startTime: number;
-    let animationFrame: number;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+  const spring = useSpring(0, { duration: duration * 1000, bounce: 0 });
+  const display = useTransform(spring, (v) => Math.round(v));
 
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * value));
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [isInView, value, duration]);
+  useEffect(() => {
+    if (started) spring.set(value);
+  }, [started, spring, value]);
 
   return (
-    <div ref={ref} className={cn("text-center", className)}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5 }}
-        className="text-3xl sm:text-4xl md:text-5xl font-bold font-heading gradient-text"
-      >
-        {prefix}
-        {count}
-        {suffix}
-      </motion.div>
-      {label && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-2 text-sm text-muted"
-        >
-          {label}
-        </motion.p>
-      )}
-    </div>
+    <span ref={ref} className={className}>
+      <motion.span>{display}</motion.span>
+      {suffix}
+      {label && <span className="sr-only">{label}</span>}
+    </span>
   );
 }

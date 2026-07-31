@@ -1,101 +1,104 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { achievements } from "@/lib/constants";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { GlassCard } from "@/components/ui/glass-card";
+import { Trophy } from "lucide-react";
+import { achievements } from "@/lib/content";
+import { Reveal, StaggerReveal, StaggerItem } from "@/components/ui/reveal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { fadeInUp, staggerContainer } from "@/lib/animations";
-import { hexToRgb } from "@/lib/utils";
 
-/**
- * Achievements section with trophy-themed cards and animated counter
- */
-export function Achievements() {
+export function AchievementsSection() {
   return (
-    <section id="achievements" className="relative section-padding">
-      {/* Background glow */}
-      <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gradient-radial from-yellow-500/5 to-transparent pointer-events-none" />
+    <section id="achievements" className="section" aria-labelledby="achievements-title">
+      <div className="container">
+        <Reveal className="mb-16 max-w-2xl">
+          <p className="eyebrow mb-6">{achievements.eyebrow}</p>
+          <h2 id="achievements-title" className="section-title mb-6">
+            {achievements.title}
+          </h2>
+        </Reveal>
 
-      <div className="container-custom relative z-10">
-        <SectionHeading
-          badge="Achievements"
-          title="Milestones & Wins"
-          subtitle="Hackathons, competitions, and recognitions that fuel my drive to keep building."
-        />
+        <StaggerReveal className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
+          {achievements.stats.map((stat) => (
+            <StaggerItem key={stat.label}>
+              <div
+                className="p-6 md:p-8 rounded-2xl text-center"
+                style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)" }}
+              >
+                <p
+                  className="font-display text-4xl md:text-5xl font-medium tracking-tight mb-2"
+                  style={{ color: "var(--ink)" }}
+                >
+                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--ink-muted)" }}>
+                  {stat.label}
+                </p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerReveal>
 
-        {/* Total counter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="flex justify-center mb-16"
-        >
-          <div className="px-8 py-4 rounded-2xl glass border border-white/5">
-            <AnimatedCounter
-              value={achievements.length}
-              suffix="+"
-              label="Major Achievements"
-            />
-          </div>
-        </motion.div>
-
-        {/* Achievement Cards */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid sm:grid-cols-2 gap-6 max-w-4xl mx-auto"
-        >
-          {achievements.map((achievement, i) => (
-            <motion.div key={i} variants={fadeInUp}>
-              <GlassCard className="p-6 h-full" glowColor={hexToRgb(achievement.color)}>
-                <div className="space-y-4">
-                  {/* Icon and position */}
-                  <div className="flex items-start justify-between">
-                    <div
-                      className="p-3 rounded-xl"
-                      style={{
-                        backgroundColor: `${achievement.color}15`,
-                        border: `1px solid ${achievement.color}25`,
-                      }}
-                    >
-                      <achievement.icon
-                        className="w-6 h-6"
-                        style={{ color: achievement.color }}
-                      />
-                    </div>
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: achievement.color }}
-                    >
-                      {achievement.position}
-                    </span>
+        <StaggerReveal className="grid md:grid-cols-2 gap-6 mb-20">
+          {achievements.awards.map((award) => (
+            <StaggerItem key={award.event}>
+              <article
+                className="group p-8 rounded-3xl h-full transition-all duration-300 hover:shadow-lg"
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
+              >
+                <div className="flex items-start justify-between mb-6">
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                    style={{ background: `${award.accent}20`, color: award.accent }}
+                  >
+                    <Trophy size={20} />
                   </div>
-
-                  {/* Title */}
-                  <div>
-                    <h3 className="text-lg font-bold font-heading text-white">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-sm text-primary mt-1">{achievement.event}</p>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-sm text-muted leading-relaxed">
-                    {achievement.description}
-                  </p>
-
-                  {/* Date */}
-                  <span className="inline-block text-xs text-muted-dark font-mono">
-                    {achievement.date}
+                  <span className="text-[11px] font-semibold" style={{ color: "var(--ink-muted)" }}>
+                    {award.date}
                   </span>
                 </div>
-              </GlassCard>
-            </motion.div>
+                <p
+                  className="font-display text-xl font-medium tracking-tight mb-1"
+                  style={{ color: "var(--ink)" }}
+                >
+                  {award.title}
+                </p>
+                <p className="text-sm font-semibold mb-3" style={{ color: award.accent }}>
+                  {award.event}
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--ink-secondary)" }}>
+                  {award.detail}
+                </p>
+              </article>
+            </StaggerItem>
           ))}
-        </motion.div>
+        </StaggerReveal>
+
+        <Reveal>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] mb-6" style={{ color: "var(--ink-muted)" }}>
+            Certifications
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {achievements.certifications.map((cert) => (
+              <div
+                key={cert.title}
+                className="p-5 rounded-2xl flex items-start gap-4"
+                style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)" }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
+                  style={{ background: "var(--gradient-1)" }}
+                />
+                <div>
+                  <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--ink)" }}>
+                    {cert.title}
+                  </p>
+                  <p className="text-xs" style={{ color: "var(--ink-muted)" }}>
+                    {cert.issuer} · {cert.year}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </div>
     </section>
   );
