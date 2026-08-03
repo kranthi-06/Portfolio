@@ -11,12 +11,12 @@ export type CertificateAsset = {
 
 export const certificateAssets: CertificateAsset[] = [
   {
-    "id": "certificates-certificates-achievements-kasakranthikiran-3024-microsoft-learn-pdf",
+    "id": "certificates-certificates-achievements-kasakranthikiran-3024-microsoft-learn-png",
     "title": "Achievements kasakranthikiran 3024 Microsoft Learn",
     "category": "Certifications",
     "organisation": "Microsoft Learn",
-    "src": "/assets/certificates/CERTIFICATES/Achievements%20-%20kasakranthikiran-3024%20_%20Microsoft%20Learn.pdf",
-    "type": "pdf"
+    "src": "/assets/certificates/CERTIFICATES/Achievements%20-%20kasakranthikiran-3024%20_%20Microsoft%20Learn.png",
+    "type": "image"
   },
   {
     "id": "certificates-certificates-campus-ambassador-kitech-pdf",
