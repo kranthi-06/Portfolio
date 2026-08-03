@@ -298,7 +298,6 @@ export const achievements = {
   stats: [
     { label: "Total commits", value: 470, suffix: "+" },
     { label: "Years building", value: 3, suffix: "+" },
-    { label: "Projects shipped", value: 15, suffix: "+" },
     { label: "Hackathons", value: 8, suffix: "+" },
     { label: "Certifications", value: 30, suffix: "+" },
   ],
