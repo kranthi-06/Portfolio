@@ -34,6 +34,7 @@ export const nav = [
   { label: "Products", href: "#products" },
   { label: "Playground", href: "#playground" },
   { label: "Achievements", href: "#achievements" },
+  { label: "Credentials", href: "#certifications" },
   { label: "GitHub", href: "#github" },
   { label: "Next", href: "#next" },
   { label: "Collaborate", href: "#collaborate" },

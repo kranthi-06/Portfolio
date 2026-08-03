@@ -10,6 +10,7 @@ import { JourneySection } from "@/components/sections/journey";
 import { ProductsSection } from "@/components/sections/products";
 import { PlaygroundSection } from "@/components/sections/playground";
 import { AchievementsSection } from "@/components/sections/achievements";
+import { CertificationsSection } from "@/components/sections/certifications";
 import { GitHubSection } from "@/components/sections/github-dashboard";
 import { WhatsNextSection } from "@/components/sections/whats-next";
 import { CollaborateSection } from "@/components/sections/collaborate";
@@ -27,6 +28,7 @@ export default function Home() {
           <ProductsSection />
           <PlaygroundSection />
           <AchievementsSection />
+          <CertificationsSection />
           <GitHubSection />
           <WhatsNextSection />
           <CollaborateSection />
