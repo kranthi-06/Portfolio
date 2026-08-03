@@ -8,7 +8,7 @@ export type ThemeId = "pearl" | "midnight" | "aurora";
 export const personal = {
   name: "Kasa Kranthi Kiran",
   shortName: "Kranthi",
-  initials: "kk",
+  initials: "KKK",
   title: "AI Systems Engineer",
   headline: "Building intelligence people actually want to use.",
   subheadline:
@@ -70,9 +70,9 @@ export const philosophy = {
 
 export const journey = [
   {
-    year: "2022",
+    year: "2023",
     phase: "Foundation",
-    title: "B.Tech — Computer Science & Engineering",
+    title: "B.Tech — Computer Science & Engineering (AI & ML)",
     org: "Engineering College, India",
     detail:
       "Started formal training in algorithms, systems, and software engineering. Coursework in ML, AI, computer vision, and databases.",
@@ -99,8 +99,8 @@ export const journey = [
   {
     year: "2025",
     phase: "Internships",
-    title: "AI Engineer Intern",
-    org: "Tech startup · Remote",
+    title: "Software Engineer Intern",
+    org: "YugaYatra · Remote",
     detail:
       "Building intelligent products — computer vision pipelines, LLM applications, and RAG-based systems for real-world problems.",
     tags: ["PyTorch", "LangChain", "FastAPI", "OpenCV"],
@@ -108,8 +108,8 @@ export const journey = [
   {
     year: "2025",
     phase: "Internships",
-    title: "Full-Stack Developer Intern",
-    org: "Digital agency · Hybrid",
+    title: "Generative AI Intern",
+    org: "Codetantra · Offline",
     detail:
       "Shipped modern web applications with React and Node.js. Improved performance, CI/CD, and collaborated across design and engineering.",
     tags: ["React", "Node.js", "MongoDB", "TypeScript"],
@@ -265,7 +265,7 @@ export const playground = {
       id: "backend",
       label: "Backend",
       icon: "server",
-      tools: ["Node.js", "Express.js", "FastAPI", "Django", "MongoDB", "PostgreSQL"],
+      tools: ["Node.js", "Express.js", "FastAPI", "Django", "MongoDB", "PostgreSQL", "Supabase"],
       color: "#a855f7",
     },
     {
@@ -279,7 +279,7 @@ export const playground = {
       id: "cloud",
       label: "Cloud",
       icon: "cloud",
-      tools: ["AWS", "Vercel", "Firebase", "Redis"],
+      tools: ["AWS", "Vercel", "Firebase", "Atlas"],
       color: "#10b981",
     },
   ],
@@ -287,6 +287,8 @@ export const playground = {
     "React", "Next.js", "TypeScript", "Python", "TensorFlow", "PyTorch",
     "Node.js", "MongoDB", "PostgreSQL", "Docker", "AWS", "Tailwind CSS",
     "OpenCV", "LangChain", "FastAPI", "Redis", "Git", "Figma", "Vercel",
+    "Framer Motion", "Supabase", "Linux", "Scikit-learn", "Hugging Face",
+    "HTML/CSS", "Express.js", "Django", "Firebase", "Atlas",
   ],
 };
 

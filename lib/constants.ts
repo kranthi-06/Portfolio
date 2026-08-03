@@ -215,8 +215,8 @@ export interface Experience {
 
 export const experiences: Experience[] = [
   {
-    title: "AI Engineer Intern",
-    company: "Tech Startup",
+    title: "Software Engineer Intern",
+    company: "YugaYatra",
     location: "Remote",
     type: "Internship",
     startDate: "Jun 2025",
@@ -240,9 +240,9 @@ export const experiences: Experience[] = [
     ],
   },
   {
-    title: "Full-Stack Developer Intern",
-    company: "Digital Agency",
-    location: "Hybrid",
+    title: "Generative AI Intern",
+    company: "Codetantra",
+    location: "Offline",
     type: "Internship",
     startDate: "Jan 2025",
     endDate: "May 2025",
@@ -533,6 +533,10 @@ export const techMarqueeItems = [
   "PyTorch", "Node.js", "MongoDB", "PostgreSQL", "Docker",
   "AWS", "Tailwind CSS", "Three.js", "OpenCV", "LangChain",
   "FastAPI", "Redis", "Git", "Figma", "Vercel",
+  "Framer Motion", "Supabase", "Linux", "Scikit-learn", "Hugging Face",
+  "HTML/CSS", "Express.js", "Django", "Firebase", "Atlas",
+  "AI", "ML", "NLP", "CV", "RAG", "LLM", "GANs", "RL",
+  "Data Science", "Cloud Computing", "DevOps", "Agile", "Scrum"," Microservices", "REST APIs", "CI/CD",
 ];
 
 /* ============================================
