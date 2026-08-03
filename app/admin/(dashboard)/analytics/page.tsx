@@ -22,7 +22,10 @@ export default function AnalyticsPage() {
     async function fetchAnalytics() {
       try {
         const res = await fetch("/api/admin/analytics");
-        if (res.ok) setData(await res.json());
+        if (res.ok) {
+          const { data } = await res.json();
+          setData(data);
+        }
       } catch { /* silently handle */ }
       finally { setLoading(false); }
     }

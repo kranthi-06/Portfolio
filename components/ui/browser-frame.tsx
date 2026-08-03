@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ExternalLink, Lock, RefreshCw, Shield, Sparkles } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface BrowserFrameProps {
@@ -137,11 +138,12 @@ export function BrowserFrame({
       {/* Main Preview Container */}
       <div className={cn("relative w-full overflow-hidden bg-zinc-900", aspectRatio)}>
         <div className="relative w-full h-full overflow-hidden">
-          <img
+          <Image
             src={image}
             alt={`${title} real web application showcase`}
-            className="w-full h-full object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
-            loading="lazy"
+            fill
+            className="object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
 

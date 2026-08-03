@@ -1,33 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
 
-export async function GET() {
+export const GET = withApiAuth(async () => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { data, error } = await supabase.from("messages").select("*").order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
-}
+  if (error) throw error;
+  return apiSuccess(data);
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id, ...updates } = await request.json();
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+  if (!id) return apiError(new Error("ID required"), 400);
   const { data, error } = await supabase.from("messages").update(updates).eq("id", id).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
-}
+  if (error) throw error;
+  return apiSuccess(data);
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+  if (!id) return apiError(new Error("ID required"), 400);
   const { error } = await supabase.from("messages").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
-}
+  if (error) throw error;
+  return apiSuccess(null, "Message deleted successfully");
+});

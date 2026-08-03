@@ -69,8 +69,8 @@ export default function AdminDashboardPage() {
       try {
         const res = await fetch("/api/admin/dashboard");
         if (res.ok) {
-          const json = await res.json();
-          setData(json);
+          const { data } = await res.json();
+          setData(data);
         }
       } catch {
         // Silently handle — dashboard will show zeros

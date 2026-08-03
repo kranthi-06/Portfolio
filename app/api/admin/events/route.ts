@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
+import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { eventSchema } from "@/lib/server/validations";
 
-export async function GET(request: NextRequest) {
+export const GET = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
 
@@ -14,20 +13,19 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq("status", status);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
-}
+  if (error) throw error;
+  return apiSuccess(data);
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rawBody = await request.json();
+  const { images, ...eventData } = rawBody;
+  
+  const body = eventSchema.parse(eventData);
 
-  const body = await request.json();
-  const { images, ...eventData } = body;
-
-  const { data, error } = await supabase.from("events").insert(eventData).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { data, error } = await supabase.from("events").insert(body).select().single();
+  if (error) throw error;
 
   // Insert images if provided
   if (images?.length) {
@@ -43,19 +41,19 @@ export async function POST(request: NextRequest) {
   }
 
   await logActivity({ action: "create", entityType: "event", entityId: data.id, entityTitle: data.name });
-  return NextResponse.json({ data });
-}
+  return apiSuccess(data, "Event created successfully", 201);
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rawBody = await request.json();
+  const { id, images, ...updates } = rawBody;
+  
+  if (!id) return apiError(new Error("ID required"), 400);
+  const body = eventSchema.partial().parse(updates);
 
-  const { id, images, ...updates } = await request.json();
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
-
-  const { data, error } = await supabase.from("events").update(updates).eq("id", id).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const { data, error } = await supabase.from("events").update(body).eq("id", id).select().single();
+  if (error) throw error;
 
   // Replace images if provided
   if (images) {
@@ -73,23 +71,20 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  const action = updates.status === "published" ? "publish" : updates.status === "archived" ? "archive" : "update";
+  const action = body.status === "published" ? "publish" : body.status === "archived" ? "archive" : "update";
   await logActivity({ action, entityType: "event", entityId: data.id, entityTitle: data.name });
-  return NextResponse.json({ data });
-}
+  return apiSuccess(data, "Event updated successfully");
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+  if (!id) return apiError(new Error("ID required"), 400);
 
   const { data: ev } = await supabase.from("events").select("name").eq("id", id).single();
   const { error } = await supabase.from("events").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
 
   await logActivity({ action: "delete", entityType: "event", entityId: id, entityTitle: ev?.name });
-  return NextResponse.json({ success: true });
-}
+  return apiSuccess(null, "Event deleted successfully");
+});

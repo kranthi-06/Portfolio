@@ -27,8 +27,8 @@ export default function AIAssistantPage() {
         body: JSON.stringify({ text: input, action: selectedAction, context: "portfolio content" }),
       });
       if (!res.ok) throw new Error();
-      const { result } = await res.json();
-      setOutput(result);
+      const { data } = await res.json();
+      setOutput(data.result);
       toast.success("AI response generated!");
     } catch { toast.error("AI generation failed"); }
     finally { setLoading(false); }

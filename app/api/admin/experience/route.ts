@@ -1,47 +1,51 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
+import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { experienceSchema } from "@/lib/server/validations";
 
-export async function GET() {
+export const GET = withApiAuth(async () => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { data, error } = await supabase.from("experience").select("*").order("sort_order");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
-}
+  if (error) throw error;
+  return apiSuccess(data);
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await request.json();
+  const rawBody = await request.json();
+  const body = experienceSchema.parse(rawBody);
+  
   const { data, error } = await supabase.from("experience").insert(body).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
+  
   await logActivity({ action: "create", entityType: "experience", entityId: data.id, entityTitle: data.title });
-  return NextResponse.json({ data });
-}
+  return apiSuccess(data, "Experience created successfully", 201);
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id, ...updates } = await request.json();
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
-  const { data, error } = await supabase.from("experience").update(updates).eq("id", id).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  const rawBody = await request.json();
+  const { id, ...updates } = rawBody;
+  
+  if (!id) return apiError(new Error("ID required"), 400);
+  const body = experienceSchema.partial().parse(updates);
+  
+  const { data, error } = await supabase.from("experience").update(body).eq("id", id).select().single();
+  if (error) throw error;
+  
   await logActivity({ action: "update", entityType: "experience", entityId: data.id, entityTitle: data.title });
-  return NextResponse.json({ data });
-}
+  return apiSuccess(data, "Experience updated successfully");
+});
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = new URL(request.url).searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+  if (!id) return apiError(new Error("ID required"), 400);
+  
   const { error } = await supabase.from("experience").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
+  
   await logActivity({ action: "delete", entityType: "experience", entityId: id });
-  return NextResponse.json({ success: true });
-}
+  return apiSuccess(null, "Experience deleted successfully");
+});

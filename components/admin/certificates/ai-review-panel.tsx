@@ -42,8 +42,8 @@ export function AIReviewPanel({
         body: JSON.stringify({ text, action: "improve", context: "certificate metadata" }),
       });
       if (!res.ok) throw new Error();
-      const { result } = await res.json();
-      updateField(field as keyof CertificateAnalysis, result);
+      const { data } = await res.json();
+      updateField(field as keyof CertificateAnalysis, data.result);
       toast.success(`${field} improved by AI`);
     } catch {
       toast.error("AI improvement failed");

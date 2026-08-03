@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageIcon, Plus, Trash2, Globe, Pencil, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { GALLERY_ALBUMS } from "@/lib/admin/constants";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
@@ -89,8 +90,8 @@ export default function GalleryPage() {
             {items.map((item, i) => (
               <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}
                 className="relative group rounded-xl overflow-hidden cursor-pointer" style={{ background: "var(--admin-bg-subtle)" }}>
-                <div className="aspect-square">
-                  <img src={item.image_url} alt={item.caption || item.title || ""} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" onClick={() => setLightbox(item.image_url)} />
+                <div className="relative aspect-square">
+                  <Image src={item.image_url} alt={item.caption || item.title || ""} fill className="object-cover transition-transform duration-300 group-hover:scale-105" onClick={() => setLightbox(item.image_url)} sizes="(max-width: 768px) 50vw, 25vw" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <div className="absolute bottom-0 left-0 right-0 p-3">

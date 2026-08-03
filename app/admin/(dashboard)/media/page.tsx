@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ImagePlus, Trash2, Search, ExternalLink, Copy, FileText, ImageIcon, Film } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { formatFileSize } from "@/lib/admin/constants";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
@@ -23,15 +24,15 @@ export default function MediaPage() {
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  async function fetchMedia() {
+  const fetchMedia = useCallback(async () => {
     try {
       const params = search ? `?search=${encodeURIComponent(search)}` : "";
       const res = await fetch(`/api/admin/media${params}`);
       if (res.ok) { const { data } = await res.json(); setItems(data || []); }
     } catch { toast.error("Failed to load"); } finally { setLoading(false); }
-  }
+  }, [search]);
 
-  useEffect(() => { fetchMedia(); }, [search]);
+  useEffect(() => { fetchMedia(); }, [fetchMedia]);
 
   async function handleUploadComplete(result: { url: string; fileName: string; fileSize: number; fileType: string; path: string }) {
     try {
@@ -89,9 +90,9 @@ export default function MediaPage() {
           {items.map((item, i) => (
             <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}
               className="admin-card group rounded-xl overflow-hidden">
-              <div className="aspect-square flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
+              <div className="relative aspect-square flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
                 {item.file_type.startsWith("image/") ? (
-                  <img src={item.file_url} alt={item.original_name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <Image src={item.file_url} alt={item.original_name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 50vw, 25vw" />
                 ) : (
                   <div className="flex flex-col items-center gap-2" style={{ color: "var(--admin-ink-muted)" }}>
                     {getIcon(item.file_type)}

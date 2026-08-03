@@ -7,6 +7,7 @@ import {
   MoreHorizontal, Eye, Pencil, Trash2, Globe, Archive,
   FileText, ImageIcon, Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -97,8 +98,8 @@ export default function CertificatesPage() {
       });
 
       if (!res.ok) throw new Error("Analysis failed");
-      const { analysis } = await res.json();
-      setAiAnalysis(analysis);
+      const { data } = await res.json();
+      setAiAnalysis(data.analysis);
       setStep("reviewing");
       toast.success("AI analysis complete!");
     } catch {
@@ -303,10 +304,12 @@ export default function CertificatesPage() {
                   {cert.file_type?.includes("pdf") ? (
                     <FileText size={32} style={{ color: "var(--admin-ink-muted)" }} />
                   ) : (
-                    <img
+                    <Image
                       src={cert.file_url}
                       alt={cert.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   )}
                   {cert.ai_generated && (

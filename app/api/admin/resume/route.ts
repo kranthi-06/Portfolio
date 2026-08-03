@@ -1,22 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
+import { apiSuccess, withApiAuth } from "@/lib/server/api-utils";
+import { resumeSchema } from "@/lib/server/validations";
 
-export async function GET() {
+export const GET = withApiAuth(async () => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { data, error } = await supabase.from("resume").select("*").order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
-}
+  if (error) throw error;
+  return apiSuccess(data);
+});
 
-export async function POST(request: NextRequest) {
+export const POST = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const body = await request.json();
+  const rawBody = await request.json();
+  const body = resumeSchema.parse(rawBody);
 
   // Deactivate all existing resumes
   await supabase.from("resume").update({ is_active: false }).neq("id", "00000000-0000-0000-0000-000000000000");
@@ -33,7 +31,8 @@ export async function POST(request: NextRequest) {
     is_active: true,
   }).select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
+  
   await logActivity({ action: "upload", entityType: "resume", entityId: data.id, entityTitle: `Resume v${version}` });
-  return NextResponse.json({ data });
-}
+  return apiSuccess(data, "Resume uploaded successfully", 201);
+});

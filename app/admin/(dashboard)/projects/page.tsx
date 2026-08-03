@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FolderKanban, Plus, Search, Trash2, Globe, Pencil, Archive, ExternalLink, Github, Loader2, X } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
 import { EmptyState } from "@/components/admin/ui/empty-state";
@@ -135,8 +136,8 @@ export default function ProjectsPage() {
           <AnimatePresence>
             {projects.map((proj, i) => (
               <motion.div key={proj.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="admin-card group">
-                <div className="h-36 flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
-                  {proj.image_url ? <img src={proj.image_url} alt={proj.title} className="w-full h-full object-cover" /> : <FolderKanban size={32} style={{ color: "var(--admin-ink-muted)" }} />}
+                <div className="relative h-36 flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
+                  {proj.image_url ? <Image src={proj.image_url} alt={proj.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" /> : <FolderKanban size={32} style={{ color: "var(--admin-ink-muted)" }} />}
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -198,7 +199,7 @@ export default function ProjectsPage() {
             <label className="admin-label">Project Image</label>
             {editing.image_url ? (
               <div className="relative rounded-xl overflow-hidden h-40 mb-2" style={{ background: "var(--admin-bg-subtle)" }}>
-                <img src={editing.image_url} alt="" className="w-full h-full object-cover" />
+                <Image src={editing.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
                 <button onClick={() => setEditing(p => ({ ...p, image_url: "" }))} className="absolute top-2 right-2 admin-icon-btn" style={{ background: "var(--admin-glass)" }}><X size={14} /></button>
               </div>
             ) : (

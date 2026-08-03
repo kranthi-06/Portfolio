@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, Search, Trash2, Globe, Pencil, Loader2, X, ImageIcon, MapPin } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
 import { EmptyState } from "@/components/admin/ui/empty-state";
@@ -95,8 +96,8 @@ export default function EventsPage() {
           <AnimatePresence>
             {events.map((ev, i) => (
               <motion.div key={ev.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="admin-card">
-                <div className="h-32 flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
-                  {ev.cover_image_url ? <img src={ev.cover_image_url} alt={ev.name} className="w-full h-full object-cover" /> : <CalendarDays size={28} style={{ color: "var(--admin-ink-muted)" }} />}
+                <div className="relative h-32 flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
+                  {ev.cover_image_url ? <Image src={ev.cover_image_url} alt={ev.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" /> : <CalendarDays size={28} style={{ color: "var(--admin-ink-muted)" }} />}
                   {ev.event_images?.length > 0 && (
                     <span className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold" style={{ background: "var(--admin-glass)", backdropFilter: "blur(8px)" }}>
                       <ImageIcon size={10} /> {ev.event_images.length}
@@ -145,7 +146,7 @@ export default function EventsPage() {
             <label className="admin-label">Cover Image</label>
             {editing.cover_image_url ? (
               <div className="relative rounded-xl overflow-hidden h-32 mb-2" style={{ background: "var(--admin-bg-subtle)" }}>
-                <img src={editing.cover_image_url} alt="" className="w-full h-full object-cover" />
+                <Image src={editing.cover_image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
                 <button onClick={() => setEditing(p => ({ ...p, cover_image_url: "" }))} className="absolute top-2 right-2 admin-icon-btn" style={{ background: "var(--admin-glass)" }}><X size={14} /></button>
               </div>
             ) : <UploadZone bucket="events" folder="covers" onUploadComplete={r => setEditing(p => ({ ...p, cover_image_url: r.url }))} accept={["image/png","image/jpeg","image/webp"]} maxSize={10485760} label="Upload cover image" />}
@@ -155,7 +156,7 @@ export default function EventsPage() {
             <div className="grid grid-cols-4 gap-2 mb-2">
               {(editing.images || []).map((img, i) => (
                 <div key={i} className="relative rounded-lg overflow-hidden h-20" style={{ background: "var(--admin-bg-subtle)" }}>
-                  <img src={img.image_url} alt="" className="w-full h-full object-cover" />
+                  <Image src={img.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
                   <button onClick={() => setEditing(p => ({ ...p, images: (p.images || []).filter((_, idx) => idx !== i) }))} className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.6)", color: "white" }}><X size={10} /></button>
                 </div>
               ))}

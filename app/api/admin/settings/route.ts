@@ -1,27 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
+import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { settingsSchema } from "@/lib/server/validations";
 
-export async function GET() {
+export const GET = withApiAuth(async () => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { data, error } = await supabase.from("settings").select("*");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
+  
   const settings: Record<string, unknown> = {};
   for (const row of data || []) settings[row.key] = row.value;
-  return NextResponse.json({ data: settings });
-}
+  return apiSuccess(settings);
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await request.json();
-  const { key, value } = body;
-  if (!key) return NextResponse.json({ error: "Key required" }, { status: 400 });
+  const rawBody = await request.json();
+  const { key, value } = settingsSchema.parse(rawBody);
+  
   const { error } = await supabase.from("settings").upsert({ key, value }, { onConflict: "key" });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) throw error;
+  
   await logActivity({ action: "settings_update", entityType: "settings", entityTitle: key });
-  return NextResponse.json({ success: true });
-}
+  return apiSuccess(null, "Settings updated successfully");
+});
