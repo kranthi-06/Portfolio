@@ -350,6 +350,14 @@ body {
 .certificate-icon-button:hover,
 .certificate-nav-button:hover { transform: translateY(-1px); background: var(--accent); color: var(--accent-fg); }
 
+.certificate-pdf-preview .react-pdf__Document,
+.certificate-pdf-preview .react-pdf__Page,
+.certificate-pdf-preview .react-pdf__Page__canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.certificate-pdf-preview .react-pdf__Page__canvas { display: block; object-fit: cover; }
+
 /* ---- Reduced motion ---- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
