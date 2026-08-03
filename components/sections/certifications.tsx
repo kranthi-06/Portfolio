@@ -23,7 +23,15 @@ export function CertificationsSection() {
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, search]);
-  const selectedIndex = selectedCertificate ? visibleCertificates.findIndex((certificate) => certificate.id === selectedCertificate.id) : null;
+  const imageCertificates = useMemo(() => visibleCertificates.filter((certificate) => certificate.type === "image"), [visibleCertificates]);
+  const selectedIndex = selectedCertificate ? imageCertificates.findIndex((certificate) => certificate.id === selectedCertificate.id) : null;
+  const handleView = (certificate: CertificateAsset) => {
+    if (certificate.type === "pdf") {
+      window.open(certificate.src, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setSelectedCertificate(certificate);
+  };
 
   return (
     <section id="certifications" className="section overflow-hidden" aria-labelledby="certifications-title">
@@ -45,9 +53,9 @@ export function CertificationsSection() {
           <label className="relative block w-full lg:w-64"><span className="sr-only">Search certificates</span><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-muted)" }} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search credentials" className="w-full rounded-xl py-2.5 pl-9 pr-3 text-sm outline-none transition-shadow focus:ring-2" style={{ background: "var(--bg-subtle)", color: "var(--ink)", border: "1px solid var(--line)", ['--tw-ring-color' as string]: "var(--line-strong)" }} /></label>
         </div>
 
-        <CertificateGrid certificates={visibleCertificates} onView={setSelectedCertificate} />
+        <CertificateGrid certificates={visibleCertificates} onView={handleView} />
       </div>
-      <CertificateModal certificates={visibleCertificates} activeIndex={selectedIndex !== null && selectedIndex >= 0 ? selectedIndex : null} onClose={() => setSelectedCertificate(null)} onChange={(index) => setSelectedCertificate(visibleCertificates[index] ?? null)} />
+      <CertificateModal certificates={imageCertificates} activeIndex={selectedIndex !== null && selectedIndex >= 0 ? selectedIndex : null} onClose={() => setSelectedCertificate(null)} onChange={(index) => setSelectedCertificate(imageCertificates[index] ?? null)} />
     </section>
   );
 }

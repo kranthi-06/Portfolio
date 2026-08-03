@@ -12,7 +12,6 @@ interface BrowserFrameProps {
   accent?: "violet" | "ocean" | "ember" | string;
   className?: string;
   aspectRatio?: string;
-  showLiveIframe?: boolean;
 }
 
 export function BrowserFrame({
@@ -22,10 +21,7 @@ export function BrowserFrame({
   accent = "violet",
   className,
   aspectRatio = "aspect-[16/10]",
-  showLiveIframe = false,
 }: BrowserFrameProps) {
-  const [iframeFailed, setIframeFailed] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -140,39 +136,14 @@ export function BrowserFrame({
 
       {/* Main Preview Container */}
       <div className={cn("relative w-full overflow-hidden bg-zinc-900", aspectRatio)}>
-        {/* Optional Live Iframe (if enabled and not failed) */}
-        {showLiveIframe && !iframeFailed ? (
-          <div className="absolute inset-0 w-full h-full">
-            <iframe
-              src={url}
-              title={title}
-              onLoad={() => setIframeLoaded(true)}
-              onError={() => setIframeFailed(true)}
-              className={cn(
-                "w-full h-full border-0 pointer-events-none scale-100 transition-opacity duration-500",
-                iframeLoaded ? "opacity-100" : "opacity-0"
-              )}
-              sandbox="allow-scripts allow-same-origin"
-            />
-            {!iframeLoaded && (
-              <img
-                src={image}
-                alt={`${title} live application interface screenshot`}
-                className="w-full h-full object-cover object-top"
-              />
-            )}
-          </div>
-        ) : (
-          /* High Quality Real App Screenshot */
-          <div className="relative w-full h-full overflow-hidden">
-            <img
-              src={image}
-              alt={`${title} real web application showcase`}
-              className="w-full h-full object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
-              loading="lazy"
-            />
-          </div>
-        )}
+        <div className="relative w-full h-full overflow-hidden">
+          <img
+            src={image}
+            alt={`${title} real web application showcase`}
+            className="w-full h-full object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            loading="lazy"
+          />
+        </div>
 
         {/* Glass reflection / Sheen effect on hover */}
         <motion.div

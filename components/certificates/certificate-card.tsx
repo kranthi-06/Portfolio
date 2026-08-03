@@ -1,12 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Award, Eye, FileText } from "lucide-react";
 import type { CertificateAsset } from "@/lib/generated-certificates";
 
 export function CertificateCard({ certificate, onView }: { certificate: CertificateAsset; onView: () => void }) {
   const isPdf = certificate.type === "pdf";
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <motion.article
@@ -24,17 +26,13 @@ export function CertificateCard({ certificate, onView }: { certificate: Certific
         className="relative block aspect-[1.42/1] w-full overflow-hidden text-left focus:outline-none"
         aria-label={`View ${certificate.title}`}
       >
-        {isPdf ? (
-          <div className="absolute inset-0 bg-[var(--bg-subtle)] p-3">
-            <object data={certificate.src} type="application/pdf" className="h-full w-full rounded-lg pointer-events-none" aria-label={`${certificate.title} PDF preview`}>
-              <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg" style={{ background: "var(--accent-soft)", color: "var(--ink-secondary)" }}>
-                <FileText size={28} />
-                <span className="text-xs font-semibold">PDF certificate</span>
-              </div>
-            </object>
+        {isPdf || imageFailed ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4" style={{ background: "var(--bg-subtle)", color: "var(--ink-secondary)" }}>
+            <FileText size={30} style={{ color: "var(--gradient-1)" }} />
+            <span className="text-center text-xs font-semibold">{isPdf ? "PDF certificate · opens in new tab" : "Unable to load certificate."}</span>
           </div>
         ) : (
-          <Image src={certificate.src} alt={`Preview of ${certificate.title}`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]" />
+          <Image src={certificate.src} alt={`Preview of ${certificate.title}`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]" onError={() => setImageFailed(true)} />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] opacity-0 transition-all duration-300 group-hover:opacity-100" style={{ background: "rgba(10,10,10,0.72)", color: "white", backdropFilter: "blur(12px)" }}>
