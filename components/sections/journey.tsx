@@ -46,7 +46,7 @@ export function JourneySection() {
           <div className="space-y-0">
             {journey.map((item, i) => (
               <Reveal key={`${item.year}-${item.title}`} delay={i * 0.05}>
-                <article className="relative pl-16 md:pl-20 pb-16 last:pb-0">
+                <article className="relative pl-16 md:pl-20 pb-21 last:pb-0">
                   <div
                     className="absolute left-[18px] md:left-[18px] top-2 w-3 h-3 rounded-full z-10"
                     style={{
