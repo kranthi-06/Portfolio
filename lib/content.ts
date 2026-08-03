@@ -296,10 +296,11 @@ export const achievements = {
   eyebrow: "Achievements",
   title: "Milestones along the way.",
   stats: [
-    { label: "Years building", value: 2, suffix: "+" },
+    { label: "Total commits", value: 470, suffix: "+" },
+    { label: "Years building", value: 3, suffix: "+" },
     { label: "Projects shipped", value: 15, suffix: "+" },
     { label: "Hackathons", value: 8, suffix: "+" },
-    { label: "Technologies", value: 30, suffix: "+" },
+    { label: "Certifications", value: 30, suffix: "+" },
   ],
   awards: [
     {
