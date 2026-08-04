@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { ThemeId } from "@/lib/content";
+export type ThemeId = "pearl" | "midnight";
 
-const THEMES: ThemeId[] = ["pearl", "midnight", "aurora"];
+const THEMES: ThemeId[] = ["pearl", "midnight"];
 const STORAGE_KEY = "kk-theme";
 
 interface ThemeContextValue {
@@ -34,7 +34,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <div className="portfolio" data-theme={mounted ? theme : "pearl"}>
-        <div className="aurora-bg" aria-hidden="true" />
         {children}
       </div>
     </ThemeContext.Provider>

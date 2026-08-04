@@ -9,6 +9,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: "var(--bg)",
+        "background-elevated": "var(--bg-elevated)",
+        "background-subtle": "var(--bg-subtle)",
+        ink: {
+          DEFAULT: "var(--ink)",
+          secondary: "var(--ink-secondary)",
+          muted: "var(--ink-muted)",
+        },
+        line: {
+          DEFAULT: "var(--line)",
+          strong: "var(--line-strong)",
+        },
+        gradient: {
+          1: "var(--gradient-1)",
+          2: "var(--gradient-2)",
+          3: "var(--gradient-3)",
+        },
         primary: {
           DEFAULT: "#6C63FF",
           50: "#F0EFFF",
@@ -47,21 +64,6 @@ const config: Config = {
           700: "#6B21A8",
           800: "#581C87",
           900: "#3B0764",
-        },
-        background: {
-          DEFAULT: "#050816",
-          light: "#0A0F25",
-          lighter: "#101835",
-        },
-        card: {
-          DEFAULT: "#0F172A",
-          hover: "#1E293B",
-          border: "#1E293B",
-        },
-        muted: {
-          DEFAULT: "#94A3B8",
-          dark: "#64748B",
-          light: "#CBD5E1",
         },
       },
       fontFamily: {

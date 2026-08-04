@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "certificates:generate": "node scripts/generate-certificates.mjs",
-    "predev": "npm run certificates:generate",
-    "prebuild": "npm run certificates:generate",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
