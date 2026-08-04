@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
+import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";
 
 interface Project {
   id: string;
@@ -175,10 +176,10 @@ export default function ProjectsPage() {
         </>}
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-          <div className="admin-field"><label className="admin-label">Title *</label><input className="admin-input" value={editing.title} onChange={e => setEditing(p => ({ ...p, title: e.target.value }))} /></div>
-          <div className="admin-field"><label className="admin-label">Subtitle</label><input className="admin-input" value={editing.subtitle} onChange={e => setEditing(p => ({ ...p, subtitle: e.target.value }))} /></div>
-          <div className="admin-field"><label className="admin-label">Description</label><textarea className="admin-input admin-textarea" value={editing.description} onChange={e => setEditing(p => ({ ...p, description: e.target.value }))} /></div>
-          <div className="admin-field"><label className="admin-label">Category</label><input className="admin-input" value={editing.category} onChange={e => setEditing(p => ({ ...p, category: e.target.value }))} placeholder="e.g. Full-Stack AI" /></div>
+          <AIAssistantField label="Title *" value={editing.title} onChange={v => setEditing(p => ({ ...p, title: v }))} contextType="project title" />
+          <AIAssistantField label="Subtitle" value={editing.subtitle} onChange={v => setEditing(p => ({ ...p, subtitle: v }))} contextType="project subtitle" />
+          <AIAssistantField label="Description" multiline value={editing.description} onChange={v => setEditing(p => ({ ...p, description: v }))} contextType="project description" />
+          <AIAssistantField label="Category" value={editing.category} onChange={v => setEditing(p => ({ ...p, category: v }))} placeholder="e.g. Full-Stack AI" contextType="project category" />
           <div className="grid grid-cols-2 gap-4">
             <div className="admin-field"><label className="admin-label">GitHub URL</label><input className="admin-input" value={editing.github_url} onChange={e => setEditing(p => ({ ...p, github_url: e.target.value }))} /></div>
             <div className="admin-field"><label className="admin-label">Live URL</label><input className="admin-input" value={editing.live_url} onChange={e => setEditing(p => ({ ...p, live_url: e.target.value }))} /></div>

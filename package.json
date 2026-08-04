@@ -18,6 +18,7 @@
     "@supabase/supabase-js": "^2.112.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
+    "diff": "^9.0.0",
     "framer-motion": "^11.15.0",
     "lenis": "^1.1.0",
     "lucide-react": "^0.468.0",
@@ -33,6 +34,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/diff": "^7.0.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
