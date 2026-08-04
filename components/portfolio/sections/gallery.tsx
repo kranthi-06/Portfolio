@@ -12,16 +12,23 @@ export function Gallery({ items }: { items: GalleryItem[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeAlbum, setActiveAlbum] = useState("All");
 
-  const albums = ["All", ...Array.from(new Set(items.map((item) => item.album)))];
-  const visibleItems = activeAlbum === "All" ? items : items.filter((item) => item.album === activeAlbum);
+  const albums = [
+    "All",
+    ...Array.from(new Set(items.map((item) => item.album))),
+  ];
+  const visibleItems =
+    activeAlbum === "All"
+      ? items
+      : items.filter((item) => item.album === activeAlbum);
 
   return (
-    <section id="gallery" className="relative py-24 md:py-32 bg-background-subtle">
-      <div className="w-[min(1180px,calc(100%-40px))] mx-auto relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 md:mb-20">
-          <SectionHeading 
-            eyebrow="Gallery" 
-            title="Moments from the journey." 
+    <section id="gallery" className="relative py-[var(--section-gap)]">
+      <div className="container-narrow relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14 md:mb-20">
+          <SectionHeading
+            number="08"
+            eyebrow="Gallery"
+            title="Moments captured."
             className="mb-0 md:mb-0"
           />
 
@@ -32,10 +39,10 @@ export function Gallery({ items }: { items: GalleryItem[] }) {
                   key={album}
                   onClick={() => setActiveAlbum(album)}
                   className={clsx(
-                    "px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-300",
-                    activeAlbum === album 
-                      ? "bg-ink text-background shadow-md" 
-                      : "bg-transparent text-ink-muted hover:text-ink hover:bg-background-elevated border border-line"
+                    "px-4 py-2 rounded-full text-[11px] font-semibold tracking-wide transition-all duration-300",
+                    activeAlbum === album
+                      ? "bg-ink text-background"
+                      : "text-ink-muted hover:text-ink border border-line hover:border-line-strong"
                   )}
                 >
                   {album}
@@ -50,27 +57,32 @@ export function Gallery({ items }: { items: GalleryItem[] }) {
             {visibleItems.map((item, index) => (
               <motion.button
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: Math.min(index * 0.05, 0.3) }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{
+                  duration: 0.5,
+                  delay: Math.min(index * 0.04, 0.2),
+                }}
                 onClick={() => setSelectedId(item.id)}
-                className="group relative w-full overflow-hidden rounded-2xl bg-background-elevated border border-line cursor-zoom-in block"
-                style={{ breakInside: "avoid" }}
+                className="group relative w-full overflow-hidden rounded-xl bg-background-subtle border border-line cursor-zoom-in block break-inside-avoid"
               >
                 <img
                   src={item.image_url}
                   alt={item.title ?? item.caption ?? "Gallery image"}
                   loading="lazy"
-                  className="w-full h-auto object-cover transition-transform duration-700 ease-out-expo group-hover:scale-105"
+                  className="w-full h-auto object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                 />
-                
+
                 {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                  <ZoomIn className="absolute top-4 right-4 text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300" />
-                  
-                  <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    <span className="inline-block px-2 py-1 mb-2 rounded bg-white/20 backdrop-blur-md text-[9px] font-bold tracking-widest text-white uppercase">
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                  <ZoomIn
+                    className="absolute top-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    size={18}
+                  />
+
+                  <div className="transform translate-y-3 group-hover:translate-y-0 transition-transform duration-300">
+                    <span className="inline-block px-2.5 py-1 mb-2 rounded-full bg-white/15 backdrop-blur-sm text-[9px] font-semibold tracking-[0.1em] text-white uppercase">
                       {item.album}
                     </span>
                     {(item.title || item.caption) && (
@@ -84,18 +96,18 @@ export function Gallery({ items }: { items: GalleryItem[] }) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-ink-muted border border-dashed border-line-strong rounded-3xl bg-background-elevated/50">
-            <Sparkles size={24} className="mb-4 opacity-50" />
-            <p>Gallery images will appear here.</p>
+          <div className="flex flex-col items-center justify-center py-24 text-ink-muted border border-dashed border-line-strong rounded-3xl">
+            <Sparkles size={24} className="mb-4 opacity-40" />
+            <p className="text-sm">Gallery images will appear here.</p>
           </div>
         )}
       </div>
 
-      <GalleryLightbox 
-        items={visibleItems} 
-        selectedId={selectedId} 
-        onClose={() => setSelectedId(null)} 
-        onSelect={setSelectedId} 
+      <GalleryLightbox
+        items={visibleItems}
+        selectedId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onSelect={setSelectedId}
       />
     </section>
   );

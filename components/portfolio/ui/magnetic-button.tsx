@@ -9,7 +9,11 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-interface MagneticButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag"> {
+interface MagneticButtonProps
+  extends Omit<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag"
+  > {
   children: ReactNode;
   strength?: number;
   variant?: "primary" | "secondary" | "outline" | "ghost";
@@ -17,7 +21,7 @@ interface MagneticButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButton
 
 export function MagneticButton({
   children,
-  strength = 40,
+  strength = 30,
   variant = "primary",
   className,
   ...props
@@ -31,18 +35,23 @@ export function MagneticButton({
     const { height, width, left, top } = ref.current.getBoundingClientRect();
     const middleX = clientX - (left + width / 2);
     const middleY = clientY - (top + height / 2);
-    setPosition({ x: middleX * (strength / width), y: middleY * (strength / height) });
+    setPosition({
+      x: middleX * (strength / width),
+      y: middleY * (strength / height),
+    });
   };
 
-  const reset = () => {
-    setPosition({ x: 0, y: 0 });
-  };
+  const reset = () => setPosition({ x: 0, y: 0 });
 
-  const variants = {
-    primary: "bg-ink text-background hover:shadow-glow hover:scale-105 border-transparent",
-    secondary: "bg-background-elevated text-ink hover:shadow-card-hover border-line hover:border-line-strong",
-    outline: "bg-transparent text-ink border-line hover:border-ink hover:bg-background-elevated",
-    ghost: "bg-transparent text-ink hover:bg-background-subtle border-transparent",
+  const variants: Record<string, string> = {
+    primary:
+      "bg-ink text-background border-transparent hover:shadow-glow",
+    secondary:
+      "bg-background-elevated text-ink border-line hover:border-line-strong hover:shadow-md",
+    outline:
+      "bg-transparent text-ink border-line-strong hover:bg-background-elevated hover:border-ink-muted",
+    ghost:
+      "bg-transparent text-ink border-transparent hover:bg-background-subtle",
   };
 
   return (
@@ -51,9 +60,9 @@ export function MagneticButton({
       onMouseMove={handleMouse}
       onMouseLeave={reset}
       animate={{ x: position.x, y: position.y }}
-      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 18, mass: 0.1 }}
       className={cn(
-        "relative inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border transition-colors duration-300",
+        "relative inline-flex items-center justify-center gap-2.5 px-6 py-3 text-[13px] font-semibold rounded-full border transition-all duration-300",
         variants[variant],
         className
       )}
