@@ -20,7 +20,7 @@ export function apiSuccess<T>(data: T, message?: string, status = 200) {
   return NextResponse.json(response, { status });
 }
 
-export function apiError(error: any, status = 500, requestId?: string) {
+export function apiError(error: any, status = 400, requestId?: string) {
   const timestamp = new Date().toISOString();
   
   // Do not expose raw database errors directly unless we sanitize them

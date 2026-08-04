@@ -25,8 +25,8 @@ export const GALLERY_ALBUMS = [
 export const CONTENT_STATUSES = ["draft", "published", "archived"] as const;
 export type ContentStatus = typeof CONTENT_STATUSES[number];
 
-export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
-export const ALLOWED_PDF_TYPES = ["application/pdf"];
+export const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif", "image/svg+xml"];
+export const ALLOWED_PDF_TYPES = ["application/pdf", "application/x-pdf"];
 export const ALLOWED_UPLOAD_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_PDF_TYPES];
 
 export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
