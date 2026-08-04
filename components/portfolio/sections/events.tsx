@@ -1,91 +1,79 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CalendarDays, MapPin, Sparkles } from "lucide-react";
-import type { PortfolioData } from "@/lib/portfolio/types";
+import { Sparkles, ArrowUpRight, Calendar, MapPin } from "lucide-react";
+import type { Event } from "@/lib/portfolio/types";
 import { SectionHeading } from "../ui/section-heading";
+import { SafeImage } from "../ui/safe-image";
+import { clsx } from "clsx";
 
-export function Events({ items }: { items: PortfolioData["events"] }) {
+export function Events({ items }: { items?: Event[] }) {
+  if (!Array.isArray(items)) return null;
+
   return (
-    <section
-      id="events"
-      className="relative py-[var(--section-gap)] bg-background-subtle"
-    >
+    <section id="events" className="relative py-32 bg-background-elevated/30">
       <div className="container-narrow relative z-10">
         <SectionHeading
           number="07"
-          eyebrow="Events"
-          title="Beyond the screen."
-          body="Hackathons, conferences, and community involvement."
+          eyebrow="Community & Leadership"
+          title="Events & Speaking."
+          body="Talks, workshops, and community events."
         />
 
         {items.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-6 mt-16">
             {items.map((event, index) => (
               <motion.article
                 key={event.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{
-                  duration: 0.5,
-                  delay: Math.min(index * 0.08, 0.3),
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="group flex flex-col overflow-hidden rounded-2xl bg-background-elevated border border-line hover:border-line-strong transition-colors duration-300"
+                transition={{ duration: 0.6, delay: Math.min(index * 0.1, 0.3) }}
+                className="group relative flex flex-col md:flex-row items-start md:items-center gap-8 p-6 md:p-8 rounded-2xl bg-background border border-line shadow-sm hover:shadow-md transition-shadow duration-300"
               >
-                {event.cover_image_url && (
-                  <div className="relative w-full aspect-[1.8] overflow-hidden bg-background-subtle">
-                    <img
+                {/* Image */}
+                <div className="relative w-full md:w-48 aspect-video md:aspect-square overflow-hidden rounded-xl bg-background-elevated shrink-0 border border-line/50">
+                  {event.cover_image_url ? (
+                    <SafeImage
                       src={event.cover_image_url}
                       alt={event.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 200px"
+                      className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background-elevated/80 to-transparent opacity-60" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-ink-muted bg-background-subtle">
+                      <Calendar size={24} className="opacity-30" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <span className="px-2.5 py-1 rounded bg-background-elevated border border-line text-[10px] font-bold text-ink uppercase tracking-widest shadow-sm">
+                      {event.event_type ?? "Event"}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-muted uppercase tracking-widest">
+                      <Calendar size={12} strokeWidth={2} /> {event.event_date}
+                    </span>
                   </div>
-                )}
 
-                <div className="flex flex-col flex-1 p-6">
-                  <p className="text-[10px] font-semibold text-accent-secondary uppercase tracking-[0.15em] mb-3">
-                    {event.event_type ?? "Event"}
-                  </p>
-
-                  <h3 className="text-xl font-display font-medium tracking-[-0.02em] text-ink mb-3">
+                  <h3 className="text-xl md:text-2xl font-display font-medium text-ink tracking-tight mb-3 group-hover:text-ink-secondary transition-colors truncate">
                     {event.name}
                   </h3>
 
-                  {(event.summary || event.description) && (
-                    <p className="text-sm text-ink-secondary leading-relaxed mb-5 line-clamp-3">
-                      {event.summary ?? event.description}
+                  {event.description && (
+                    <p className="text-[15px] text-ink-secondary leading-relaxed font-body mb-5 max-w-2xl line-clamp-2">
+                      {event.description}
                     </p>
                   )}
 
-                  <div className="mt-auto">
-                    <div className="flex flex-wrap items-center gap-4 mb-5">
-                      {event.event_date && (
-                        <span className="flex items-center gap-2 text-[11px] font-medium text-ink-muted">
-                          <CalendarDays size={13} /> {event.event_date}
-                        </span>
-                      )}
-                      {event.location && (
-                        <span className="flex items-center gap-2 text-[11px] font-medium text-ink-muted">
-                          <MapPin size={13} /> {event.location}
-                        </span>
-                      )}
-                    </div>
-
-                    {event.highlights.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-4 border-t border-line/50">
-                        {event.highlights.slice(0, 3).map((highlight) => (
-                          <span
-                            key={highlight}
-                            className="px-2.5 py-1 rounded-full bg-background border border-line text-[10px] font-medium text-ink-secondary"
-                          >
-                            {highlight}
-                          </span>
-                        ))}
-                      </div>
+                  <div className="flex flex-wrap items-center justify-between gap-4 mt-auto border-t border-line/50 pt-4">
+                    {event.location && (
+                      <span className="flex items-center gap-1.5 text-[11px] font-medium text-ink-muted uppercase tracking-widest">
+                        <MapPin size={12} /> {event.location}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -93,9 +81,9 @@ export function Events({ items }: { items: PortfolioData["events"] }) {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-ink-muted border border-dashed border-line-strong rounded-3xl">
+          <div className="flex flex-col items-center justify-center py-32 text-ink-muted border border-dashed border-line rounded-2xl bg-background">
             <Sparkles size={24} className="mb-4 opacity-40" />
-            <p className="text-sm">Events will appear here.</p>
+            <p className="text-sm font-medium">Events will appear here soon.</p>
           </div>
         )}
       </div>

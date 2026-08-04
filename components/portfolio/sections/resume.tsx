@@ -1,73 +1,64 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, FileText, Sparkles } from "lucide-react";
-import type { PortfolioData } from "@/lib/portfolio/types";
+import { Download, FileText, ArrowUpRight } from "lucide-react";
+import type { Resume } from "@/lib/portfolio/types";
+import { SectionHeading } from "../ui/section-heading";
 import { MagneticButton } from "../ui/magnetic-button";
 
-export function ResumeSection({
-  resume,
-}: {
-  resume: PortfolioData["resume"];
-}) {
+export function ResumeSection({ data }: { data?: Resume | null }) {
+  if (!data?.file_url) return null;
+
   return (
-    <section id="resume" className="relative py-[var(--section-gap)]">
+    <section id="resume" className="relative py-32 bg-background-elevated/30">
       <div className="container-narrow relative z-10">
+        <SectionHeading
+          number="09"
+          eyebrow="Resume"
+          title="Curriculum Vitae."
+          body="A comprehensive overview of my professional experience, skills, and education."
+        />
+
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative overflow-hidden flex flex-col md:flex-row md:items-end justify-between gap-12 p-10 md:p-16 rounded-3xl border border-line bg-background-elevated"
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-16 flex flex-col items-center max-w-2xl mx-auto text-center"
         >
-          {/* Subtle gradient accent */}
-          <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-accent/[0.04] blur-[80px] rounded-full pointer-events-none -translate-y-1/3 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-[30%] h-[30%] bg-accent-tertiary/[0.03] blur-[60px] rounded-full pointer-events-none translate-y-1/4 -translate-x-1/4" />
-
-          <div className="relative z-10 max-w-2xl">
-            <p className="inline-flex items-center gap-3 mb-5 text-ink-muted text-[11px] font-semibold uppercase tracking-[0.2em]">
-              <span className="w-2 h-2 rounded-full bg-accent shadow-glow" />
-              Résumé
-            </p>
-
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-medium text-ink tracking-[-0.04em] leading-[0.95] mb-5 text-balance">
-              Ready for the{" "}
-              <span className="font-serif italic font-normal text-ink-secondary">
-                full story?
-              </span>
-            </h2>
-
-            <p className="text-base text-ink-secondary leading-relaxed">
-              {resume
-                ? `Version ${resume.version} · ${resume.file_name}`
-                : "The current résumé will be available here when uploaded."}
-            </p>
+          <div className="w-20 h-20 flex items-center justify-center rounded-full bg-background border border-line text-ink mb-8 shadow-sm">
+            <FileText size={32} strokeWidth={1.5} />
           </div>
 
-          <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
-            {resume ? (
-              <>
-                <a
-                  href={resume.file_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <MagneticButton variant="primary">
-                    Preview <FileText size={15} />
-                  </MagneticButton>
-                </a>
-                <a href={resume.file_url} download>
-                  <MagneticButton variant="outline">
-                    Download <Download size={15} />
-                  </MagneticButton>
-                </a>
-              </>
-            ) : (
-              <div className="flex items-center gap-3 px-5 py-3 text-sm text-ink-muted border border-dashed border-line-strong rounded-full">
-                <Sparkles size={15} /> Not available yet
-              </div>
-            )}
+          <h3 className="text-2xl font-display font-medium text-ink mb-4">
+            Download Full Resume
+          </h3>
+          
+          <p className="text-ink-secondary mb-10 max-w-lg">
+            For a detailed breakdown of my professional history, technical skills, and educational background, please download my official CV.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href={data.file_url} target="_blank" rel="noreferrer">
+              <MagneticButton variant="primary" className="px-8 py-4 rounded-full bg-ink text-background hover:bg-ink/90 transition-colors flex items-center gap-2 font-medium text-sm">
+                Download PDF <Download size={16} />
+              </MagneticButton>
+            </a>
+            <a href={data.file_url} target="_blank" rel="noreferrer">
+              <MagneticButton variant="outline" className="px-8 py-4 rounded-full border border-line bg-transparent hover:bg-background text-ink transition-colors flex items-center gap-2 font-medium text-sm">
+                Open in Browser <ArrowUpRight size={16} />
+              </MagneticButton>
+            </a>
           </div>
+
+          {data.created_at && (
+            <p className="mt-8 text-[11px] font-semibold text-ink-muted uppercase tracking-widest">
+              Last updated: {new Date(data.created_at).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+              })}
+            </p>
+          )}
         </motion.div>
       </div>
     </section>

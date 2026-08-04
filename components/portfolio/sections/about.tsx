@@ -1,165 +1,91 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Mail,
-  MapPin,
-  ExternalLink,
-  Github,
-  Linkedin,
-  Sparkles,
-  ArrowUpRight,
-} from "lucide-react";
+import { User } from "lucide-react";
 import type { PortfolioData } from "@/lib/portfolio/types";
 import { SectionHeading } from "../ui/section-heading";
+import { SafeImage } from "../ui/safe-image";
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
 }
 
-function label(value: string) {
-  return value
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
+export function About({ data }: { data?: PortfolioData }) {
+  if (!data?.profile) return null;
 
-function LinkIcon({ name, size = 18 }: { name: string; size?: number }) {
-  const key = name.toLowerCase();
-  if (key.includes("github")) return <Github size={size} />;
-  if (key.includes("linkedin")) return <Linkedin size={size} />;
-  return <ExternalLink size={size} />;
-}
+  const { profile } = data;
+  const bio = text(profile.bio);
+  const avatarUrl = text(profile.avatar_url);
 
-export function About({ data }: { data: PortfolioData }) {
-  const content = text(data.profile.about) ?? text(data.profile.bio);
-  const socialLinks = Object.entries(data.socialLinks).filter(([, href]) =>
-    Boolean(href)
-  );
-  const hasContact =
-    text(data.profile.email) ||
-    text(data.profile.location) ||
-    socialLinks.length > 0;
+  if (!bio && !avatarUrl) return null;
 
   return (
-    <section id="about" className="relative py-[var(--section-gap)]">
+    <section id="about" className="relative py-32 bg-background-elevated/30">
       <div className="container-narrow relative z-10">
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-16 lg:gap-24 items-start">
-          {/* Left — Bio */}
+        <SectionHeading
+          number="03"
+          eyebrow="Background"
+          title="About Me."
+        />
+
+        <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 mt-16 items-start">
+          {/* Portrait */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full lg:w-[40%] max-w-[400px] shrink-0"
           >
-            <SectionHeading
-              number="02"
-              eyebrow="About"
-              title="The person behind the pixels."
-              className="mb-10"
-            />
-
-            {content ? (
-              <div className="max-w-2xl">
-                <p className="text-xl sm:text-2xl lg:text-[1.75rem] font-serif text-ink-secondary leading-[1.5] tracking-[-0.01em] whitespace-pre-wrap">
-                  {content}
-                </p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 p-5 text-ink-muted border border-dashed border-line-strong rounded-2xl text-sm">
-                <Sparkles size={16} /> An about section will appear here.
-              </div>
-            )}
-          </motion.div>
-
-          {/* Right — Connect */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="lg:pt-20"
-          >
-            <h3 className="text-[11px] font-semibold text-ink-muted uppercase tracking-[0.2em] mb-6 pl-1">
-              Connect
-            </h3>
-
-            <div className="flex flex-col border-t border-line">
-              {text(data.profile.email) && (
-                <a
-                  href={`mailto:${data.profile.email}`}
-                  className="group flex items-center justify-between py-5 border-b border-line transition-colors hover:bg-background-subtle rounded-none px-1"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-background-subtle text-ink-muted group-hover:text-accent transition-colors">
-                      <Mail size={18} />
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-semibold text-ink-muted uppercase tracking-[0.15em] mb-0.5">
-                        Email
-                      </span>
-                      <span className="text-sm font-medium text-ink">
-                        {data.profile.email}
-                      </span>
-                    </div>
-                  </div>
-                  <ArrowUpRight
-                    size={16}
-                    className="text-ink-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
-                </a>
-              )}
-
-              {text(data.profile.location) && (
-                <div className="flex items-center py-5 border-b border-line px-1">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-background-subtle text-ink-muted">
-                      <MapPin size={18} />
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-semibold text-ink-muted uppercase tracking-[0.15em] mb-0.5">
-                        Location
-                      </span>
-                      <span className="text-sm font-medium text-ink">
-                        {data.profile.location}
-                      </span>
-                    </div>
-                  </div>
+            <div className="relative aspect-square w-full rounded-[2rem] overflow-hidden bg-background border border-line shadow-sm">
+              {avatarUrl ? (
+                <SafeImage
+                  src={avatarUrl}
+                  alt={text(profile.name) ? `${profile.name}` : "Profile portrait"}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 400px"
+                  className="object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-ink-muted">
+                  <User size={48} className="opacity-20" />
                 </div>
               )}
+            </div>
+          </motion.div>
 
-              {socialLinks.map(([name, href]) => (
-                <a
-                  key={name}
-                  href={href as string}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex items-center justify-between py-5 border-b border-line transition-colors hover:bg-background-subtle px-1"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-background-subtle text-ink-muted group-hover:text-accent transition-colors">
-                      <LinkIcon name={name} size={18} />
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-semibold text-ink-muted uppercase tracking-[0.15em] mb-0.5">
-                        {label(name)}
-                      </span>
-                      <span className="text-sm font-medium text-ink">
-                        {(href as string)
-                          .replace(/^https?:\/\/(www\.)?/, "")
-                          .replace(/\/$/, "")}
-                      </span>
-                    </div>
-                  </div>
-                  <ArrowUpRight
-                    size={16}
-                    className="text-ink-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                  />
-                </a>
-              ))}
+          {/* Bio Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="flex-1 w-full"
+          >
+            {bio ? (
+              <div className="prose prose-lg prose-p:text-ink-secondary prose-p:leading-relaxed prose-a:text-ink hover:prose-a:text-ink-secondary max-w-none">
+                {bio.split('\n\n').map((paragraph, index) => (
+                  <p key={index} className="text-lg text-ink-secondary leading-relaxed mb-6 font-body">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="text-lg text-ink-muted italic">Biography details are currently being updated.</p>
+            )}
 
-              {!hasContact && (
-                <div className="flex items-center gap-3 py-5 text-ink-muted text-sm">
-                  <Sparkles size={16} /> Contact details will appear here.
+            {/* Quick Facts */}
+            <div className="grid grid-cols-2 gap-8 mt-12 pt-12 border-t border-line/50">
+              {text(profile.location) && (
+                <div>
+                  <h4 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] mb-2">Location</h4>
+                  <p className="text-sm font-medium text-ink">{profile.location}</p>
+                </div>
+              )}
+              {text(profile.availability) && (
+                <div>
+                  <h4 className="text-[10px] font-bold text-ink-muted uppercase tracking-[0.2em] mb-2">Status</h4>
+                  <p className="text-sm font-medium text-ink">{profile.availability}</p>
                 </div>
               )}
             </div>

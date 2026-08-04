@@ -12,7 +12,7 @@ import { Header } from "./sections/header";
 import { Hero } from "./sections/hero";
 import { Projects } from "./sections/projects";
 import { About } from "./sections/about";
-import { ExperienceSection } from "./sections/experience";
+import { Experience } from "./sections/experience";
 import { Skills } from "./sections/skills";
 import { Certificates } from "./sections/certificates";
 import { Achievements } from "./sections/achievements";
@@ -21,6 +21,7 @@ import { Gallery } from "./sections/gallery";
 import { ResumeSection } from "./sections/resume";
 import { Contact } from "./sections/contact";
 import { Footer } from "./sections/footer";
+import { ErrorBoundary } from "@/components/providers/error-boundary";
 
 /* ──────────────────────────────────────────────────────────
    Live Data Hook (unchanged — Supabase realtime subscription)
@@ -167,21 +168,21 @@ function Site({ data }: { data: PortfolioData }) {
     <ThemeProvider>
       <SmoothScroll>
         <ProgressLine />
-        <Header profile={data.profile} socialLinks={data.socialLinks} />
+        <Header name={data.profile?.name} />
         <main>
           <Hero data={data} />
           <Projects items={data.projects} />
           <About data={data} />
-          <ExperienceSection data={data} />
+          <Experience items={data.experience} />
           <Skills items={data.skills} />
           <Certificates items={data.certificates} />
           <Achievements items={data.achievements} />
           <Events items={data.events} />
           <Gallery items={data.gallery} />
-          <ResumeSection resume={data.resume} />
+          <ResumeSection data={data.resume} />
           <Contact data={data} />
         </main>
-        <Footer profile={data.profile} socialLinks={data.socialLinks} />
+        <Footer data={data} />
       </SmoothScroll>
     </ThemeProvider>
   );
@@ -230,7 +231,9 @@ export function PortfolioApp() {
           Live updates paused — retry
         </button>
       )}
-      <Site data={data} />
+      <ErrorBoundary>
+        <Site data={data} />
+      </ErrorBoundary>
     </>
   );
 }

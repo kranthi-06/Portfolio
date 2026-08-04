@@ -1,121 +1,103 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Sparkles } from "lucide-react";
-import type { PortfolioData } from "@/lib/portfolio/types";
+import { Building2, Sparkles, MapPin } from "lucide-react";
+import type { Experience } from "@/lib/portfolio/types";
 import { SectionHeading } from "../ui/section-heading";
+import { clsx } from "clsx";
 
-export function ExperienceSection({ data }: { data: PortfolioData }) {
+export function Experience({ items }: { items?: Experience[] }) {
+  if (!Array.isArray(items)) return null;
+
+  const sortedItems = [...items].sort((a, b) => {
+    if (!a.end_date && b.end_date) return -1;
+    if (a.end_date && !b.end_date) return 1;
+    if (a.end_date && b.end_date) return new Date(b.end_date).getTime() - new Date(a.end_date).getTime();
+    return 0;
+  });
+
   return (
-    <section
-      id="experience"
-      className="relative py-[var(--section-gap)] bg-background-subtle"
-    >
+    <section id="experience" className="relative py-32 bg-background">
       <div className="container-narrow relative z-10">
         <SectionHeading
-          number="03"
-          eyebrow="Experience"
-          title="Where I've made impact."
-          body="A track record of delivering impactful solutions across various roles."
+          number="02"
+          eyebrow="Career"
+          title="Experience."
+          body="Professional journey and impactful roles across the industry."
         />
 
-        {data.experience.length > 0 ? (
-          <div className="relative max-w-4xl">
-            {/* Timeline line */}
-            <div className="absolute top-6 bottom-6 left-[19px] md:left-[119px] w-px bg-gradient-to-b from-accent/40 via-accent-secondary/20 to-transparent" />
+        {sortedItems.length > 0 ? (
+          <div className="relative mt-24">
+            {/* Minimal Timeline Line */}
+            <div className="absolute left-[27px] md:left-1/2 top-0 bottom-0 w-[1px] bg-line/50 md:-translate-x-1/2" />
 
-            <div className="flex flex-col gap-14 md:gap-16">
-              {data.experience.map((item, index) => (
-                <motion.article
-                  key={item.id}
-                  initial={{ opacity: 0, y: 40 }}
+            <div className="flex flex-col gap-16 md:gap-24">
+              {sortedItems.map((experience, index) => (
+                <motion.div
+                  key={experience.id}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{
-                    duration: 0.6,
-                    delay: Math.min(index * 0.1, 0.4),
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="relative grid md:grid-cols-[90px_1fr] gap-6 md:gap-12"
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className={clsx(
+                    "relative flex flex-col md:flex-row md:items-center gap-8 md:gap-16",
+                    index % 2 === 0 ? "md:flex-row-reverse" : ""
+                  )}
                 >
-                  {/* Date + Dot */}
-                  <div className="relative pl-12 md:pl-0 md:text-right pt-1">
-                    <div className="absolute left-[16px] md:left-auto md:-right-[30px] top-[10px] w-[7px] h-[7px] rounded-full bg-accent ring-[3px] ring-background-subtle z-10" />
-                    <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-[0.1em] whitespace-nowrap">
-                      {item.start_date.split(" ")[1] ??
-                        item.start_date.slice(0, 4)}
-                      {item.end_date
-                        ? ` — ${item.end_date.split(" ")[1] ?? item.end_date.slice(0, 4)}`
-                        : " — Now"}
-                    </span>
-                  </div>
+                  {/* Timeline Node */}
+                  <div className="absolute left-[24px] md:left-1/2 md:-translate-x-1/2 flex items-center justify-center w-2 h-2 rounded-full bg-background border-2 border-ink z-10 mt-1 md:mt-0 shadow-[0_0_0_6px_var(--bg)]" />
 
-                  {/* Card */}
-                  <div className="p-7 md:p-9 rounded-2xl bg-background-elevated border border-line hover:border-line-strong transition-colors duration-300 group relative overflow-hidden">
-                    {/* Subtle corner glow on hover */}
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-accent/[0.04] rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  {/* Empty space for alternating layout on desktop */}
+                  <div className="hidden md:block w-1/2" />
 
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
-                      <div>
-                        <p className="text-[10px] font-semibold text-accent uppercase tracking-[0.15em] mb-2">
-                          {item.type}
-                        </p>
-                        <h3 className="text-xl sm:text-2xl font-display font-medium text-ink tracking-[-0.02em] mb-1">
-                          {item.title}
-                        </h3>
-                        <strong className="text-sm font-semibold text-ink-secondary">
-                          {item.company}
-                        </strong>
+                  {/* Content Card */}
+                  <div className={clsx("pl-16 md:pl-0 w-full md:w-1/2", index % 2 === 0 ? "md:pr-12 lg:pr-16" : "md:pl-12 lg:pl-16")}>
+                    <div className="flex flex-col p-8 rounded-2xl bg-background border border-line shadow-sm hover:shadow-md transition-shadow duration-300 group">
+                      
+                      {/* Date & Location */}
+                      <div className="flex flex-wrap items-center gap-4 mb-6">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-background-elevated border border-line text-[11px] font-bold text-ink uppercase tracking-widest shadow-sm">
+                          {experience.start_date} — {!experience.end_date ? "Present" : experience.end_date}
+                        </span>
+                        {experience.location && (
+                          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-muted uppercase tracking-widest">
+                            <MapPin size={12} strokeWidth={2} /> {experience.location}
+                          </span>
+                        )}
                       </div>
 
-                      {item.location && (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-muted bg-background-subtle px-2.5 py-1 rounded-full border border-line whitespace-nowrap self-start shrink-0">
-                          <MapPin size={11} /> {item.location}
-                        </span>
+                      <h3 className="text-2xl font-display font-medium text-ink tracking-tight mb-2 group-hover:text-ink-secondary transition-colors">
+                        {experience.title}
+                      </h3>
+                      
+                      <div className="flex items-center gap-2 text-[15px] font-serif italic text-ink-secondary mb-6 pb-6 border-b border-line">
+                        <Building2 size={16} className="text-ink-muted" strokeWidth={1.5} />
+                        {experience.company}
+                      </div>
+
+                      <p className="text-[15px] text-ink-secondary/90 leading-relaxed font-body mb-6">
+                        {experience.description}
+                      </p>
+
+                      {Array.isArray(experience.technologies) && experience.technologies.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-auto">
+                          {experience.technologies.map((tech) => (
+                            <span key={tech} className="px-2.5 py-1 rounded border border-line bg-background text-[11px] font-medium text-ink-muted">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {item.description && (
-                      <p className="text-sm text-ink-secondary leading-relaxed mb-5">
-                        {item.description}
-                      </p>
-                    )}
-
-                    {item.achievements.length > 0 && (
-                      <ul className="space-y-3 mb-6">
-                        {item.achievements.map((achievement, i) => (
-                          <li
-                            key={i}
-                            className="flex gap-3 text-sm text-ink-secondary leading-relaxed"
-                          >
-                            <span className="flex-shrink-0 w-1.5 h-1.5 mt-2 rounded-full bg-gradient-to-br from-accent to-accent-secondary" />
-                            <span className="flex-1">{achievement}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {item.technologies.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-5 border-t border-line/50">
-                        {item.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="px-2.5 py-1 rounded-full bg-background-subtle border border-line text-[10px] font-medium text-ink-muted"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                </motion.article>
+                </motion.div>
               ))}
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-ink-muted border border-dashed border-line-strong rounded-3xl">
+          <div className="flex flex-col items-center justify-center py-32 text-ink-muted border border-dashed border-line rounded-2xl bg-background-elevated/50">
             <Sparkles size={24} className="mb-4 opacity-40" />
-            <p className="text-sm">Experience will appear here.</p>
+            <p className="text-sm font-medium">Experience history will appear here.</p>
           </div>
         )}
       </div>

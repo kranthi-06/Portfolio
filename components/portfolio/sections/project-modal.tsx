@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Github } from "lucide-react";
 import type { Project } from "@/lib/portfolio/types";
 import { MagneticButton } from "../ui/magnetic-button";
+import { SafeImage } from "../ui/safe-image";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -32,83 +33,76 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 overflow-y-auto bg-ink/50 backdrop-blur-md"
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-50 overflow-y-auto bg-background/95 backdrop-blur-md"
           onClick={onClose}
         >
-          <div className="min-h-full flex items-start justify-center p-4 sm:p-8 md:p-16">
+          <div className="min-h-full flex items-center justify-center p-4 sm:p-6 md:p-12">
             <motion.article
-              initial={{ opacity: 0, y: 80, scale: 0.97 }}
+              initial={{ opacity: 0, y: 50, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 40, scale: 0.97 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
               transition={{
                 type: "spring",
-                damping: 28,
-                stiffness: 200,
+                damping: 30,
+                stiffness: 250,
               }}
-              className="relative w-full max-w-4xl bg-background-elevated rounded-3xl shadow-xl border border-line overflow-hidden my-8"
+              className="relative w-full max-w-5xl bg-background rounded-2xl shadow-2xl border border-line/50 overflow-hidden my-4"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close */}
               <button
                 onClick={onClose}
-                className="absolute top-5 right-5 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-md text-ink hover:bg-background border border-line transition-colors"
+                className="absolute top-6 right-6 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-background border border-line text-ink hover:bg-background-elevated transition-colors duration-300 shadow-sm"
                 aria-label="Close"
               >
-                <X size={18} />
+                <X size={18} strokeWidth={1.5} />
               </button>
 
               {/* Hero Image */}
               {project.image_url && (
-                <div className="relative w-full aspect-[16/8] bg-background-subtle overflow-hidden">
-                  <img
+                <div className="relative w-full aspect-[16/8] md:aspect-[21/9] bg-background-subtle overflow-hidden border-b border-line">
+                  <SafeImage
                     src={project.image_url}
                     alt={project.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 1024px"
+                    priority
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background-elevated via-transparent to-transparent" />
                 </div>
               )}
 
               {/* Content */}
-              <div className="relative px-8 sm:px-12 md:px-16 pb-16 pt-8 -mt-16">
+              <div className="relative px-6 sm:px-12 md:px-20 pb-24 pt-16">
                 {/* Category */}
-                <div className="inline-flex items-center gap-3 mb-5 text-ink-muted text-[11px] font-semibold uppercase tracking-[0.15em]">
-                  <span className="w-2 h-2 rounded-full bg-accent shadow-glow" />
-                  {project.category ?? "Project"}
+                <div className="flex items-center gap-4 mb-8 text-ink-muted text-xs font-semibold uppercase tracking-widest">
+                  <span>{project.category ?? "Case Study"}</span>
                 </div>
 
-                <h3 className="text-3xl sm:text-4xl md:text-5xl font-display font-medium tracking-[-0.04em] text-ink mb-4 text-balance leading-[0.95]">
+                <h3 className="text-4xl md:text-5xl font-display font-medium tracking-tight text-ink mb-6 text-balance leading-[1.1]">
                   {project.title}
                 </h3>
 
                 {(project.long_description ?? project.description) && (
-                  <p className="text-lg text-ink-secondary leading-relaxed max-w-2xl mb-10 text-balance">
+                  <p className="text-lg md:text-xl font-serif font-normal text-ink-secondary leading-relaxed max-w-3xl mb-12 text-pretty">
                     {project.long_description ?? project.description}
                   </p>
                 )}
 
                 {/* Action Buttons */}
                 {(project.live_url || project.github_url) && (
-                  <div className="flex flex-wrap gap-3 mb-14">
+                  <div className="flex flex-wrap gap-4 mb-16 pb-16 border-b border-line/50">
                     {project.live_url && (
-                      <a
-                        href={project.live_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <MagneticButton variant="primary">
+                      <a href={project.live_url} target="_blank" rel="noreferrer">
+                        <MagneticButton variant="primary" className="px-6 py-3 rounded-full bg-ink text-background hover:bg-ink/90 transition-colors flex items-center gap-2 font-medium text-sm">
                           Live demo <ExternalLink size={15} />
                         </MagneticButton>
                       </a>
                     )}
                     {project.github_url && (
-                      <a
-                        href={project.github_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <MagneticButton variant="outline">
+                      <a href={project.github_url} target="_blank" rel="noreferrer">
+                        <MagneticButton variant="outline" className="px-6 py-3 rounded-full border border-line bg-transparent hover:bg-background-elevated text-ink transition-colors flex items-center gap-2 font-medium text-sm">
                           Source code <Github size={15} />
                         </MagneticButton>
                       </a>
@@ -116,66 +110,70 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                   </div>
                 )}
 
-                {/* Detail Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
-                  {[
-                    { title: "The Challenge", content: project.problem },
-                    { title: "The Solution", content: project.solution },
-                    { title: "Architecture", content: project.architecture },
-                  ].map(({ title, content }) =>
-                    content ? (
-                      <div
-                        key={title}
-                        className="p-6 rounded-2xl bg-background-subtle border border-line"
-                      >
-                        <h4 className="text-[11px] font-semibold text-ink-muted uppercase tracking-[0.15em] mb-3">
-                          {title}
-                        </h4>
-                        <p className="text-sm text-ink-secondary leading-relaxed">
-                          {content}
-                        </p>
-                      </div>
-                    ) : null
+                {/* Typography Prose Layout for Details */}
+                <div className="max-w-3xl space-y-16">
+                  {project.problem && (
+                    <section>
+                      <h4 className="text-xs font-bold text-ink uppercase tracking-[0.2em] mb-6">
+                        The Challenge
+                      </h4>
+                      <p className="text-base text-ink-secondary leading-relaxed font-body">
+                        {project.problem}
+                      </p>
+                    </section>
                   )}
-                </div>
 
-                {/* Features & Tech */}
-                <div className="grid md:grid-cols-2 gap-12">
-                  {project.features.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-display font-medium text-ink mb-6">
+                  {project.solution && (
+                    <section>
+                      <h4 className="text-xs font-bold text-ink uppercase tracking-[0.2em] mb-6">
+                        The Solution
+                      </h4>
+                      <p className="text-base text-ink-secondary leading-relaxed font-body">
+                        {project.solution}
+                      </p>
+                    </section>
+                  )}
+
+                  {project.architecture && (
+                    <section>
+                      <h4 className="text-xs font-bold text-ink uppercase tracking-[0.2em] mb-6">
+                        Architecture
+                      </h4>
+                      <p className="text-base text-ink-secondary leading-relaxed font-body">
+                        {project.architecture}
+                      </p>
+                    </section>
+                  )}
+
+                  {Array.isArray(project.features) && project.features.length > 0 && (
+                    <section>
+                      <h4 className="text-xs font-bold text-ink uppercase tracking-[0.2em] mb-6">
                         Key Features
                       </h4>
                       <ul className="space-y-4">
                         {project.features.map((feature, i) => (
-                          <li
-                            key={i}
-                            className="flex gap-3 text-sm text-ink-secondary leading-relaxed"
-                          >
-                            <span className="flex-shrink-0 w-1.5 h-1.5 mt-2 rounded-full bg-gradient-to-br from-accent to-accent-secondary" />
+                          <li key={i} className="flex gap-4 text-base text-ink-secondary leading-relaxed font-body">
+                            <span className="flex-shrink-0 mt-2.5 w-1.5 h-1.5 rounded-full bg-ink-muted" />
                             <span className="flex-1">{feature}</span>
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </section>
                   )}
 
-                  {project.technologies.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-display font-medium text-ink mb-6">
+                  {Array.isArray(project.technologies) && project.technologies.length > 0 && (
+                    <section>
+                      <h4 className="text-xs font-bold text-ink uppercase tracking-[0.2em] mb-6">
                         Technologies
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {project.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="px-3.5 py-1.5 rounded-full bg-background border border-line text-xs font-medium text-ink-secondary"
-                          >
+                          <span key={tech} className="px-3 py-1.5 rounded-md bg-background-elevated border border-line text-[13px] font-medium text-ink-secondary">
                             {tech}
                           </span>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
                 </div>
               </div>
