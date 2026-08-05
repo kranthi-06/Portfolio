@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Download, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { navItems, personalInfo } from "@/lib/constants";
 import { useActiveSection } from "@/hooks/use-active-section";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 
@@ -12,7 +12,6 @@ import { MagneticButton } from "@/components/ui/magnetic-button";
  * Premium sticky navbar with glassmorphism, animated active indicator, and mobile menu
  */
 export function Navbar() {
-  const { navItems, personalInfo } = usePortfolio();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const sectionIds = navItems.map((item) => item.href.replace("#", ""));

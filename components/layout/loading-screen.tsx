@@ -6,12 +6,12 @@ import { motion, AnimatePresence } from "framer-motion";
 /**
  * Premium loading screen with counter and page reveal clip-path
  */
-export function LoadingScreen({ isDataLoading = false }: { isDataLoading?: boolean }) {
+export function LoadingScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Simulate loading progress, but hold at 90% if data is still loading
+    // Simulate loading progress
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -19,23 +19,12 @@ export function LoadingScreen({ isDataLoading = false }: { isDataLoading?: boole
           setTimeout(() => setIsLoading(false), 400);
           return 100;
         }
-        
-        // If data is still loading, cap the fake progress at 90%
-        if (isDataLoading && prev >= 90) {
-          return 90;
-        }
-        
-        // If data is done loading and we were stuck, jump to 100
-        if (!isDataLoading && prev >= 90) {
-          return 100;
-        }
-
         return prev + Math.random() * 15 + 5;
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isDataLoading]);
+  }, []);
 
   return (
     <AnimatePresence>
@@ -59,7 +48,7 @@ export function LoadingScreen({ isDataLoading = false }: { isDataLoading?: boole
             className="relative mb-8"
           >
             <span className="text-4xl md:text-5xl font-bold font-heading gradient-text">
-              RB
+              KKK
             </span>
             {/* Glow ring */}
             <div className="absolute -inset-4 rounded-full bg-primary/10 blur-xl animate-pulse" />

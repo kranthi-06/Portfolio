@@ -1,74 +1,75 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ExternalLink, Award } from "lucide-react";
+import { Award, Search, Sparkles } from "lucide-react";
+import { type CertificateAsset } from "@/lib/generated-certificates";
+import { getCertificateCategories } from "@/lib/certificate-utils";
+import { CategoryFilter } from "@/components/certificates/category-filter";
+import { CertificateGrid } from "@/components/certificates/certificate-grid";
+import { CertificateModal } from "@/components/certificates/certificate-modal";
 import { usePortfolio } from "@/components/portfolio-provider";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
-import { fadeInUp, staggerContainer } from "@/lib/animations";
 
-/**
- * Certifications gallery with spotlight cards
- */
-export function Certifications() {
+export function CertificationsSection() {
   const { certifications } = usePortfolio();
+
+  const certificateAssets: CertificateAsset[] = useMemo(() => {
+    return certifications.map((c, i) => ({
+      id: `cert-${i}`,
+      title: c.title,
+      category: "Certifications",
+      organisation: c.issuer,
+      src: c.pdfUrl || c.image || "#",
+      type: (c.pdfUrl || c.image?.endsWith('.pdf')) ? "pdf" : "image",
+    }));
+  }, [certifications]);
+
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [search, setSearch] = useState("");
+  const [selectedCertificate, setSelectedCertificate] = useState<CertificateAsset | null>(null);
+  const categories = useMemo(() => getCertificateCategories(certificateAssets), [certificateAssets]);
+  const counts = useMemo(() => Object.fromEntries(["All", ...categories].map((category) => [category, category === "All" ? certificateAssets.length : certificateAssets.filter((certificate) => certificate.category === category).length])), [categories, certificateAssets]);
+  const visibleCertificates = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return certificateAssets.filter((certificate) => {
+      const matchesCategory = activeCategory === "All" || certificate.category === activeCategory;
+      const matchesSearch = !query || [certificate.title, certificate.organisation, certificate.category].some((value) => value.toLowerCase().includes(query));
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeCategory, search, certificateAssets]);
+  const imageCertificates = useMemo(() => visibleCertificates.filter((certificate) => certificate.type === "image"), [visibleCertificates]);
+  const selectedIndex = selectedCertificate ? imageCertificates.findIndex((certificate) => certificate.id === selectedCertificate.id) : null;
+  const handleView = (certificate: CertificateAsset) => {
+    if (certificate.type === "pdf") {
+      window.open(certificate.src, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setSelectedCertificate(certificate);
+  };
+
   return (
-    <section id="certifications" className="relative section-padding overflow-hidden">
-      <div className="container-custom relative z-10">
-        <SectionHeading
-          badge="Certifications"
-          title="Credentials & Learning"
-          subtitle="Continuous learning validated through industry-recognized certifications."
-        />
-
-        {/* Certifications Grid */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto"
-        >
-          {certifications.map((cert, i) => (
-            <motion.div key={i} variants={fadeInUp}>
-              <SpotlightCard spotlightColor="168, 85, 247">
-                <div className="p-6 space-y-4">
-                  {/* Icon */}
-                  <div className="p-3 rounded-xl bg-accent/10 border border-accent/20 w-fit">
-                    <Award className="w-5 h-5 text-accent" />
-                  </div>
-
-                  {/* Title */}
-                  <div>
-                    <h3 className="text-base font-semibold font-heading text-white mb-1">
-                      {cert.title}
-                    </h3>
-                    <p className="text-sm text-muted">{cert.issuer}</p>
-                  </div>
-
-                  {/* Date and link */}
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                    <span className="text-xs text-muted-dark font-mono">
-                      {cert.date}
-                    </span>
-                    {cert.credentialUrl && cert.credentialUrl !== "#" && (
-                      <a
-                        href={cert.credentialUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-primary hover:text-secondary transition-colors"
-                      >
-                        Verify
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </SpotlightCard>
-            </motion.div>
-          ))}
+    <section id="certifications" className="section overflow-hidden" aria-labelledby="certifications-title">
+      <div className="container">
+        <motion.div initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }} className="mb-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+          <div className="max-w-2xl">
+            <p className="eyebrow mb-6">Learning archive</p>
+            <h2 id="certifications-title" className="section-title mb-6">Credentials that <span className="font-serif italic font-normal">compound.</span></h2>
+            <p className="section-subtitle">A curated record of hands-on learning, industry programs, and milestones across AI, software engineering, and product development.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl" style={{ background: "var(--line)", border: "1px solid var(--line)" }}>
+            <div className="min-w-[125px] px-5 py-4" style={{ background: "var(--bg-elevated)" }}><Award size={16} className="mb-2" style={{ color: "var(--gradient-1)" }} /><p className="font-display text-2xl font-medium tracking-tight" style={{ color: "var(--ink)" }}>{certificateAssets.length}</p><p className="text-[10px] font-bold uppercase tracking-[.12em]" style={{ color: "var(--ink-muted)" }}>Records</p></div>
+            <div className="min-w-[125px] px-5 py-4" style={{ background: "var(--bg-elevated)" }}><Sparkles size={16} className="mb-2" style={{ color: "var(--gradient-2)" }} /><p className="font-display text-2xl font-medium tracking-tight" style={{ color: "var(--ink)" }}>{categories.length}</p><p className="text-[10px] font-bold uppercase tracking-[.12em]" style={{ color: "var(--ink-muted)" }}>Areas</p></div>
+          </div>
         </motion.div>
+
+        <div className="mb-8 flex flex-col gap-5 border-y py-4 lg:flex-row lg:items-center lg:justify-between" style={{ borderColor: "var(--line)" }}>
+          <CategoryFilter categories={categories} activeCategory={activeCategory} onChange={setActiveCategory} counts={counts} />
+          <label className="relative block w-full lg:w-64"><span className="sr-only">Search certificates</span><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--ink-muted)" }} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search credentials" className="w-full rounded-xl py-2.5 pl-9 pr-3 text-sm outline-none transition-shadow focus:ring-2" style={{ background: "var(--bg-subtle)", color: "var(--ink)", border: "1px solid var(--line)", ['--tw-ring-color' as string]: "var(--line-strong)" }} /></label>
+        </div>
+
+        <CertificateGrid certificates={visibleCertificates} onView={handleView} />
       </div>
+      <CertificateModal certificates={imageCertificates} activeIndex={selectedIndex !== null && selectedIndex >= 0 ? selectedIndex : null} onClose={() => setSelectedCertificate(null)} onChange={(index) => setSelectedCertificate(imageCertificates[index] ?? null)} />
     </section>
   );
 }

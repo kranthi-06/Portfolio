@@ -4,13 +4,12 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Command, ArrowRight, Download, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { commandPaletteActions, personalInfo, socialLinks } from "@/lib/constants";
 
 /**
  * ⌘+K searchable command palette
  */
 export function CommandPalette() {
-  const { commandPaletteActions, personalInfo, socialLinks } = usePortfolio();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -41,7 +40,7 @@ export function CommandPalette() {
       commandPaletteActions.filter((action) =>
         action.label.toLowerCase().includes(query.toLowerCase())
       ),
-    [query, commandPaletteActions]
+    [query]
   );
 
   const handleAction = useCallback(
@@ -64,7 +63,7 @@ export function CommandPalette() {
         element.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [personalInfo.resumeUrl, socialLinks]
+    []
   );
 
   return (

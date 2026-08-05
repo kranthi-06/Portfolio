@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { GraduationCap, MapPin, Calendar, BookOpen } from "lucide-react";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { education } from "@/lib/constants";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { fadeInUp } from "@/lib/animations";
@@ -11,7 +11,6 @@ import { fadeInUp } from "@/lib/animations";
  * Education section with timeline format, CGPA, and coursework badges
  */
 export function Education() {
-  const { education } = usePortfolio();
   return (
     <section id="education" className="relative section-padding">
       {/* Background glow */}

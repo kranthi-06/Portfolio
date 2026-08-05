@@ -15,7 +15,9 @@ import { cn, hexToRgb } from "@/lib/utils";
 export function Skills() {
   const { skillCategories, techMarqueeItems } = usePortfolio();
   const [activeCategory, setActiveCategory] = useState(0);
-  const category = skillCategories[activeCategory];
+  const category = skillCategories[activeCategory] || skillCategories[0];
+
+  if (!category) return null;
 
   return (
     <section id="skills" className="relative section-padding overflow-hidden">

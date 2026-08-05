@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Target, Lightbulb, Rocket, Users } from "lucide-react";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { personalInfo } from "@/lib/constants";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { fadeInUp, fadeInLeft, fadeInRight, staggerContainer } from "@/lib/animations";
@@ -43,7 +43,6 @@ const highlights = [
  * About section with professional story, mission, and highlight cards
  */
 export function About() {
-  const { personalInfo } = usePortfolio();
   return (
     <section id="about" className="relative section-padding">
       {/* Subtle background glow */}
@@ -100,7 +99,7 @@ export function About() {
                     Journey
                   </h4>
                   {[
-                    { year: "2022", event: "Started B.Tech in CSE" },
+                    { year: "2023", event: "Started B.Tech in CSE-AI & ML" },
                     { year: "2023", event: "First hackathon win" },
                     { year: "2024", event: "Multiple internships" },
                     { year: "2025", event: "AI Systems Engineer" },

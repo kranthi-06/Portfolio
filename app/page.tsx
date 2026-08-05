@@ -1,35 +1,24 @@
 "use client";
 
-/* Layout Components */
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
-import { ScrollProgress } from "@/components/layout/scroll-progress";
-import { LoadingScreen } from "@/components/layout/loading-screen";
-import { BackToTop } from "@/components/layout/back-to-top";
-import { FloatingDock } from "@/components/layout/floating-dock";
-import { CommandPalette } from "@/components/layout/command-palette";
-import { CustomCursor } from "@/components/layout/custom-cursor";
-import { SmoothScrollProvider } from "@/components/layout/smooth-scroll-provider";
-import { NoiseOverlay } from "@/components/effects/noise-overlay";
-
-/* Section Components */
-import { Hero } from "@/components/sections/hero";
-import { About } from "@/components/sections/about";
-import { Skills } from "@/components/sections/skills";
-import { Experience } from "@/components/sections/experience";
-import { Projects } from "@/components/sections/projects";
-import { Achievements } from "@/components/sections/achievements";
-import { Certifications } from "@/components/sections/certifications";
-import { Education } from "@/components/sections/education";
-import { Contact } from "@/components/sections/contact";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { SmoothScroll } from "@/components/providers/smooth-scroll";
+import { Navigation } from "@/components/layout/navigation";
+import { ScrollProgress, SiteFooter } from "@/components/layout/footer";
+import { LandingSection } from "@/components/sections/landing";
+import { PhilosophySection } from "@/components/sections/philosophy";
+import { JourneySection } from "@/components/sections/journey";
+import { ProductsSection } from "@/components/sections/products";
+import { PlaygroundSection } from "@/components/sections/playground";
+import { AchievementsSection } from "@/components/sections/achievements";
+import { CertificationsSection } from "@/components/sections/certifications";
+import { GitHubSection } from "@/components/sections/github-dashboard";
+import { WhatsNextSection } from "@/components/sections/whats-next";
+import { CollaborateSection } from "@/components/sections/collaborate";
 
 /* Data Providers */
 import { PortfolioProvider } from "@/components/portfolio-provider";
 import { useLivePortfolio } from "@/hooks/use-live-portfolio";
 
-/**
- * Main portfolio page — assembles all sections with layout chrome
- */
 export default function Home() {
   const { data, loading, error } = useLivePortfolio();
 
@@ -43,44 +32,34 @@ export default function Home() {
 
   return (
     <>
-      <LoadingScreen isDataLoading={loading} />
-      
+      {loading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
+          <div className="w-12 h-12 border-t-2 border-r-2 border-white rounded-full animate-spin mb-4" />
+          <p className="text-white font-mono text-sm tracking-widest uppercase">Initializing</p>
+        </div>
+      )}
+
       {data && (
         <PortfolioProvider data={data}>
-          <SmoothScrollProvider>
-            {/* Custom Cursor */}
-            <CustomCursor />
-
-            {/* Noise Texture Overlay */}
-            <NoiseOverlay />
-
-            {/* Scroll Progress Bar */}
-            <ScrollProgress />
-
-            {/* Navigation */}
-            <Navbar />
-
-            {/* Main Content */}
-            <main className="relative">
-              <Hero />
-              <About />
-              <Skills />
-              <Experience />
-              <Projects />
-              <Achievements />
-              <Certifications />
-              <Education />
-              <Contact />
-            </main>
-
-            {/* Footer */}
-            <Footer />
-
-            {/* Floating Elements */}
-            <FloatingDock />
-            <BackToTop />
-            <CommandPalette />
-          </SmoothScrollProvider>
+          <ThemeProvider>
+            <SmoothScroll>
+              <ScrollProgress />
+              <Navigation />
+              <main>
+                <LandingSection />
+                <PhilosophySection />
+                <JourneySection />
+                <ProductsSection />
+                <PlaygroundSection />
+                <AchievementsSection />
+                <CertificationsSection />
+                <GitHubSection />
+                <WhatsNextSection />
+                <CollaborateSection />
+              </main>
+              <SiteFooter />
+            </SmoothScroll>
+          </ThemeProvider>
         </PortfolioProvider>
       )}
     </>

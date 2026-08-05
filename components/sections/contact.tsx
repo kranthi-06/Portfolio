@@ -11,7 +11,7 @@ import {
   AlertCircle,
   ArrowUpRight,
 } from "lucide-react";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { personalInfo, socialLinks } from "@/lib/constants";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { MagneticButton } from "@/components/ui/magnetic-button";
@@ -28,7 +28,6 @@ interface FormState {
  * Contact section with glassmorphism form, social links, and EmailJS integration
  */
 export function Contact() {
-  const { personalInfo, socialLinks } = usePortfolio();
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",

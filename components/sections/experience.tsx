@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { MapPin, Calendar, ExternalLink } from "lucide-react";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { experiences } from "@/lib/constants";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { fadeInUp, fadeInLeft, fadeInRight } from "@/lib/animations";
@@ -11,7 +11,6 @@ import { fadeInUp, fadeInLeft, fadeInRight } from "@/lib/animations";
  * Experience section with animated vertical timeline
  */
 export function Experience() {
-  const { experiences } = usePortfolio();
   return (
     <section id="experience" className="relative section-padding">
       {/* Background glow */}

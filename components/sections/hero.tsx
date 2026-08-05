@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Download, Mail, ChevronDown } from "lucide-react";
-import { usePortfolio } from "@/components/portfolio-provider";
+import { personalInfo, socialLinks, stats } from "@/lib/constants";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { AnimatedText } from "@/components/ui/animated-text";
@@ -17,7 +17,6 @@ import { fadeInUp, staggerContainer } from "@/lib/animations";
  * Jaw-dropping hero section with layered effects, typing animation, stats, and CTAs
  */
 export function Hero() {
-  const { personalInfo, socialLinks, stats } = usePortfolio();
   return (
     <section
       id="home"
