@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Settings, Save, Loader2, Globe, User, Hash, Palette, Search } from "lucide-react";
 import { toast } from "sonner";
+import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";
 
 type TabId = "profile" | "social" | "seo" | "counters" | "theme";
 const tabs: { id: TabId; label: string; icon: typeof User }[] = [
@@ -70,14 +71,14 @@ export default function SettingsPage() {
         <div className="admin-card">
           <div className="admin-card-body space-y-4">
             {activeTab === "profile" && (<>
-              <div className="admin-field"><label className="admin-label">Full Name</label><input className="admin-input" value={profile.name || ""} onChange={e => updateSetting("profile", "name", e.target.value)} /></div>
-              <div className="admin-field"><label className="admin-label">Title</label><input className="admin-input" value={profile.title || ""} onChange={e => updateSetting("profile", "title", e.target.value)} /></div>
-              <div className="admin-field"><label className="admin-label">Bio</label><textarea className="admin-input admin-textarea" value={profile.bio || ""} onChange={e => updateSetting("profile", "bio", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">Full Name</label><AIAssistantField value={profile.name || ""} onChange={val => updateSetting("profile", "name", val)}><input className="admin-input" value={profile.name || ""} onChange={e => updateSetting("profile", "name", e.target.value)} /></AIAssistantField></div>
+              <div className="admin-field"><label className="admin-label">Title</label><AIAssistantField value={profile.title || ""} onChange={val => updateSetting("profile", "title", val)}><input className="admin-input" value={profile.title || ""} onChange={e => updateSetting("profile", "title", e.target.value)} /></AIAssistantField></div>
+              <div className="admin-field"><label className="admin-label">Bio</label><AIAssistantField value={profile.bio || ""} onChange={val => updateSetting("profile", "bio", val)}><textarea className="admin-input admin-textarea" value={profile.bio || ""} onChange={e => updateSetting("profile", "bio", e.target.value)} /></AIAssistantField></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="admin-field"><label className="admin-label">Email</label><input className="admin-input" value={profile.email || ""} onChange={e => updateSetting("profile", "email", e.target.value)} /></div>
-                <div className="admin-field"><label className="admin-label">Phone</label><input className="admin-input" value={profile.phone || ""} onChange={e => updateSetting("profile", "phone", e.target.value)} /></div>
+                <div className="admin-field"><label className="admin-label">Email</label><AIAssistantField value={profile.email || ""} onChange={val => updateSetting("profile", "email", val)}><input className="admin-input" value={profile.email || ""} onChange={e => updateSetting("profile", "email", e.target.value)} /></AIAssistantField></div>
+                <div className="admin-field"><label className="admin-label">Phone</label><AIAssistantField value={profile.phone || ""} onChange={val => updateSetting("profile", "phone", val)}><input className="admin-input" value={profile.phone || ""} onChange={e => updateSetting("profile", "phone", e.target.value)} /></AIAssistantField></div>
               </div>
-              <div className="admin-field"><label className="admin-label">Location</label><input className="admin-input" value={profile.location || ""} onChange={e => updateSetting("profile", "location", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">Location</label><AIAssistantField value={profile.location || ""} onChange={val => updateSetting("profile", "location", val)}><input className="admin-input" value={profile.location || ""} onChange={e => updateSetting("profile", "location", e.target.value)} /></AIAssistantField></div>
               <button onClick={() => save("profile")} disabled={saving} className="admin-btn admin-btn-primary">{saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save Profile</button>
             </>)}
 
@@ -90,8 +91,8 @@ export default function SettingsPage() {
             </>)}
 
             {activeTab === "seo" && (<>
-              <div className="admin-field"><label className="admin-label">SEO Title</label><input className="admin-input" value={seo.title || ""} onChange={e => updateSetting("seo", "title", e.target.value)} /></div>
-              <div className="admin-field"><label className="admin-label">SEO Description</label><textarea className="admin-input admin-textarea" value={seo.description || ""} onChange={e => updateSetting("seo", "description", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">SEO Title</label><AIAssistantField value={seo.title || ""} onChange={val => updateSetting("seo", "title", val)}><input className="admin-input" value={seo.title || ""} onChange={e => updateSetting("seo", "title", e.target.value)} /></AIAssistantField></div>
+              <div className="admin-field"><label className="admin-label">SEO Description</label><AIAssistantField value={seo.description || ""} onChange={val => updateSetting("seo", "description", val)}><textarea className="admin-input admin-textarea" value={seo.description || ""} onChange={e => updateSetting("seo", "description", e.target.value)} /></AIAssistantField></div>
               <button onClick={() => save("seo")} disabled={saving} className="admin-btn admin-btn-primary">{saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save SEO</button>
             </>)}
 

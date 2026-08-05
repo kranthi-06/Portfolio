@@ -32,6 +32,10 @@ function CaseStudyPanel({ product }: { product: Product }) {
     { label: "Architecture", content: product.architecture },
   ];
 
+  const hasFeatures = product.features && product.features.length > 0;
+  const hasRoadmap = product.roadmap && product.roadmap.length > 0;
+  const hasChallengesOrLessons = (product.challenges && product.challenges.length > 0) || (product.lessons && product.lessons.length > 0);
+
   return (
     <motion.div
       key={product.id}
@@ -45,7 +49,15 @@ function CaseStudyPanel({ product }: { product: Product }) {
         {sections.map((s) => (
           <div key={s.label} className="p-6 rounded-2xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)" }}>
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-3" style={{ color: "var(--ink-muted)" }}>{s.label}</p>
-            <p className="text-sm leading-relaxed" style={{ color: "var(--ink-secondary)" }}>{s.content}</p>
+            {s.content ? (
+              <div 
+                className="text-sm leading-relaxed prose prose-sm prose-invert max-w-none prose-p:mb-3 prose-p:last:mb-0 prose-ul:mb-3 prose-li:mb-1 prose-headings:mb-3 prose-headings:mt-4 prose-headings:first:mt-0" 
+                style={{ color: "var(--ink-secondary)" }}
+                dangerouslySetInnerHTML={{ __html: s.content }} 
+              />
+            ) : (
+              <p className="text-sm italic opacity-50" style={{ color: "var(--ink-muted)" }}>No {s.label.toLowerCase()} details have been added yet.</p>
+            )}
           </div>
         ))}
       </div>
@@ -53,39 +65,59 @@ function CaseStudyPanel({ product }: { product: Product }) {
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-4" style={{ color: "var(--ink-muted)" }}>Features</p>
-          <ul className="space-y-2">
-            {product.features.map((f) => (
-              <li key={f} className="flex items-start gap-2 text-sm" style={{ color: "var(--ink-secondary)" }}>
-                <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: "var(--gradient-1)" }} />
-                {f}
-              </li>
-            ))}
-          </ul>
+          {hasFeatures ? (
+            <ul className="space-y-2">
+              {product.features.map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm" style={{ color: "var(--ink-secondary)" }}>
+                  <span className="mt-1.5 w-1 h-1 rounded-full flex-shrink-0" style={{ background: "var(--gradient-1)" }} />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm italic opacity-50" style={{ color: "var(--ink-muted)" }}>No features added.</p>
+          )}
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-4" style={{ color: "var(--ink-muted)" }}>Challenges & lessons</p>
-          <ul className="space-y-2 mb-6">
-            {product.challenges.map((c) => (
-              <li key={c} className="text-sm" style={{ color: "var(--ink-secondary)" }}>→ {c}</li>
-            ))}
-          </ul>
-          <ul className="space-y-2">
-            {product.lessons.map((l) => (
-              <li key={l} className="text-sm italic font-serif" style={{ color: "var(--ink-muted)" }}>&ldquo;{l}&rdquo;</li>
-            ))}
-          </ul>
+          {product.longDescription ? (
+            <div 
+              className="text-sm prose prose-sm prose-invert max-w-none prose-p:mb-3 prose-p:last:mb-0 prose-ul:mb-3 prose-li:mb-1 prose-headings:mb-3 prose-headings:mt-4 prose-headings:first:mt-0" 
+              style={{ color: "var(--ink-secondary)" }}
+              dangerouslySetInnerHTML={{ __html: product.longDescription }}
+            />
+          ) : hasChallengesOrLessons ? (
+            <>
+              <ul className="space-y-2 mb-6">
+                {product.challenges?.map((c) => (
+                  <li key={c} className="text-sm" style={{ color: "var(--ink-secondary)" }}>→ {c}</li>
+                ))}
+              </ul>
+              <ul className="space-y-2">
+                {product.lessons?.map((l) => (
+                  <li key={l} className="text-sm italic font-serif" style={{ color: "var(--ink-muted)" }}>&ldquo;{l}&rdquo;</li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-sm italic opacity-50" style={{ color: "var(--ink-muted)" }}>No challenges or lessons documented yet.</p>
+          )}
         </div>
       </div>
 
       <div className="p-6 rounded-2xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)" }}>
         <p className="text-[10px] font-bold uppercase tracking-[0.12em] mb-4" style={{ color: "var(--ink-muted)" }}>Future roadmap</p>
-        <div className="flex flex-wrap gap-3">
-          {product.roadmap.map((r, i) => (
-            <span key={r} className="text-sm px-4 py-2 rounded-full" style={{ background: "var(--bg-elevated)", color: "var(--ink-secondary)", border: "1px solid var(--line)" }}>
-              {i + 1}. {r}
-            </span>
-          ))}
-        </div>
+        {hasRoadmap ? (
+          <div className="flex flex-wrap gap-3">
+            {product.roadmap.map((r, i) => (
+              <span key={r} className="text-sm px-4 py-2 rounded-full" style={{ background: "var(--bg-elevated)", color: "var(--ink-secondary)", border: "1px solid var(--line)" }}>
+                {i + 1}. {r}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm italic opacity-50" style={{ color: "var(--ink-muted)" }}>Roadmap is currently open.</p>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -108,18 +140,19 @@ export function ProductsSection() {
   const products: Product[] = projects.map(p => ({
     id: p.id,
     name: p.title,
-    tagline: p.subtitle || p.description,
-    category: p.category,
-    problem: p.problem,
-    solution: p.solution,
-    architecture: p.architecture || "Architecture not detailed",
-    features: p.features,
-    challenges: p.challenges,
-    lessons: p.technologies,
-    roadmap: p.futureScope,
+    tagline: p.subtitle || p.description || "",
+    category: p.category || "",
+    problem: p.problem || "",
+    solution: p.solution || "",
+    architecture: p.architecture || "",
+    features: p.features || [],
+    challenges: p.challenges || [],
+    lessons: p.technologies || [],
+    roadmap: p.futureScope || [],
     liveUrl: p.liveUrl || "#",
-    githubUrl: p.githubUrl,
-    image: p.image,
+    githubUrl: p.githubUrl || undefined,
+    image: p.image || "",
+    longDescription: p.longDescription || "",
     accent: "violet"
   }));
 

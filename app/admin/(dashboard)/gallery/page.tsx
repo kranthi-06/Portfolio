@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
+import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";
 
 interface GalleryItem {
   id: string; title: string; caption: string; image_url: string; album: string;
@@ -27,6 +28,16 @@ export default function GalleryPage() {
   const [deleteTarget, setDeleteTarget] = useState<GalleryItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  function handleCloseAttempt() {
+    if (uploadCaption.trim()) {
+      setShowCloseConfirm(true);
+    } else {
+      setShowUpload(false);
+      setUploadCaption("");
+    }
+  }
 
   const fetchItems = useCallback(async () => {
     try {
@@ -110,7 +121,7 @@ export default function GalleryPage() {
       )}
 
       {/* Upload Modal */}
-      <AdminModal open={showUpload} onClose={() => setShowUpload(false)} title="Add Gallery Image" maxWidth="480px">
+      <AdminModal open={showUpload} onClose={() => setShowUpload(false)} title="Add Gallery Image" maxWidth="480px" preventClose={!!uploadCaption.trim()} onCloseAttempt={handleCloseAttempt}>
         <div className="space-y-4">
           <div className="admin-field">
             <label className="admin-label">Album</label>
@@ -118,7 +129,7 @@ export default function GalleryPage() {
               {GALLERY_ALBUMS.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
-          <div className="admin-field"><label className="admin-label">Caption</label><input className="admin-input" value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} placeholder="Optional caption…" /></div>
+          <div className="admin-field"><label className="admin-label">Caption</label><AIAssistantField value={uploadCaption} onChange={setUploadCaption}><input className="admin-input" value={uploadCaption} onChange={e => setUploadCaption(e.target.value)} placeholder="Optional caption…" /></AIAssistantField></div>
           <UploadZone bucket="gallery" folder={uploadAlbum.toLowerCase()} onUploadComplete={handleUploadComplete} accept={["image/png","image/jpeg","image/webp"]} maxSize={10485760} label="Upload gallery image" />
         </div>
       </AdminModal>
@@ -134,6 +145,20 @@ export default function GalleryPage() {
       </AnimatePresence>
 
       <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Delete Image" message="Delete this image from the gallery?" loading={deleting} />
+      
+      <ConfirmDialog 
+        open={showCloseConfirm} 
+        onClose={() => setShowCloseConfirm(false)} 
+        onConfirm={() => {
+          setShowCloseConfirm(false);
+          setShowUpload(false);
+          setUploadCaption("");
+        }} 
+        title="Discard Draft?" 
+        message="You have entered a caption. Are you sure you want to discard it?" 
+        confirmLabel="Discard"
+        variant="danger"
+      />
     </div>
   );
 }

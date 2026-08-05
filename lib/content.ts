@@ -152,6 +152,7 @@ export interface Product {
   roadmap: string[];
   metrics?: { label: string; value: string }[];
   accent: "violet" | "ocean" | "ember";
+  longDescription?: string | null;
 }
 
 export const products: Product[] = [

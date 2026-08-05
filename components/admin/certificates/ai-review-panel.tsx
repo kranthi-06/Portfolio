@@ -9,6 +9,7 @@ import {
 import type { CertificateAnalysis } from "@/lib/ai/gemini";
 import { CERTIFICATE_CATEGORIES } from "@/lib/admin/constants";
 import { toast } from "sonner";
+import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";
 
 interface AIReviewPanelProps {
   analysis: CertificateAnalysis;
@@ -284,18 +285,22 @@ function FieldRow({
           )}
         </div>
         {multiline ? (
-          <textarea
-            className="admin-input admin-textarea"
-            value={value}
-            onChange={(e) => onChange?.(e.target.value)}
-            rows={3}
-          />
+          <AIAssistantField value={value} onChange={(v) => onChange?.(v)}>
+            <textarea
+              className="admin-input admin-textarea"
+              value={value}
+              onChange={(e) => onChange?.(e.target.value)}
+              rows={3}
+            />
+          </AIAssistantField>
         ) : (
-          <input
-            className="admin-input"
-            value={value}
-            onChange={(e) => onChange?.(e.target.value)}
-          />
+          <AIAssistantField value={value} onChange={(v) => onChange?.(v)}>
+            <input
+              className="admin-input"
+              value={value}
+              onChange={(e) => onChange?.(e.target.value)}
+            />
+          </AIAssistantField>
         )}
       </div>
     );

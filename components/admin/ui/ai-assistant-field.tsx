@@ -11,6 +11,9 @@ interface AIAssistantFieldProps {
   placeholder?: string;
   className?: string;
   rows?: number;
+  hideLabel?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
+  children?: React.ReactNode;
 }
 
 export function AIAssistantField({
@@ -21,13 +24,16 @@ export function AIAssistantField({
   contextType,
   placeholder,
   className = "",
-  rows = 4
+  rows = 4,
+  hideLabel = false,
+  onKeyDown,
+  children
 }: AIAssistantFieldProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="admin-field w-full">
-      {label && (
+      {label && !hideLabel && (
         <div className="flex items-center justify-between mb-1.5">
           <label className="admin-label !mb-0">{label}</label>
           <button
@@ -41,7 +47,7 @@ export function AIAssistantField({
       )}
       
       <div className="relative group">
-        {!label && (
+        {(!label || hideLabel) && (
            <button
              type="button"
              onClick={() => setModalOpen(true)}
@@ -51,21 +57,25 @@ export function AIAssistantField({
            </button>
         )}
         
-        {multiline ? (
+        {children ? (
+          children
+        ) : multiline ? (
           <textarea
             className={`admin-input admin-textarea w-full ${className}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
+            onKeyDown={onKeyDown}
           />
         ) : (
           <input
             type="text"
-            className={`admin-input w-full ${!label ? "pr-16" : ""} ${className}`}
+            className={`admin-input w-full ${!label && !hideLabel ? "pr-16" : ""} ${className}`}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
+            onKeyDown={onKeyDown}
           />
         )}
       </div>

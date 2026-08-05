@@ -4,9 +4,10 @@ import React, { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ExternalLink, Lock, RefreshCw, Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "./safe-image";
 
 interface BrowserFrameProps {
-  title: string;
+  title?: string;
   url?: string;
   image: string;
   accent?: "violet" | "ocean" | "ember" | string;
@@ -137,11 +138,10 @@ export function BrowserFrame({
       {/* Main Preview Container */}
       <div className={cn("relative w-full overflow-hidden bg-zinc-900", aspectRatio)}>
         <div className="relative w-full h-full overflow-hidden">
-          <img
+          <SafeImage
             src={image}
             alt={`${title} real web application showcase`}
-            className="w-full h-full object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
-            loading="lazy"
+            className="object-cover object-top transform group-hover:scale-105 transition-transform duration-700 ease-out"
           />
         </div>
 

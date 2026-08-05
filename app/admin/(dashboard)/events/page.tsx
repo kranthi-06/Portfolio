@@ -10,6 +10,8 @@ import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
+import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";
+import { useAutoSave } from "@/hooks/use-auto-save";
 
 interface EventImage { id?: string; image_url: string; caption: string; image_type: string; }
 interface Event {
@@ -30,9 +32,50 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const [editing, setEditing] = useState<typeof emptyEvent & { id?: string; images?: EventImage[] }>(emptyEvent);
+  const [originalEditing, setOriginalEditing] = useState<typeof emptyEvent & { id?: string; images?: EventImage[] }>(emptyEvent);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  const { clearDraft } = useAutoSave(
+    `evt_draft_${editing.id || "new"}`,
+    editing,
+    showEditor
+  );
+
+  function openEdit(ev?: Event) {
+    const data = ev ? { ...emptyEvent, ...ev, images: ev.event_images } : emptyEvent;
+    setEditing(data);
+    setOriginalEditing(data);
+    setShowEditor(true);
+    
+    setTimeout(() => {
+      try {
+        const draftKey = `event_draft_${(data as any).id || "new"}`;
+        const draftStr = localStorage.getItem(draftKey);
+        if (draftStr) {
+          const draft = JSON.parse(draftStr);
+          if (JSON.stringify(draft) !== JSON.stringify(data)) {
+            if (confirm("You have an unsaved draft. Restore it?")) {
+              setEditing(draft);
+            } else {
+              localStorage.removeItem(draftKey);
+            }
+          }
+        }
+      } catch (e) {}
+    }, 50);
+  }
+
+  function handleCloseAttempt() {
+    if (JSON.stringify(editing) !== JSON.stringify(originalEditing)) {
+      setShowCloseConfirm(true);
+    } else {
+      setShowEditor(false);
+      clearDraft();
+    }
+  }
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -55,7 +98,10 @@ export default function EventsPage() {
       });
       if (!res.ok) throw new Error();
       toast.success(editing.id ? "Event updated" : "Event created");
-      setShowEditor(false); setEditing(emptyEvent); fetchEvents();
+      clearDraft();
+      setShowEditor(false); 
+      setEditing(emptyEvent); 
+      fetchEvents();
     } catch { toast.error("Failed to save"); }
     finally { setSaving(false); }
   }
@@ -83,14 +129,14 @@ export default function EventsPage() {
     <div>
       <div className="admin-page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div><h1 className="admin-page-title">Events</h1><p className="admin-page-subtitle">{events.length} events</p></div>
-        <button onClick={() => { setEditing(emptyEvent); setShowEditor(true); }} className="admin-btn admin-btn-primary"><Plus size={14} /> Add Event</button>
+        <button onClick={() => openEdit()} className="admin-btn admin-btn-primary"><Plus size={14} /> Add Event</button>
       </div>
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[1,2,3].map(i => <div key={i} className="admin-card p-4"><div className="admin-skeleton h-32 rounded-xl mb-3" /><div className="admin-skeleton h-4 w-3/4 mb-2" /><div className="admin-skeleton h-3 w-1/2" /></div>)}</div>
       ) : events.length === 0 ? (
         <EmptyState icon={<CalendarDays size={48} />} title="No events yet" description="Add hackathons, workshops, conferences, and more."
-          action={<button onClick={() => { setEditing(emptyEvent); setShowEditor(true); }} className="admin-btn admin-btn-primary"><Plus size={14} /> Add Event</button>} />
+          action={<button onClick={() => openEdit()} className="admin-btn admin-btn-primary"><Plus size={14} /> Add Event</button>} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
@@ -112,7 +158,7 @@ export default function EventsPage() {
                   {ev.organizer && <p className="text-[12px] mb-1" style={{ color: "var(--admin-ink-secondary)" }}>{ev.organizer}</p>}
                   {ev.location && <p className="text-[11px] flex items-center gap-1 mb-2" style={{ color: "var(--admin-ink-muted)" }}><MapPin size={10} />{ev.location}</p>}
                   <div className="flex items-center gap-1 pt-2" style={{ borderTop: "1px solid var(--admin-line)" }}>
-                    <button onClick={() => { setEditing({ ...emptyEvent, ...ev, images: ev.event_images }); setShowEditor(true); }} className="admin-btn admin-btn-ghost admin-btn-sm"><Pencil size={12} /></button>
+                    <button onClick={() => openEdit(ev)} className="admin-btn admin-btn-ghost admin-btn-sm"><Pencil size={12} /></button>
                     {ev.status === "draft" ? <button onClick={() => updateStatus(ev.id, "published")} className="admin-btn admin-btn-ghost admin-btn-sm"><Globe size={12} /> Publish</button>
                       : <button onClick={() => updateStatus(ev.id, "draft")} className="admin-btn admin-btn-ghost admin-btn-sm">Unpublish</button>}
                     <div className="flex-1" />
@@ -126,21 +172,22 @@ export default function EventsPage() {
       )}
 
       <AdminModal open={showEditor} onClose={() => setShowEditor(false)} title={editing.id ? "Edit Event" : "New Event"} maxWidth="680px"
-        footer={<><button onClick={() => setShowEditor(false)} className="admin-btn admin-btn-secondary">Cancel</button><button onClick={handleSave} disabled={saving} className="admin-btn admin-btn-primary">{saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Event"}</button></>}>
+        preventClose={showEditor} onCloseAttempt={handleCloseAttempt}
+        footer={<><button onClick={handleCloseAttempt} className="admin-btn admin-btn-secondary">Cancel</button><button onClick={handleSave} disabled={saving} className="admin-btn admin-btn-primary">{saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : "Save Event"}</button></>}>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-          <div className="admin-field"><label className="admin-label">Event Name *</label><input className="admin-input" value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></div>
+          <div className="admin-field"><label className="admin-label">Event Name *</label><AIAssistantField value={editing.name} onChange={val => setEditing(p => ({ ...p, name: val }))}><input className="admin-input" value={editing.name} onChange={e => setEditing(p => ({ ...p, name: e.target.value }))} /></AIAssistantField></div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="admin-field"><label className="admin-label">Organizer</label><input className="admin-input" value={editing.organizer} onChange={e => setEditing(p => ({ ...p, organizer: e.target.value }))} /></div>
-            <div className="admin-field"><label className="admin-label">Location</label><input className="admin-input" value={editing.location} onChange={e => setEditing(p => ({ ...p, location: e.target.value }))} /></div>
+            <div className="admin-field"><label className="admin-label">Organizer</label><AIAssistantField value={editing.organizer} onChange={val => setEditing(p => ({ ...p, organizer: val }))}><input className="admin-input" value={editing.organizer} onChange={e => setEditing(p => ({ ...p, organizer: e.target.value }))} /></AIAssistantField></div>
+            <div className="admin-field"><label className="admin-label">Location</label><AIAssistantField value={editing.location} onChange={val => setEditing(p => ({ ...p, location: val }))}><input className="admin-input" value={editing.location} onChange={e => setEditing(p => ({ ...p, location: e.target.value }))} /></AIAssistantField></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="admin-field"><label className="admin-label">Event Date</label><input className="admin-input" value={editing.event_date} onChange={e => setEditing(p => ({ ...p, event_date: e.target.value }))} placeholder="e.g. March 2025" /></div>
-            <div className="admin-field"><label className="admin-label">Event Type</label><input className="admin-input" value={editing.event_type} onChange={e => setEditing(p => ({ ...p, event_type: e.target.value }))} placeholder="e.g. Hackathon" /></div>
+            <div className="admin-field"><label className="admin-label">Event Date</label><AIAssistantField value={editing.event_date} onChange={val => setEditing(p => ({ ...p, event_date: val }))}><input className="admin-input" value={editing.event_date} onChange={e => setEditing(p => ({ ...p, event_date: e.target.value }))} placeholder="e.g. March 2025" /></AIAssistantField></div>
+            <div className="admin-field"><label className="admin-label">Event Type</label><AIAssistantField value={editing.event_type} onChange={val => setEditing(p => ({ ...p, event_type: val }))}><input className="admin-input" value={editing.event_type} onChange={e => setEditing(p => ({ ...p, event_type: e.target.value }))} placeholder="e.g. Hackathon" /></AIAssistantField></div>
           </div>
-          <div className="admin-field"><label className="admin-label">Description</label><textarea className="admin-input admin-textarea" value={editing.description} onChange={e => setEditing(p => ({ ...p, description: e.target.value }))} /></div>
+          <div className="admin-field"><label className="admin-label">Description</label><AIAssistantField value={editing.description} onChange={val => setEditing(p => ({ ...p, description: val }))}><textarea className="admin-input admin-textarea" value={editing.description} onChange={e => setEditing(p => ({ ...p, description: e.target.value }))} /></AIAssistantField></div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="admin-field"><label className="admin-label">Achievement</label><input className="admin-input" value={editing.achievement} onChange={e => setEditing(p => ({ ...p, achievement: e.target.value }))} placeholder="e.g. 1st Place" /></div>
-            <div className="admin-field"><label className="admin-label">Prize</label><input className="admin-input" value={editing.prize} onChange={e => setEditing(p => ({ ...p, prize: e.target.value }))} /></div>
+            <div className="admin-field"><label className="admin-label">Achievement</label><AIAssistantField value={editing.achievement} onChange={val => setEditing(p => ({ ...p, achievement: val }))}><input className="admin-input" value={editing.achievement} onChange={e => setEditing(p => ({ ...p, achievement: e.target.value }))} placeholder="e.g. 1st Place" /></AIAssistantField></div>
+            <div className="admin-field"><label className="admin-label">Prize</label><AIAssistantField value={editing.prize} onChange={val => setEditing(p => ({ ...p, prize: val }))}><input className="admin-input" value={editing.prize} onChange={e => setEditing(p => ({ ...p, prize: e.target.value }))} /></AIAssistantField></div>
           </div>
           <div className="admin-field">
             <label className="admin-label">Cover Image</label>
@@ -167,6 +214,20 @@ export default function EventsPage() {
       </AdminModal>
 
       <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete} title="Delete Event" message={`Delete "${deleteTarget?.name}"? This cannot be undone.`} loading={deleting} />
+      
+      <ConfirmDialog 
+        open={showCloseConfirm} 
+        onClose={() => setShowCloseConfirm(false)} 
+        onConfirm={() => {
+          setShowCloseConfirm(false);
+          setShowEditor(false);
+          clearDraft();
+        }} 
+        title="Discard Unsaved Changes?" 
+        message="You have unsaved changes. Are you sure you want to discard them?" 
+        confirmLabel="Discard Changes"
+        variant="danger"
+      />
     </div>
   );
 }

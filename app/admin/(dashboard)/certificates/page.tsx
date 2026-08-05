@@ -57,6 +57,17 @@ export default function CertificatesPage() {
   const [deleteTarget, setDeleteTarget] = useState<Certificate | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Close protection
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  function handleCloseAttempt() {
+    if (uploadedFile) {
+      setShowCloseConfirm(true);
+    } else {
+      resetUploadFlow();
+    }
+  }
+
   // Fetch certificates
   const fetchCertificates = useCallback(async () => {
     try {
@@ -440,6 +451,8 @@ export default function CertificatesPage() {
       <AdminModal
         open={showUpload}
         onClose={resetUploadFlow}
+        onCloseAttempt={handleCloseAttempt}
+        preventClose={!!uploadedFile}
         title={step === "reviewing" ? "Review AI Analysis" : "Upload Certificate"}
         maxWidth={step === "reviewing" ? "720px" : "520px"}
       >
@@ -486,6 +499,19 @@ export default function CertificatesPage() {
         title="Delete Certificate"
         message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
         loading={deleting}
+      />
+
+      <ConfirmDialog 
+        open={showCloseConfirm} 
+        onClose={() => setShowCloseConfirm(false)} 
+        onConfirm={() => {
+          setShowCloseConfirm(false);
+          resetUploadFlow();
+        }} 
+        title="Discard Upload?" 
+        message="You have an unsaved certificate analysis. Are you sure you want to discard it?" 
+        confirmLabel="Discard"
+        variant="danger"
       />
     </div>
   );
