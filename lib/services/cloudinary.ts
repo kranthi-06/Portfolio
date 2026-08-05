@@ -1,10 +1,21 @@
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
-// Configure Cloudinary natively. It automatically picks up CLOUDINARY_URL from process.env,
-// but we explicitly configure it if needed for safety.
-cloudinary.config({
-  secure: true,
-});
+import { getServerEnvironment } from '@/lib/server/env';
+
+// Explicitly configure Cloudinary parsing the URL to avoid process.env silent failures
+const env = getServerEnvironment();
+const urlMatch = env.CLOUDINARY_URL.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+
+if (urlMatch) {
+  cloudinary.config({
+    api_key: urlMatch[1],
+    api_secret: urlMatch[2],
+    cloud_name: urlMatch[3],
+    secure: true,
+  });
+} else {
+  console.warn("CLOUDINARY_URL format is invalid.");
+}
 
 export class CloudinaryService {
   /**

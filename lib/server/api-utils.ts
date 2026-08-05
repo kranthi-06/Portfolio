@@ -75,6 +75,14 @@ export function apiError(error: any, status = 400, requestId?: string) {
         message = error.message;
       }
     }
+  } else {
+    // For SDKs (like Cloudinary) that throw raw objects instead of Error instances
+    console.error(`[API Unknown Error ${requestId || timestamp}]:`, error);
+    if (error && typeof error === 'object' && 'message' in error) {
+      message = String(error.message);
+    } else if (typeof error === 'string') {
+      message = error;
+    }
   }
 
   const response: ApiResponse = {
