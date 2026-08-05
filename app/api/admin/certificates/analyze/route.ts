@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { analyzeCertificate } from "@/lib/ai/gemini";
+import { AIService } from "@/lib/ai/provider";
+import { certificateAnalysisJsonSchema, certificateAnalysisSchema } from "@/lib/ai/schemas";
+import { getServerEnvironment } from "@/lib/server/env";
 import { logActivity } from "@/lib/admin/log-activity";
 import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
 import { z } from "zod";
@@ -37,8 +39,10 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     mimeType = "image/jpeg";
   }
 
-  // Run Gemini AI analysis
-  const analysis = await analyzeCertificate({ data: base64Data, mimeType });
+  const prompt = "Analyze this portfolio credential. Extract only evidence contained in the document. Return JSON following the supplied schema. Set requiresCategoryReview to true when categoryConfidence is below 0.8.";
+  
+  const rawAnalysis = await AIService.analyzeDocument(base64Data, mimeType, prompt, certificateAnalysisJsonSchema);
+  const analysis = certificateAnalysisSchema.parse(rawAnalysis);
 
   // Save AI generation record
   await supabase.from("ai_generations").insert({
@@ -46,7 +50,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     entity_id: entityId || null,
     input_type: mimeType.startsWith("image/") ? "image" : "pdf",
     output: analysis,
-    model: "gemini-3.6-flash",
+    model: getServerEnvironment().AI_PROVIDER,
   });
 
   await logActivity({

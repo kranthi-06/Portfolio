@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
-import { getServerEnvironment, REQUIRED_GEMINI_MODEL } from "@/lib/server/env";
+import { getServerEnvironment } from "@/lib/server/env";
 import { withApiAuth } from "@/lib/server/api-utils";
 import { z } from "zod";
+import { AIService } from "@/lib/ai/provider";
 import { buildPrompt, AIAction, AITone } from "@/lib/ai/prompts";
 import { getPortfolioContext } from "@/lib/ai/context-manager";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -20,24 +20,18 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   const rawBody = await request.json();
   const { text, action, customPrompt, tone, contextType } = streamSchema.parse(rawBody);
 
-  const env = getServerEnvironment();
-  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-  
   const contextStr = await getPortfolioContext(contextType);
   const prompt = buildPrompt(text, action as any, customPrompt, tone as any, contextStr);
 
-  const responseStream = await ai.models.generateContentStream({
-    model: REQUIRED_GEMINI_MODEL,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
+  const responseStream = await AIService.streamText(prompt);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
         for await (const chunk of responseStream) {
-          if (chunk.text) {
-            controller.enqueue(encoder.encode(chunk.text));
+          if (chunk) {
+            controller.enqueue(encoder.encode(chunk));
           }
         }
         
@@ -46,7 +40,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
           input_type: "text",
           prompt: action,
           output: { action, contextType, textLength: text.length },
-          model: REQUIRED_GEMINI_MODEL,
+          model: getServerEnvironment().AI_PROVIDER,
         }).then(() => {}, (err) => console.error(err));
         
       } catch (err) {

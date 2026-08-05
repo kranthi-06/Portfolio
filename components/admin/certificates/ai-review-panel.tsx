@@ -6,7 +6,7 @@ import {
   Check, X, RefreshCw, Sparkles, Pencil, Minus, Plus,
   ArrowRight, Loader2, AlertTriangle,
 } from "lucide-react";
-import type { CertificateAnalysis } from "@/lib/ai/gemini";
+import type { CertificateAnalysis } from "@/lib/ai/schemas";
 import { CERTIFICATE_CATEGORIES } from "@/lib/admin/constants";
 import { toast } from "sonner";
 import { AIAssistantField } from "@/components/admin/ui/ai-assistant-field";

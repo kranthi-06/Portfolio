@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/admin/ui/status-badge";
 import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
-import type { CertificateAnalysis } from "@/lib/ai/gemini";
+import type { CertificateAnalysis } from "@/lib/ai/schemas";
 
 interface Certificate {
   id: string;

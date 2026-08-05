@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { GoogleGenAI } from "@google/genai";
 import { getServerEnvironment, REQUIRED_GEMINI_MODEL } from "@/lib/server/env";
 import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
 import { z } from "zod";
+import { AIService } from "@/lib/ai/provider";
 
 const improveSchema = z.object({
   text: z.string().min(1, "Text is required"),
@@ -16,9 +16,6 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   const rawBody = await request.json();
   const { text, action, context } = improveSchema.parse(rawBody);
 
-  const env = getServerEnvironment();
-  const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-
   const prompts: Record<string, string> = {
     improve: `Improve this text to be more professional and polished. Keep the same meaning but enhance clarity and impact. Context: ${context || "portfolio content"}.\n\nText: "${text}"\n\nReturn only the improved text, nothing else.`,
     shorten: `Shorten this text significantly while keeping the core message. Make it concise and impactful.\n\nText: "${text}"\n\nReturn only the shortened text.`,
@@ -29,12 +26,8 @@ export const POST = withApiAuth(async (request: NextRequest) => {
 
   const prompt = prompts[action];
 
-  const response = await ai.models.generateContent({
-    model: REQUIRED_GEMINI_MODEL,
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
+  const result = await AIService.generateText(prompt);
 
-  const result = response.text?.trim();
   if (!result) throw new Error("AI returned empty response");
 
   // Log AI generation
@@ -43,7 +36,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     input_type: "text",
     prompt: action,
     output: { original: text, improved: result, action },
-    model: REQUIRED_GEMINI_MODEL,
+    model: getServerEnvironment().AI_PROVIDER,
   });
 
   return apiSuccess({ result }, "Text improved successfully");
