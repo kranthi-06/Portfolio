@@ -16,7 +16,7 @@ export const personal = {
   location: "India",
   availability: "Open to opportunities",
   email: "kasakk2006@gmail.com",
-  portrait: "/assets/images/kranthi-kiran-portrait.png",
+  portrait: "/assets/images/kranthi-kiran-portrait.jpg",
   resumeUrl: "/assets/resume.pdf",
 };
 

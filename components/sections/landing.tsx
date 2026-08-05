@@ -152,7 +152,7 @@ export function LandingSection() {
                   }}
                 >
                   <Image
-                    src={personal.avatar_url || "/assets/images/kranthi-kiran-portrait.png"}
+                    src={personal.avatar_url || "/assets/images/kranthi-kiran-portrait.jpg"}
                     alt={`Portrait of ${personal.name}`}
                     fill
                     priority
