@@ -42,7 +42,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     );
   }
 
-  await logActivity({ action: "create", entityType: "event", entityId: data.id, entityTitle: data.title });
+  await logActivity({ action: "create", entityType: "event", entityId: data.id, entityTitle: data.name });
   revalidateData();
   return apiSuccess(data, "Event created successfully", 201);
 });
@@ -96,7 +96,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   }
 
   const action = body.status === "published" ? "publish" : body.status === "archived" ? "archive" : "update";
-  await logActivity({ action, entityType: "event", entityId: data.id, entityTitle: data.title });
+  await logActivity({ action, entityType: "event", entityId: data.id, entityTitle: data.name });
   revalidateData();
   return apiSuccess(data, "Event updated successfully");
 });

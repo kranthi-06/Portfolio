@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createPublicSupabaseClient } from "@/lib/supabase/public";
 
 // Simple in-memory rate limiter for contact form submissions.
 // In production with multiple instances, use Redis or a database-backed approach.
@@ -74,7 +74,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Name and message cannot be empty after sanitization" }, { status: 400 });
     }
 
-    const supabase = await createSupabaseServerClient();
+    const supabase = createPublicSupabaseClient();
+    if (!supabase) {
+      console.error("[Contact Form Error]: Supabase public client configuration missing");
+      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    }
     const { error } = await supabase.from("messages").insert({
       name: cleanName, email: normalizedEmail, subject: cleanSubject, message: cleanMessage, status: "unread",
     });

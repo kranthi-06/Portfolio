@@ -4,7 +4,6 @@ import { z } from "zod";
 
 const serverEnvironmentSchema = z
   .object({
-    DATABASE_URL: z.string().url(),
     CLOUDINARY_URL: z.string().min(1, "CLOUDINARY_URL is required"),
 
     // AI Provider selection

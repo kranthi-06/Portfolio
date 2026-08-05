@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { z } from "zod";
+
+const messageUpdateSchema = z.object({
+  status: z.enum(["unread", "read", "archived"]).optional(),
+}).strict();
 
 export const GET = withApiAuth(async () => {
   const supabase = await createSupabaseServerClient();
@@ -11,8 +16,9 @@ export const GET = withApiAuth(async () => {
 
 export const PATCH = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const { id, ...updates } = await request.json();
+  const { id, ...rawUpdates } = await request.json();
   if (!id) return apiError(new Error("ID required"), 400);
+  const updates = messageUpdateSchema.parse(rawUpdates);
   const { data, error } = await supabase.from("messages").update(updates).eq("id", id).select().single();
   if (error) throw error;
   return apiSuccess(data);

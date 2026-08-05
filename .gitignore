@@ -35,3 +35,7 @@ next-env.d.ts
 .vscode/
 *.swp
 *.swo
+
+# Dev logs & test scripts
+dev_server*.log
+qa-test.mjs

@@ -51,10 +51,16 @@ export function apiError(error: any, status = 400, requestId?: string) {
   let details = undefined;
 
   if (error instanceof ZodError) {
-    code = "VALIDATION_ERROR";
-    message = "Invalid input data.";
-    details = error.issues;
-    status = 400;
+    if (status === 500) {
+      code = "INTERNAL_SERVER_ERROR";
+      message = "Server configuration error.";
+      details = error.issues;
+    } else {
+      code = "VALIDATION_ERROR";
+      message = "Invalid input data.";
+      details = error.issues;
+      status = 400;
+    }
   } else if (error instanceof Error) {
     // If it's a known error type, we can extract the message securely.
     // Be careful not to leak stack traces or Postgres syntax errors.
