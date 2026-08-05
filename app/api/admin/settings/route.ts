@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withApiAuth, revalidateData } from "@/lib/server/api-utils";
 import { settingsSchema } from "@/lib/server/validations";
 
 export const GET = withApiAuth(async () => {
@@ -23,5 +23,6 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   if (error) throw error;
   
   await logActivity({ action: "settings_update", entityType: "settings", entityTitle: key });
+  revalidateData();
   return apiSuccess(null, "Settings updated successfully");
 });

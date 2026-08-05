@@ -7,7 +7,7 @@ import {
   MoreHorizontal, Eye, Pencil, Trash2, Globe, Archive,
   FileText, ImageIcon, Sparkles,
 } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -21,20 +21,21 @@ import { AdminModal } from "@/components/admin/ui/modal";
 import type { CertificateAnalysis } from "@/lib/ai/schemas";
 
 interface Certificate {
-  id: string;
-  title: string;
-  organization: string;
-  description: string;
-  category: string;
-  file_url: string;
-  file_type: string;
-  status: "draft" | "published" | "archived";
-  skills: string[];
-  tags: string[];
-  issue_date: string | null;
-  created_at: string;
+  id: string; title: string; organization: string; description: string;
+  professional_summary: string; category: string; issue_date: string;
+  credential_id: string; credential_url: string;
+  file_url: string; file_public_id: string; file_type: string;
+  thumbnail_url: string; thumbnail_public_id: string; skills: string[]; tags: string[];
+  status: "draft" | "published" | "archived"; created_at: string;
   ai_generated: boolean;
 }
+
+const emptyCert = {
+  title: "", organization: "", description: "", professional_summary: "",
+  category: "Certificate", issue_date: "", credential_id: "", credential_url: "",
+  file_url: "", file_public_id: "", file_type: "pdf" as const, thumbnail_url: "", thumbnail_public_id: "",
+  skills: [] as string[], tags: [] as string[], status: "draft" as "draft" | "published" | "archived",
+};
 
 type Step = "idle" | "uploading" | "analyzing" | "reviewing" | "saving";
 
@@ -49,7 +50,7 @@ export default function CertificatesPage() {
   // Upload / AI flow
   const [showUpload, setShowUpload] = useState(false);
   const [step, setStep] = useState<Step>("idle");
-  const [uploadedFile, setUploadedFile] = useState<{ url: string; type: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ url: string; publicId: string; type: string } | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<CertificateAnalysis | null>(null);
   const [regenerating, setRegenerating] = useState(false);
 
@@ -78,8 +79,10 @@ export default function CertificatesPage() {
 
       const res = await fetch(`/api/admin/certificates?${params}`);
       if (res.ok) {
-        const { data } = await res.json();
-        setCertificates(data || []);
+        const json = await res.json();
+        // The API returns apiSuccess({ data, count, page, limit })
+        // so json.data is { data: Certificate[], count, page, limit }
+        setCertificates(json.data?.data || []);
       }
     } catch {
       toast.error("Failed to fetch certificates");
@@ -93,8 +96,8 @@ export default function CertificatesPage() {
   }, [fetchCertificates]);
 
   // Handle file upload complete
-  function handleUploadComplete(result: { url: string; fileType: string }) {
-    setUploadedFile({ url: result.url, type: result.fileType });
+  function handleUploadComplete(result: { url: string; publicId?: string; fileType: string }) {
+    setUploadedFile({ url: result.url, publicId: result.publicId || "", type: result.fileType });
     setStep("analyzing");
     runAIAnalysis(result.url, result.fileType);
   }
@@ -139,6 +142,7 @@ export default function CertificatesPage() {
           issue_date: data.issueDate,
           credential_id: data.credentialId,
           file_url: uploadedFile.url,
+          file_public_id: uploadedFile.publicId,
           file_type: uploadedFile.type,
           skills: data.skills,
           tags: data.tags,
@@ -315,8 +319,7 @@ export default function CertificatesPage() {
                   {cert.file_type?.includes("pdf") ? (
                     <FileText size={32} style={{ color: "var(--admin-ink-muted)" }} />
                   ) : (
-                    <Image
-                      src={cert.file_url}
+                    <SafeImage useNextImage={true} src={cert.file_url}
                       alt={cert.title}
                       fill
                       className="object-cover"

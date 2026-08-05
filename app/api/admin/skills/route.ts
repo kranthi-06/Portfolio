@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withApiAuth, revalidateData } from "@/lib/server/api-utils";
 import { skillSchema } from "@/lib/server/validations";
 
 export const GET = withApiAuth(async () => {
@@ -20,6 +20,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   if (error) throw error;
   
   await logActivity({ action: "create", entityType: "skill", entityId: data.id, entityTitle: data.name });
+  revalidateData();
   return apiSuccess(data, "Skill created successfully", 201);
 });
 
@@ -34,6 +35,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   const { data, error } = await supabase.from("skills").update(body).eq("id", id).select().single();
   if (error) throw error;
   
+  revalidateData();
   return apiSuccess(data, "Skill updated successfully");
 });
 
@@ -46,5 +48,6 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   if (error) throw error;
   
   await logActivity({ action: "delete", entityType: "skill", entityId: id });
+  revalidateData();
   return apiSuccess(null, "Skill deleted successfully");
 });

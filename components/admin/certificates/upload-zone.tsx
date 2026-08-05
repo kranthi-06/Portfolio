@@ -10,7 +10,7 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 interface UploadZoneProps {
   bucket: string;
   folder?: string;
-  onUploadComplete: (result: { url: string; path: string; fileName: string; fileSize: number; fileType: string }) => void;
+  onUploadComplete: (result: { url: string; path: string; publicId?: string; fileName: string; fileSize: number; fileType: string }) => void;
   accept?: string[];
   maxSize?: number;
   label?: string;

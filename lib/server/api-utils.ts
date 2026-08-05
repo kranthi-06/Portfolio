@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 
 export interface ApiResponse<T = any> {
@@ -18,6 +19,27 @@ export function apiSuccess<T>(data: T, message?: string, status = 200) {
   const response: ApiResponse<T> = { success: true, data };
   if (message) response.message = message;
   return NextResponse.json(response, { status });
+}
+
+export function revalidateData(paths: string[] = ["/", "/admin"]) {
+  try {
+    paths.forEach(p => {
+      // Revalidate layout to cover all nested pages
+      revalidatePath(p, "layout");
+      revalidatePath(p, "page");
+    });
+    console.log(`[Cache Invalidation] Cleared paths: ${paths.join(", ")}`);
+  } catch (error) {
+    console.error(`[Cache Invalidation Error] Failed to clear paths:`, error);
+  }
+}
+
+/**
+ * Escape SQL LIKE/ILIKE wildcard characters in user input.
+ * Prevents `%` and `_` in search terms from acting as SQL wildcards.
+ */
+export function escapeSqlLike(input: string): string {
+  return input.replace(/[%_\\]/g, "\\$&");
 }
 
 export function apiError(error: any, status = 400, requestId?: string) {
@@ -60,18 +82,33 @@ export function apiError(error: any, status = 400, requestId?: string) {
 // Wrapper to catch errors automatically
 export function withApiAuth(handler: (req: any, user: any) => Promise<NextResponse>) {
   return async (req: any) => {
+    const start = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+    const method = req.method;
+    const url = req.url;
+
+    console.log(`[API Request ${requestId}] ${method} ${url}`);
+
     try {
       const { createSupabaseServerClient } = await import("@/lib/supabase/server");
       const supabase = await createSupabaseServerClient();
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        return apiError(new Error("Unauthorized"), 401);
+        console.warn(`[API Auth Failed ${requestId}] Unauthorized access attempt`);
+        return apiError(new Error("Unauthorized"), 401, requestId);
       }
       
-      return await handler(req, user);
+      const response = await handler(req, user);
+      
+      const duration = Date.now() - start;
+      console.log(`[API Response ${requestId}] ${method} ${url} - Status ${response.status} - ${duration}ms`);
+      
+      return response;
     } catch (error) {
-      return apiError(error);
+      console.error(`[API Exception ${requestId}] ${method} ${url} failed:`, error);
+      // Unhandled exceptions are server errors (500), not client errors (400)
+      return apiError(error, 500, requestId);
     }
   };
 }

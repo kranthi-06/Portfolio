@@ -48,15 +48,25 @@ export class GroqProvider implements IAIProvider {
     }
   }
 
+  /**
+   * Whether this provider supports the given MIME type for document analysis.
+   * Groq Vision supports images only, not PDFs.
+   */
+  supportsDocumentType(mimeType: string): boolean {
+    return mimeType.startsWith("image/");
+  }
+
   async analyzeDocument(data: string, mimeType: string, prompt: string, schema?: any): Promise<any> {
-    // For vision, Groq requires a vision-capable model. If the default isn't vision, we override it.
-    // Llama 3.2 90B Vision Preview is the current standard Groq vision model.
+    // Groq Vision requires a vision-capable model and only supports images.
     const visionModel = "llama-3.2-90b-vision-preview";
 
     const isImage = mimeType.startsWith("image/");
     if (!isImage) {
-      // Groq does not natively support PDF parsing in the same way Gemini does currently without an OCR layer.
-      throw new Error(`GroqProvider currently only supports image vision analysis, not ${mimeType}`);
+      throw new Error(
+        `GroqProvider does not support ${mimeType} document analysis. ` +
+        `Only image types (image/png, image/jpeg, image/webp) are supported. ` +
+        `PDF analysis requires the Gemini provider as a fallback.`
+      );
     }
 
     const messages: any[] = [

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageIcon, Plus, Trash2, Globe, Pencil, Loader2, X } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
 import { GALLERY_ALBUMS } from "@/lib/admin/constants";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
@@ -49,11 +49,11 @@ export default function GalleryPage() {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  async function handleUploadComplete(result: { url: string }) {
+  async function handleUploadComplete(result: { url: string; publicId?: string }) {
     try {
       const res = await fetch("/api/admin/gallery", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image_url: result.url, album: uploadAlbum, caption: uploadCaption, status: "draft" }),
+        body: JSON.stringify({ image_url: result.url, image_public_id: result.publicId || null, album: uploadAlbum, caption: uploadCaption, status: "draft" }),
       });
       if (!res.ok) throw new Error();
       toast.success("Image added to gallery"); setShowUpload(false); setUploadCaption(""); fetchItems();
@@ -61,13 +61,21 @@ export default function GalleryPage() {
   }
 
   async function updateStatus(id: string, status: string) {
-    try { await fetch("/api/admin/gallery", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) }); toast.success("Updated"); fetchItems(); }
+    try {
+      const res = await fetch("/api/admin/gallery", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
+      if (!res.ok) throw new Error("Failed to update status");
+      toast.success("Updated"); fetchItems();
+    }
     catch { toast.error("Failed"); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
-    try { await fetch(`/api/admin/gallery?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); fetchItems(); }
+    try {
+      const res = await fetch(`/api/admin/gallery?id=${deleteTarget.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+      toast.success("Deleted"); setDeleteTarget(null); fetchItems();
+    }
     catch { toast.error("Failed"); } finally { setDeleting(false); }
   }
 
@@ -102,7 +110,7 @@ export default function GalleryPage() {
               <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.02 }}
                 className="relative group rounded-xl overflow-hidden cursor-pointer" style={{ background: "var(--admin-bg-subtle)" }}>
                 <div className="relative aspect-square">
-                  <Image src={item.image_url} alt={item.caption || item.title || ""} fill className="object-cover transition-transform duration-300 group-hover:scale-105" onClick={() => setLightbox(item.image_url)} sizes="(max-width: 768px) 50vw, 25vw" />
+                  <SafeImage useNextImage={true} src={item.image_url} alt={item.caption || item.title || ""} fill className="object-cover transition-transform duration-300 group-hover:scale-105" onClick={() => setLightbox(item.image_url)} sizes="(max-width: 768px) 50vw, 25vw" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <div className="absolute bottom-0 left-0 right-0 p-3">

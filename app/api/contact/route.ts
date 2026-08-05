@@ -1,6 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+// Simple in-memory rate limiter for contact form submissions.
+// In production with multiple instances, use Redis or a database-backed approach.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 5; // max submissions
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+
+function isRateLimited(email: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(email);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(email, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return false;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return true;
+  }
+
+  entry.count++;
+  return false;
+}
+
+// Periodic cleanup of expired entries to prevent memory leak
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitMap) {
+      if (now > entry.resetAt) rateLimitMap.delete(key);
+    }
+  }, 5 * 60 * 1000); // Clean up every 5 minutes
+}
+
+/**
+ * Strip HTML tags from user input to prevent XSS in stored messages.
+ */
+function sanitizeHtml(input: string): string {
+  return input.replace(/<[^>]*>/g, "").trim();
+}
+
 // Public endpoint for contact form submissions — no auth required
 export async function POST(request: NextRequest) {
   try {
@@ -16,12 +56,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
+    // Rate limiting
+    const normalizedEmail = email.toLowerCase().trim();
+    if (isRateLimited(normalizedEmail)) {
+      return NextResponse.json(
+        { error: "Too many messages. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    // Sanitize inputs
+    const cleanName = sanitizeHtml(name).substring(0, 200);
+    const cleanSubject = subject ? sanitizeHtml(subject).substring(0, 500) : null;
+    const cleanMessage = sanitizeHtml(message).substring(0, 5000);
+
+    if (!cleanName || !cleanMessage) {
+      return NextResponse.json({ error: "Name and message cannot be empty after sanitization" }, { status: 400 });
+    }
+
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.from("messages").insert({
-      name, email, subject: subject || null, message, status: "unread",
+      name: cleanName, email: normalizedEmail, subject: cleanSubject, message: cleanMessage, status: "unread",
     });
 
-    if (error) return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
+    if (error) {
+      console.error("[Contact Form Error]:", error);
+      return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
+    }
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

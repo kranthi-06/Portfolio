@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FolderKanban, Plus, Search, Trash2, Globe, Pencil, Archive, ExternalLink, Github, Loader2, X, Settings2, FileText, Image as ImageIcon, Link as LinkIcon, RefreshCw } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
 import { EmptyState } from "@/components/admin/ui/empty-state";
@@ -32,6 +32,7 @@ interface Project {
   live_url: string;
   video_url: string;
   image_url: string;
+  image_public_id: string;
   gallery_urls: string[];
   category: string;
   featured: boolean;
@@ -44,7 +45,7 @@ const emptyProject = {
   problem: "", solution: "", architecture: "", 
   features: [] as string[], challenges: [] as string[], future_scope: [] as string[], 
   technologies: [] as string[], github_url: "", live_url: "", video_url: "", 
-  image_url: "", gallery_urls: [] as string[], category: "", featured: false,
+  image_url: "", image_public_id: "", gallery_urls: [] as string[], category: "", featured: false,
   status: "draft" as "draft" | "published" | "archived", seo_title: "", seo_description: "",
 };
 
@@ -211,7 +212,7 @@ export default function ProjectsPage() {
             {projects.map((proj, i) => (
               <motion.div key={proj.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="admin-card group">
                 <div className="relative h-36 flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
-                  {proj.image_url ? <Image src={proj.image_url} alt={proj.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" /> : <FolderKanban size={32} style={{ color: "var(--admin-ink-muted)" }} />}
+                  {proj.image_url ? <SafeImage useNextImage={true} src={proj.image_url} alt={proj.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" /> : <FolderKanban size={32} style={{ color: "var(--admin-ink-muted)" }} />}
                 </div>
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
@@ -371,11 +372,11 @@ export default function ProjectsPage() {
                 <label className="admin-label">Browser Preview Image (Main)</label>
                 {editing.image_url ? (
                   <div className="relative rounded-xl overflow-hidden h-40 mb-2 border border-[var(--admin-line)]" style={{ background: "var(--admin-bg-subtle)" }}>
-                    <Image src={editing.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-                    <button onClick={() => setEditing(p => ({ ...p, image_url: "" }))} className="absolute top-2 right-2 admin-icon-btn" style={{ background: "var(--admin-glass)" }}><X size={14} /></button>
+                    <SafeImage useNextImage={true} src={editing.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                    <button onClick={() => setEditing(p => ({ ...p, image_url: "", image_public_id: "" }))} className="absolute top-2 right-2 admin-icon-btn" style={{ background: "var(--admin-glass)" }}><X size={14} /></button>
                   </div>
                 ) : (
-                  <UploadZone bucket="projects" folder="images" onUploadComplete={r => setEditing(p => ({ ...p, image_url: r.url }))} accept={["image/png", "image/jpeg", "image/webp"]} maxSize={10485760} label="Upload browser preview image" />
+                  <UploadZone bucket="projects" folder="images" onUploadComplete={r => setEditing(p => ({ ...p, image_url: r.url, image_public_id: r.publicId || "" }))} accept={["image/png", "image/jpeg", "image/webp"]} maxSize={10485760} label="Upload browser preview image" />
                 )}
               </div>
             </motion.div>

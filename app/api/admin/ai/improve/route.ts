@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getServerEnvironment, REQUIRED_GEMINI_MODEL } from "@/lib/server/env";
+import { getServerEnvironment } from "@/lib/server/env";
 import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
 import { z } from "zod";
 import { AIService } from "@/lib/ai/provider";

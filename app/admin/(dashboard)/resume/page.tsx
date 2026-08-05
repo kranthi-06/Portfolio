@@ -19,11 +19,11 @@ export default function ResumePage() {
 
   useEffect(() => { fetchResume(); }, []);
 
-  async function handleUploadComplete(result: { url: string; fileName: string; fileSize: number }) {
+  async function handleUploadComplete(result: { url: string; publicId?: string; fileName: string; fileSize: number }) {
     try {
       const res = await fetch("/api/admin/resume", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ file_url: result.url, file_name: result.fileName, file_size: result.fileSize }),
+        body: JSON.stringify({ file_url: result.url, file_public_id: result.publicId || null, file_name: result.fileName, file_size: result.fileSize }),
       });
       if (!res.ok) throw new Error();
       toast.success("Resume uploaded! Previous version deactivated.");

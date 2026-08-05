@@ -81,7 +81,10 @@ export function AIModal({ open, onClose, originalText, contextType, onAccept }: 
         signal: abortControllerRef.current.signal,
       });
 
-      if (!response.ok) throw new Error("Failed to generate text");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error?.message || "Failed to generate text");
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder("utf-8");
@@ -102,7 +105,7 @@ export function AIModal({ open, onClose, originalText, contextType, onAccept }: 
       if (err.name === 'AbortError') {
         toast.info("Generation cancelled");
       } else {
-        toast.error("An error occurred during generation");
+        toast.error(err instanceof Error ? err.message : "An error occurred during generation");
         console.error(err);
       }
       setCurrentText(history[historyIndex]);

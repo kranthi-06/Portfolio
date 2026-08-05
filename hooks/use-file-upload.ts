@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 interface UploadOptions {
-  bucket: string;
+  bucket: string; // Left for backwards compatibility, used as 'folder'
   folder?: string;
   maxSize?: number;
   allowedTypes?: string[];
@@ -18,6 +17,7 @@ interface UploadResult {
   fileName: string;
   fileSize: number;
   fileType: string;
+  publicId?: string;
 }
 
 export function useFileUpload() {
@@ -46,41 +46,30 @@ export function useFileUpload() {
     setProgress(10);
 
     try {
-      // Generate unique filename
-      const timestamp = Date.now();
-      const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
-      const safeName = file.name
-        .replace(/\.[^/.]+$/, "")
-        .replace(/[^a-zA-Z0-9-_]/g, "-")
-        .substring(0, 60);
-      const fileName = `${safeName}-${timestamp}.${extension}`;
-      const filePath = folder ? `${folder}/${fileName}` : fileName;
+      const formData = new FormData();
+      formData.append("file", file);
+      // Use folder if provided, fallback to bucket name as folder
+      formData.append("folder", folder || bucket || "misc");
 
       setProgress(30);
 
-      const { error: uploadError } = await supabaseBrowser.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const response = await fetch('/api/admin/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw uploadError;
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error?.message || "Upload failed");
       }
 
-      setProgress(80);
-
-      // Get public URL
-      const { data: urlData } = supabaseBrowser.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-
+      const { data } = await response.json();
       setProgress(100);
 
       const result: UploadResult = {
-        url: urlData.publicUrl,
-        path: filePath,
+        url: data.secure_url,
+        path: data.public_id,
+        publicId: data.public_id,
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
@@ -100,8 +89,17 @@ export function useFileUpload() {
 
   const deleteFile = useCallback(async (bucket: string, path: string) => {
     try {
-      const { error } = await supabaseBrowser.storage.from(bucket).remove([path]);
-      if (error) throw error;
+      // Path is expected to be the public_id for Cloudinary
+      const response = await fetch('/api/admin/media/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId: path }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to delete file");
+      }
+      
       toast.success("File deleted");
       return true;
     } catch {

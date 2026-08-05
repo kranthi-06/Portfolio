@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withApiAuth, escapeSqlLike } from "@/lib/server/api-utils";
 import { mediaSchema } from "@/lib/server/validations";
 
 export const GET = withApiAuth(async (request: NextRequest) => {
@@ -8,7 +8,10 @@ export const GET = withApiAuth(async (request: NextRequest) => {
   const search = new URL(request.url).searchParams.get("search");
   
   let query = supabase.from("media").select("*").order("created_at", { ascending: false });
-  if (search) query = query.or(`original_name.ilike.%${search}%,file_type.ilike.%${search}%`);
+  if (search) {
+    const s = escapeSqlLike(search);
+    query = query.or(`original_name.ilike.%${s}%,file_type.ilike.%${s}%`);
+  }
 
   const { data, error } = await query;
   if (error) throw error;

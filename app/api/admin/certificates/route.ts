@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withApiAuth, revalidateData, escapeSqlLike } from "@/lib/server/api-utils";
+import { CloudinaryService } from "@/lib/services/cloudinary";
 import { certificateSchema } from "@/lib/server/validations";
 
 export const GET = withApiAuth(async (request: NextRequest) => {
@@ -20,7 +21,10 @@ export const GET = withApiAuth(async (request: NextRequest) => {
 
   if (status) query = query.eq("status", status);
   if (category) query = query.eq("category", category);
-  if (search) query = query.or(`title.ilike.%${search}%,organization.ilike.%${search}%`);
+  if (search) {
+    const s = escapeSqlLike(search);
+    query = query.or(`title.ilike.%${s}%,organization.ilike.%${s}%`);
+  }
 
   query = query.range((page - 1) * limit, page * limit - 1);
 
@@ -44,6 +48,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   if (error) throw error;
 
   await logActivity({ action: "create", entityType: "certificate", entityId: data.id, entityTitle: data.title });
+  revalidateData();
   return apiSuccess(data, "Certificate created successfully", 201);
 });
 
@@ -55,6 +60,9 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   if (!id) return apiError(new Error("ID required"), 400);
   const body = certificateSchema.partial().parse(updates);
 
+  // Fetch existing cert to compare files
+  const { data: existingCert } = await supabase.from("certificates").select("file_url, file_public_id, thumbnail_url, thumbnail_public_id").eq("id", id).single();
+
   const { data, error } = await supabase
     .from("certificates")
     .update(body)
@@ -64,8 +72,25 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
 
   if (error) throw error;
 
+  // Cleanup old files if replaced
+  if (existingCert) {
+    if (body.file_url !== undefined && existingCert.file_url && body.file_url !== existingCert.file_url) {
+      const pubId = existingCert.file_public_id || CloudinaryService.extractPublicId(existingCert.file_url);
+      if (pubId) {
+        // file_type helps know if it's raw or image, but we can just use extract to see extension
+        const type = existingCert.file_url.includes('.pdf') ? 'raw' : 'image';
+        await CloudinaryService.deleteAsset(pubId, type);
+      }
+    }
+    if (body.thumbnail_url !== undefined && existingCert.thumbnail_url && body.thumbnail_url !== existingCert.thumbnail_url) {
+      const pubId = existingCert.thumbnail_public_id || CloudinaryService.extractPublicId(existingCert.thumbnail_url);
+      if (pubId) await CloudinaryService.deleteAsset(pubId, 'image');
+    }
+  }
+
   const action = body.status === "published" ? "publish" : body.status === "archived" ? "archive" : "update";
   await logActivity({ action, entityType: "certificate", entityId: data.id, entityTitle: data.title });
+  revalidateData();
   return apiSuccess(data, "Certificate updated successfully");
 });
 
@@ -74,10 +99,24 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);
 
-  const { data: cert } = await supabase.from("certificates").select("title, file_url").eq("id", id).single();
+  const { data: cert } = await supabase.from("certificates").select("title, file_url, file_public_id, thumbnail_url, thumbnail_public_id").eq("id", id).single();
   const { error } = await supabase.from("certificates").delete().eq("id", id);
   if (error) throw error;
 
+  // Cleanup Cloudinary
+  if (cert?.file_url) {
+    const pubId = cert.file_public_id || CloudinaryService.extractPublicId(cert.file_url);
+    if (pubId) {
+      const type = cert.file_url.includes('.pdf') ? 'raw' : 'image';
+      await CloudinaryService.deleteAsset(pubId, type);
+    }
+  }
+  if (cert?.thumbnail_url) {
+    const pubId = cert.thumbnail_public_id || CloudinaryService.extractPublicId(cert.thumbnail_url);
+    if (pubId) await CloudinaryService.deleteAsset(pubId, 'image');
+  }
+
   await logActivity({ action: "delete", entityType: "certificate", entityId: id, entityTitle: cert?.title || "Unknown" });
+  revalidateData();
   return apiSuccess(null, "Certificate deleted successfully");
 });

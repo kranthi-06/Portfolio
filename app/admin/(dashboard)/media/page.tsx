@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ImagePlus, Trash2, Search, ExternalLink, Copy, FileText, ImageIcon, Film } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
 import { formatFileSize } from "@/lib/admin/constants";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
@@ -92,7 +92,7 @@ export default function MediaPage() {
               className="admin-card group rounded-xl overflow-hidden">
               <div className="relative aspect-square flex items-center justify-center overflow-hidden" style={{ background: "var(--admin-bg-subtle)" }}>
                 {item.file_type.startsWith("image/") ? (
-                  <Image src={item.file_url} alt={item.original_name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 50vw, 25vw" />
+                  <SafeImage useNextImage={true} src={item.file_url} alt={item.original_name} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 50vw, 25vw" />
                 ) : (
                   <div className="flex flex-col items-center gap-2" style={{ color: "var(--admin-ink-muted)" }}>
                     {getIcon(item.file_type)}

@@ -24,6 +24,7 @@ export function SafeImage({
   const [loading, setLoading] = useState(true);
 
   const isInvalidUrl = !src || typeof src !== 'string' || src.trim() === '';
+  const isExternal = typeof src === 'string' && src.startsWith('http');
 
   const renderFallback = () => (
     <div className={cn("flex flex-col items-center justify-center w-full h-full bg-zinc-900/50 backdrop-blur-sm border border-white/5", containerClassName, className)}>
@@ -56,6 +57,7 @@ export function SafeImage({
             setLoading(false);
           }}
           onLoad={() => setLoading(false)}
+          unoptimized={isExternal}
           {...props}
         />
       ) : (
