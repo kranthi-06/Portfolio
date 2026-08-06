@@ -1,4 +1,4 @@
-export type ContentStatus = "draft" | "published" | "archived";
+export type ContentStatus = "draft" | "published" | "archived" | "active" | "hidden";
 
 export type MediaAsset = {
   url: string;
@@ -55,14 +55,27 @@ export type Certificate = {
   description: string | null;
   professional_summary: string | null;
   category: string;
+  certificate_type?: string | null;
+  event_type?: string | null;
+  achievement?: string | null;
   issue_date: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  completion_date: string | null;
+  duration: string | null;
   credential_id: string | null;
   credential_url: string | null;
+  verification_url: string | null;
   media: MediaAsset;
   thumbnail_url: string | null;
   skills: string[];
+  technologies: string[];
   tags: string[];
+  featured: boolean;
+  metadata: Record<string, unknown>;
+  raw_ai_response: Record<string, unknown> | null;
   sort_order: number;
+  status: ContentStatus;
 };
 
 export type Experience = {

@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FolderKanban, Award, CalendarDays, Trophy,
   ImageIcon, Briefcase, Cpu, FileText, BarChart3, Github,
   ImagePlus, MessageSquare, Sparkles, Settings, ScrollText,
-  LogOut, ChevronLeft, Zap,
+  LogOut, ChevronLeft, Zap, Archive,
 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -37,6 +37,7 @@ const navSections = [
       { label: "Experience", href: "/admin/experience", icon: Briefcase },
       { label: "Skills", href: "/admin/skills", icon: Cpu },
       { label: "Resume", href: "/admin/resume", icon: FileText },
+      { label: "Archive", href: "/admin/archive", icon: Archive },
     ],
   },
   {

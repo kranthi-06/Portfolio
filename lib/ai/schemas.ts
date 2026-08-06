@@ -30,6 +30,13 @@ export const certificateAnalysisSchema = z.object({
   // Dates
   issueDate: z.string().nullable().default(null),
   expiryDate: z.string().nullable().default(null),
+  startDate: z.string().nullable().default(null),
+  endDate: z.string().nullable().default(null),
+  completionDate: z.string().nullable().default(null),
+  duration: z.string().nullable().default(null),
+
+  // URLs
+  verificationUrl: z.string().nullable().default(null),
 
   // Skills & Technologies
   skills: z.array(z.string()).default([]),
@@ -80,6 +87,11 @@ export const certificateAnalysisJsonSchema = {
     location: { type: ["string", "null"] },
     issueDate: { type: ["string", "null"] },
     expiryDate: { type: ["string", "null"] },
+    startDate: { type: ["string", "null"] },
+    endDate: { type: ["string", "null"] },
+    completionDate: { type: ["string", "null"] },
+    duration: { type: ["string", "null"] },
+    verificationUrl: { type: ["string", "null"] },
     skills: { type: "array", items: { type: "string" } },
     technologies: { type: "array", items: { type: "string" } },
     tags: { type: "array", items: { type: "string" } },

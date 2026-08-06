@@ -94,7 +94,7 @@ export function AchievementsSection() {
                     {cert.title}
                   </p>
                   <p className="text-xs" style={{ color: "var(--ink-muted)" }}>
-                    {cert.organization} · {cert.date}
+                    {cert.organization} · {cert.issue_date || cert.start_date || "Present"}
                   </p>
                 </div>
               </div>

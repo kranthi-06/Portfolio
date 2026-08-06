@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const contentStatusSchema = z.enum(["draft", "published", "archived"]);
+export const contentStatusSchema = z.enum(["draft", "published", "archived", "active", "hidden"]);
 
 export const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -50,8 +50,13 @@ export const certificateSchema = z.object({
   location: z.string().nullable().optional(),
   issue_date: z.string().nullable().optional(),
   expiry_date: z.string().nullable().optional(),
+  start_date: z.string().nullable().optional(),
+  end_date: z.string().nullable().optional(),
+  completion_date: z.string().nullable().optional(),
+  duration: z.string().nullable().optional(),
   credential_id: z.string().nullable().optional(),
   credential_url: z.string().url().nullable().optional().or(z.literal("")),
+  verification_url: z.string().url().nullable().optional().or(z.literal("")),
   file_url: z.string().url("File URL is required"),
   file_public_id: z.string().nullable().optional().or(z.literal("")),
   file_type: z.enum(["pdf", "png", "jpeg", "webp", "application/pdf", "image/png", "image/jpeg", "image/webp"]).default("pdf"),
@@ -83,6 +88,9 @@ export const certificateSchema = z.object({
   seo_title: z.string().nullable().optional(),
   seo_description: z.string().nullable().optional(),
   ai_generated: z.boolean().default(false),
+  raw_ai_response: z.any().nullable().optional(),
+  metadata: z.any().nullable().optional(),
+  featured: z.boolean().default(false),
 });
 
 export const eventSchema = z.object({

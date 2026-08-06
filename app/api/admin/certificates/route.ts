@@ -96,27 +96,41 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
 
 export const DELETE = withApiAuth(async (request: NextRequest) => {
   const supabase = await createSupabaseServerClient();
-  const id = new URL(request.url).searchParams.get("id");
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  const permanent = url.searchParams.get("permanent") === "true";
+  
   if (!id) return apiError(new Error("ID required"), 400);
 
-  const { data: cert } = await supabase.from("certificates").select("title, file_url, file_public_id, thumbnail_url, thumbnail_public_id").eq("id", id).single();
-  const { error } = await supabase.from("certificates").delete().eq("id", id);
-  if (error) throw error;
+  const { data: cert } = await supabase.from("certificates").select("title, file_url, file_public_id, thumbnail_url, thumbnail_public_id, status").eq("id", id).single();
+  
+  if (permanent) {
+    const { error } = await supabase.from("certificates").delete().eq("id", id);
+    if (error) throw error;
 
-  // Cleanup Cloudinary
-  if (cert?.file_url) {
-    const pubId = cert.file_public_id || CloudinaryService.extractPublicId(cert.file_url);
-    if (pubId) {
-      const type = cert.file_url.includes('.pdf') ? 'raw' : 'image';
-      await CloudinaryService.deleteAsset(pubId, type);
+    // Cleanup Cloudinary
+    if (cert?.file_url) {
+      const pubId = cert.file_public_id || CloudinaryService.extractPublicId(cert.file_url);
+      if (pubId) {
+        const type = cert.file_url.includes('.pdf') ? 'raw' : 'image';
+        await CloudinaryService.deleteAsset(pubId, type);
+      }
     }
-  }
-  if (cert?.thumbnail_url) {
-    const pubId = cert.thumbnail_public_id || CloudinaryService.extractPublicId(cert.thumbnail_url);
-    if (pubId) await CloudinaryService.deleteAsset(pubId, 'image');
-  }
+    if (cert?.thumbnail_url) {
+      const pubId = cert.thumbnail_public_id || CloudinaryService.extractPublicId(cert.thumbnail_url);
+      if (pubId) await CloudinaryService.deleteAsset(pubId, 'image');
+    }
 
-  await logActivity({ action: "delete", entityType: "certificate", entityId: id, entityTitle: cert?.title || "Unknown" });
-  revalidateData();
-  return apiSuccess(null, "Certificate deleted successfully");
+    await logActivity({ action: "delete", entityType: "certificate", entityId: id, entityTitle: cert?.title || "Unknown" });
+    revalidateData();
+    return apiSuccess(null, "Certificate permanently deleted");
+  } else {
+    // Soft delete: Archive
+    const { error } = await supabase.from("certificates").update({ status: 'archived' }).eq("id", id);
+    if (error) throw error;
+    
+    await logActivity({ action: "archive", entityType: "certificate", entityId: id, entityTitle: cert?.title || "Unknown" });
+    revalidateData();
+    return apiSuccess(null, "Certificate archived successfully");
+  }
 });

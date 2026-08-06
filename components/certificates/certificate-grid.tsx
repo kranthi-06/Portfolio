@@ -1,10 +1,10 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import type { CertificateAsset } from "@/lib/generated-certificates";
+import type { Certificate } from "@/lib/portfolio/types";
 import { CertificateCard } from "./certificate-card";
 
-export function CertificateGrid({ certificates, onView }: { certificates: CertificateAsset[]; onView: (certificate: CertificateAsset) => void }) {
+export function CertificateGrid({ certificates, onView }: { certificates: Certificate[]; onView: (certificate: Certificate) => void }) {
   if (!certificates.length) {
     return <div className="rounded-3xl px-6 py-16 text-center" style={{ background: "var(--bg-subtle)", border: "1px dashed var(--line-strong)", color: "var(--ink-secondary)" }}>No credentials match that search.</div>;
   }

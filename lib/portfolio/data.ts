@@ -71,10 +71,19 @@ function certificateMap(item: Record<string, unknown>): Certificate {
     id: String(item.id), title: String(item.title), organization: item.organization as string | null,
     description: item.description as string | null, professional_summary: item.professional_summary as string | null,
     category: String(item.category), issue_date: item.issue_date as string | null,
+    start_date: item.start_date as string | null, end_date: item.end_date as string | null,
+    completion_date: item.completion_date as string | null, duration: item.duration as string | null,
+    verification_url: item.verification_url as string | null,
+    certificate_type: item.certificate_type as string | null, event_type: item.event_type as string | null,
+    achievement: item.achievement as string | null,
     credential_id: item.credential_id as string | null, credential_url: item.credential_url as string | null,
     media: { url: String(item.file_url), publicId: item.file_public_id as string | undefined, type: getMediaType(String(item.file_url)) },
     thumbnail_url: item.thumbnail_url as string | null, skills: stringArray(item.skills),
-    tags: stringArray(item.tags), sort_order: Number(item.sort_order ?? 0)
+    technologies: stringArray(item.technologies),
+    tags: stringArray(item.tags), sort_order: Number(item.sort_order ?? 0),
+    featured: Boolean(item.featured), metadata: (item.metadata || {}) as Record<string, unknown>,
+    raw_ai_response: (item.raw_ai_response || null) as Record<string, unknown> | null,
+    status: (item.status as Certificate["status"]) || "active"
   };
 }
 

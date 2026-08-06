@@ -195,18 +195,24 @@ export default function CertificatesPage() {
         data.status === "fallback" ? "fallback" : "completed"
       );
 
-      // Brief pause on "complete" step before showing review
+      setAnalysisProgressStatus(
+        data.status === "fallback" ? "fallback" : "completed"
+      );
+
+      // Brief pause on "complete" step before showing review or auto-saving
       await sleep(800);
 
-      setStep("reviewing");
-
-      if (data.status === "fallback") {
-        toast.info(
-          message ||
-            "Partial analysis complete. Please review and fill in missing details."
-        );
+      // Auto-Save Workflow (Bypass Review)
+      if (data.status === "success" && data.confidence >= 0.7) {
+        toast.success("AI analysis complete. Auto-saving...");
+        await handleAcceptAI(data.analysis, [], uploadedFile, data.ocrText, data.fileHash);
       } else {
-        toast.success("AI analysis complete!");
+        setStep("reviewing");
+        if (data.status === "fallback") {
+          toast.info(message || "Partial analysis complete. Please review and fill in missing details.");
+        } else {
+          toast.success("AI analysis complete!");
+        }
       }
     } catch (err) {
       // NEVER show "AI Analysis Failed" — always go to fallback review
@@ -232,6 +238,11 @@ export default function CertificatesPage() {
         location: null,
         issueDate: null,
         expiryDate: null,
+        startDate: null,
+        endDate: null,
+        completionDate: null,
+        duration: null,
+        verificationUrl: null,
         skills: [],
         technologies: [],
         tags: [],
@@ -269,9 +280,12 @@ export default function CertificatesPage() {
   // Accept AI output and save
   async function handleAcceptAI(
     data: CertificateAnalysis,
-    supportingImages: SupportingImage[]
+    supportingImages: SupportingImage[],
+    fileData = uploadedFile,
+    ocrData = ocrText,
+    hashData = fileHash
   ) {
-    if (!uploadedFile) return;
+    if (!fileData) return;
     setStep("saving");
 
     try {
@@ -294,10 +308,15 @@ export default function CertificatesPage() {
           location: data.location,
           issue_date: data.issueDate,
           expiry_date: data.expiryDate,
+          start_date: data.startDate,
+          end_date: data.endDate,
+          completion_date: data.completionDate,
+          duration: data.duration,
+          verification_url: data.verificationUrl,
           credential_id: data.certificateNumber,
-          file_url: uploadedFile.url,
-          file_public_id: uploadedFile.publicId,
-          file_type: uploadedFile.type,
+          file_url: fileData.url,
+          file_public_id: fileData.publicId,
+          file_type: fileData.type,
           skills: data.skills,
           technologies: data.technologies,
           tags: data.tags,
@@ -314,14 +333,16 @@ export default function CertificatesPage() {
           domain: data.domain,
           subdomain: data.subdomain,
           estimated_hours: data.estimatedHours,
-          file_hash: fileHash,
-          ocr_text: ocrText,
+          file_hash: hashData,
+          ocr_text: ocrData,
+          raw_ai_response: data,
+          metadata: { autoSaved: true },
           analysis_status: analysisStatus === "fallback" ? "fallback" : "completed",
           analysis_retries: 0,
           seo_title: data.seoTitle,
           seo_description: data.seoDescription,
           ai_generated: analysisStatus !== "fallback",
-          status: "draft",
+          status: "active",
         }),
       });
 
@@ -347,7 +368,8 @@ export default function CertificatesPage() {
         }
       }
 
-      toast.success("Certificate saved as draft!");
+      toast.success("Certificate saved & activated instantly!");
+      setCertificates(prev => [savedCert, ...prev]);
       resetUploadFlow();
       fetchCertificates();
     } catch {

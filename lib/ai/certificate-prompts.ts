@@ -69,6 +69,11 @@ For EACH field below, extract the value or set to null if not found:
 - "location": City, venue, or location mentioned
 - "issueDate": Date issued (ISO format YYYY-MM-DD preferred)
 - "expiryDate": Expiry date if any
+- "startDate": Course or event start date (ISO format YYYY-MM-DD preferred)
+- "endDate": Course or event end date (ISO format YYYY-MM-DD preferred)
+- "completionDate": Date of completion (ISO format YYYY-MM-DD preferred)
+- "duration": Duration of the course or event (e.g. '3 months', '40 hours')
+- "verificationUrl": URL to verify the credential or certificate
 - "skills": Array of relevant skills
 - "technologies": Array of technologies/frameworks/tools mentioned
 - "tags": Array of relevant tags for categorization
@@ -115,6 +120,11 @@ Required fields (set to null if not found):
   "location": "location or null",
   "issueDate": "date or null",
   "expiryDate": "date or null",
+  "startDate": "date or null",
+  "endDate": "date or null",
+  "completionDate": "date or null",
+  "duration": "duration (e.g. '3 months', '40 hours') or null",
+  "verificationUrl": "URL to verify credential or null",
   "skills": ["skill1", "skill2"],
   "technologies": ["tech1"],
   "tags": ["tag1"],

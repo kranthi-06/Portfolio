@@ -44,7 +44,7 @@ type LegacyContextType = {
   experiences: { title: string; company: string; companyUrl?: string; location: string; type: string; startDate: string; endDate: string; description: string; achievements: string[]; technologies: string[] }[];
   projects: { id: string; title: string; subtitle: string; description: string; long_description: string; problem: string; solution: string; features: string[]; technologies: string[]; github_url?: string; live_url?: string; media?: { url: string; type: string }; category: string; featured: boolean; architecture?: string; challenges: string[]; future_scope: string[] }[];
   achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
-  certifications: { title: string; organization: string; date: string; credentialUrl?: string; media?: { url: string; type: string } }[];
+  certifications: import("@/lib/portfolio/types").Certificate[];
   education: { degree: string; branch: string; institution: string; location: string; startYear: string; endYear: string; cgpa: string; coursework: string[]; icon: LucideIcon }[];
   navItems: { label: string; href: string }[];
   techMarqueeItems: string[];
@@ -160,13 +160,7 @@ export function PortfolioProvider({
     }));
 
     // 7. Certifications
-    const certifications = (data.certificates || []).map((cert) => ({
-      title: cert.title,
-      organization: cert.organization || "",
-      date: cert.issue_date || "",
-      credentialUrl: cert.credential_url || undefined,
-      media: cert.media || undefined,
-    }));
+    const certifications = data.certificates || [];
 
     // 8. Education
     const education = [
