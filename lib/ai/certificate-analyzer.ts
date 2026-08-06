@@ -195,21 +195,10 @@ export class CertificateAnalyzer {
 
   /**
    * Extract text from image using Tesseract.js
+   * @deprecated Removed to prevent Vercel 504 timeouts. Gemini Vision natively handles OCR much faster.
    */
   private async extractOCR(buffer: Buffer): Promise<string> {
-    try {
-      const Tesseract = await import("tesseract.js");
-      const worker = await Tesseract.createWorker("eng", 1, {
-        cacheMethod: "none",
-        logger: () => {}, // Disable logger to avoid stdout buffer issues
-      });
-      const { data: { text } } = await worker.recognize(buffer);
-      await worker.terminate();
-      return text.trim();
-    } catch (err) {
-      console.error("[CertificateAnalyzer] OCR extraction failed:", err);
-      return "";
-    }
+    return "";
   }
 
   /**
