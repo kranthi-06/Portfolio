@@ -18,9 +18,9 @@ export function CertificationsSection() {
       id: `cert-${i}`,
       title: c.title,
       category: "Certifications",
-      organisation: c.issuer,
-      src: c.pdfUrl || c.image || "#",
-      type: (c.pdfUrl || c.image?.endsWith('.pdf')) ? "pdf" : "image",
+      organisation: c.organization || "Unknown Issuer",
+      src: c.media?.url || "#",
+      type: c.media?.type === "pdf" ? "pdf" : "image",
     }));
   }, [certifications]);
 

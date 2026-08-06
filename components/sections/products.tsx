@@ -137,22 +137,22 @@ function CaseStudyPanel({ product }: { product: Product }) {
 export function ProductsSection() {
   const { projects } = usePortfolio();
   
-  const products: Product[] = projects.map(p => ({
+  const products: Product[] = projects.map((p) => ({
     id: p.id,
     name: p.title,
-    tagline: p.subtitle || p.description || "",
-    category: p.category || "",
+    tagline: p.subtitle || "",
+    category: p.category || "Project",
     problem: p.problem || "",
     solution: p.solution || "",
     architecture: p.architecture || "",
     features: p.features || [],
     challenges: p.challenges || [],
     lessons: p.technologies || [],
-    roadmap: p.futureScope || [],
-    liveUrl: p.liveUrl || "#",
-    githubUrl: p.githubUrl || undefined,
-    image: p.image || "",
-    longDescription: p.longDescription || "",
+    roadmap: p.future_scope || [],
+    liveUrl: p.live_url || "#",
+    githubUrl: p.github_url || undefined,
+    image: p.media?.url || "",
+    longDescription: p.long_description || "",
     accent: "violet"
   }));
 

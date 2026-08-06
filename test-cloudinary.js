@@ -2,8 +2,17 @@ import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
-cloudinary.config({ secure: true });
-
+const urlMatch = process.env.CLOUDINARY_URL.match(/cloudinary:\/\/([^:]+):([^@]+)@(.+)/);
+if (urlMatch) {
+  cloudinary.config({
+    api_key: urlMatch[1],
+    api_secret: urlMatch[2],
+    cloud_name: urlMatch[3],
+    secure: true,
+  });
+} else {
+  console.log("No match");
+}
 async function testUpload() {
   console.log("Starting Cloudinary test...");
   try {

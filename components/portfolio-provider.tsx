@@ -42,9 +42,9 @@ type LegacyContextType = {
   stats: { label: string; value: number; suffix: string }[];
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
   experiences: { title: string; company: string; companyUrl?: string; location: string; type: string; startDate: string; endDate: string; description: string; achievements: string[]; technologies: string[] }[];
-  projects: { id: string; title: string; subtitle: string; description: string; longDescription: string; problem: string; solution: string; features: string[]; technologies: string[]; githubUrl?: string; liveUrl?: string; image: string; category: string; featured: boolean; architecture?: string; challenges: string[]; futureScope: string[] }[];
-  achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string }[];
-  certifications: { title: string; issuer: string; date: string; credentialUrl?: string; image?: string; pdfUrl?: string }[];
+  projects: { id: string; title: string; subtitle: string; description: string; long_description: string; problem: string; solution: string; features: string[]; technologies: string[]; github_url?: string; live_url?: string; media?: { url: string; type: string }; category: string; featured: boolean; architecture?: string; challenges: string[]; future_scope: string[] }[];
+  achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
+  certifications: { title: string; organization: string; date: string; credentialUrl?: string; media?: { url: string; type: string } }[];
   education: { degree: string; branch: string; institution: string; location: string; startYear: string; endYear: string; cgpa: string; coursework: string[]; icon: LucideIcon }[];
   navItems: { label: string; href: string }[];
   techMarqueeItems: string[];
@@ -94,7 +94,7 @@ export function PortfolioProvider({
       availability: data.profile.availability || "",
       bio: data.profile.bio || "",
       about: data.profile.about || "",
-      resumeUrl: data.resume?.file_url || "#",
+      resumeUrl: data.resume?.media?.url || "#",
       avatar_url: data.profile.avatar_url || "",
     };
 
@@ -132,19 +132,19 @@ export function PortfolioProvider({
       title: proj.title,
       subtitle: proj.subtitle || "",
       description: proj.description || "",
-      longDescription: proj.long_description || "",
+      long_description: proj.long_description || "",
       problem: proj.problem || "",
       solution: proj.solution || "",
       features: proj.features || [],
       technologies: proj.technologies || [],
-      githubUrl: proj.github_url || undefined,
-      liveUrl: proj.live_url || undefined,
-      image: proj.image_url || "",
+      github_url: proj.github_url || undefined,
+      live_url: proj.live_url || undefined,
+      media: proj.media || undefined,
       category: proj.category || "",
       featured: proj.featured || false,
       architecture: proj.architecture || undefined,
       challenges: proj.challenges || [],
-      futureScope: proj.future_scope || [],
+      future_scope: proj.future_scope || [],
     }));
 
     // 6. Achievements
@@ -156,16 +156,16 @@ export function PortfolioProvider({
       description: ach.description || "",
       icon: getIcon(ach.title),
       color: ach.color || "#6C63FF",
+      media: ach.media || undefined,
     }));
 
     // 7. Certifications
     const certifications = (data.certificates || []).map((cert) => ({
       title: cert.title,
-      issuer: cert.organization || "",
+      organization: cert.organization || "",
       date: cert.issue_date || "",
       credentialUrl: cert.credential_url || undefined,
-      image: cert.thumbnail_url || cert.file_url || undefined,
-      pdfUrl: cert.file_url || undefined,
+      media: cert.media || undefined,
     }));
 
     // 8. Education

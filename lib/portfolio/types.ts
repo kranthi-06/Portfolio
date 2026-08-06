@@ -1,5 +1,11 @@
 export type ContentStatus = "draft" | "published" | "archived";
 
+export type MediaAsset = {
+  url: string;
+  publicId?: string;
+  type: "image" | "pdf" | "video" | "unknown";
+};
+
 export type ProfileSettings = {
   name?: string;
   title?: string;
@@ -31,7 +37,7 @@ export type Project = {
   github_url: string | null;
   live_url: string | null;
   video_url: string | null;
-  image_url: string | null;
+  media: MediaAsset | null;
   gallery_urls: string[];
   category: string | null;
   architecture: string | null;
@@ -52,8 +58,7 @@ export type Certificate = {
   issue_date: string | null;
   credential_id: string | null;
   credential_url: string | null;
-  file_url: string;
-  file_type: string;
+  media: MediaAsset;
   thumbnail_url: string | null;
   skills: string[];
   tags: string[];
@@ -93,7 +98,7 @@ export type Achievement = {
   position: string | null;
   date: string | null;
   description: string | null;
-  image_url: string | null;
+  media: MediaAsset | null;
   color: string | null;
   sort_order: number;
 };
@@ -111,7 +116,7 @@ export type Event = {
   prize: string | null;
   highlights: string[];
   timeline_entry: string | null;
-  cover_image_url: string | null;
+  media: MediaAsset | null;
   sort_order: number;
 };
 
@@ -119,7 +124,7 @@ export type GalleryItem = {
   id: string;
   title: string | null;
   caption: string | null;
-  image_url: string;
+  media: MediaAsset;
   album: string;
   tags: string[];
   sort_order: number;
@@ -127,7 +132,7 @@ export type GalleryItem = {
 
 export type Resume = {
   id: string;
-  file_url: string;
+  media: MediaAsset;
   file_name: string;
   file_size: number | null;
   version: number;
