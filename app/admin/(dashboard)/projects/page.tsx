@@ -373,7 +373,7 @@ export default function ProjectsPage() {
                 {editing.image_url ? (
                   <div className="relative rounded-xl overflow-hidden h-40 mb-2 border border-[var(--admin-line)]" style={{ background: "var(--admin-bg-subtle)" }}>
                     <SafeImage useNextImage={true} src={editing.image_url} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
-                    <button onClick={() => setEditing(p => ({ ...p, image_url: "", image_public_id: "" }))} className="absolute top-2 right-2 admin-icon-btn z-10" style={{ background: "var(--admin-glass)" }}><X size={14} /></button>
+                    <button onClick={() => setEditing(p => ({ ...p, image_url: "", image_public_id: "" }))} className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500/80 hover:bg-red-500 text-white z-50 transition-colors shadow-lg"><X size={16} /></button>
                   </div>
                 ) : (
                   <UploadZone bucket="projects" folder="images" onUploadComplete={r => setEditing(p => ({ ...p, image_url: r.url, image_public_id: r.publicId || "" }))} accept={["image/png", "image/jpeg", "image/webp"]} maxSize={10485760} label="Upload browser preview image" />

@@ -147,6 +147,7 @@ export interface Product {
   solution: string;
   architecture: string;
   features: string[];
+  technologies?: string[];
   challenges: string[];
   lessons: string[];
   roadmap: string[];

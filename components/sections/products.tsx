@@ -146,8 +146,9 @@ export function ProductsSection() {
     solution: p.solution || "",
     architecture: p.architecture || "",
     features: p.features || [],
+    technologies: p.technologies || [],
+    lessons: [],
     challenges: p.challenges || [],
-    lessons: p.technologies || [],
     roadmap: p.future_scope || [],
     liveUrl: p.live_url || "#",
     githubUrl: p.github_url || undefined,
@@ -213,9 +214,9 @@ export function ProductsSection() {
                   {active.tagline}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-8">
-                  {active.features.slice(0, 3).map((f) => (
-                    <span key={f} className="text-[11px] px-3 py-1 rounded-full" style={{ background: "var(--accent-soft)", color: "var(--ink-muted)" }}>
-                      {f.split(" ")[0]}…
+                  {active.technologies?.slice(0, 5).map((tech) => (
+                    <span key={tech} className="text-[11px] px-3 py-1 rounded-full" style={{ background: "var(--accent-soft)", color: "var(--ink-muted)" }}>
+                      {tech}
                     </span>
                   ))}
                 </div>
