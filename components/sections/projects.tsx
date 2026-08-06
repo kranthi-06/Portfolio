@@ -202,7 +202,7 @@ export function Projects() {
               More Products Coming Soon
             </h3>
             <p className="text-gray-400 text-lg max-w-lg">
-              I'm always working on new ideas, solving complex problems, and building next-generation experiences.
+              I&apos;m always working on new ideas, solving complex problems, and building next-generation experiences.
             </p>
           </div>
         </motion.div>
