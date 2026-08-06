@@ -138,7 +138,7 @@ export default async function CertificateDetailPage({ params }: PageProps) {
                     Reflection
                   </h3>
                   <p className="text-gray-300 leading-relaxed italic relative z-10">
-                    "{certificate.reflection}"
+                    &quot;{certificate.reflection}&quot;
                   </p>
                 </div>
               )}
