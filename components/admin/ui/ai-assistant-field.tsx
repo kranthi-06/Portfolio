@@ -13,6 +13,7 @@ interface AIAssistantFieldProps {
   rows?: number;
   hideLabel?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
+  onBlur?: () => void;
   children?: React.ReactNode;
 }
 
@@ -27,6 +28,7 @@ export function AIAssistantField({
   rows = 4,
   hideLabel = false,
   onKeyDown,
+  onBlur,
   children
 }: AIAssistantFieldProps) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -67,6 +69,7 @@ export function AIAssistantField({
             placeholder={placeholder}
             rows={rows}
             onKeyDown={onKeyDown}
+            onBlur={onBlur}
           />
         ) : (
           <input
@@ -76,6 +79,7 @@ export function AIAssistantField({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             onKeyDown={onKeyDown}
+            onBlur={onBlur}
           />
         )}
       </div>

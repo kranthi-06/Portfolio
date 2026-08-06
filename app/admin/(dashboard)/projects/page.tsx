@@ -291,7 +291,14 @@ export default function ProjectsPage() {
               <div className="admin-field">
                 <label className="admin-label">Technologies</label>
                 <div className="flex gap-2 mb-2">
-                  <input className="admin-input" value={techInput} onChange={e => setTechInput(e.target.value)} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTech())} placeholder="Add technology…" />
+                  <input 
+                    className="admin-input" 
+                    value={techInput} 
+                    onChange={e => setTechInput(e.target.value)} 
+                    onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addTech())} 
+                    onBlur={() => { if (techInput.trim()) addTech(); }}
+                    placeholder="Add technology…" 
+                  />
                   <button onClick={addTech} className="admin-btn admin-btn-secondary" type="button">Add</button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">

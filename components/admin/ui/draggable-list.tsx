@@ -118,6 +118,7 @@ export function DraggableList({ items = [], onChange, label, placeholder, contex
                 handleAdd();
               }
             }}
+            onBlur={handleAdd}
           />
         </div>
         <button
