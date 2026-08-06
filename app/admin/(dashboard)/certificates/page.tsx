@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Award, Plus, Search, Filter, Grid3X3, List, Loader2,
-  MoreHorizontal, Eye, Pencil, Trash2, Globe, Archive,
-  FileText, ImageIcon, Sparkles,
+  Award, Plus, Search, Grid3X3, List, Loader2,
+  Globe, Archive, Trash2, FileText, ImageIcon, Sparkles,
+  RefreshCw, Shield, Clock, Eye,
 } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
-import Link from "next/link";
-import { useEffect } from "react";
 import { toast } from "sonner";
-import { CERTIFICATE_CATEGORIES, formatFileSize } from "@/lib/admin/constants";
+import { CERTIFICATE_CATEGORIES } from "@/lib/admin/constants";
 import { UploadZone } from "@/components/admin/certificates/upload-zone";
 import { AIReviewPanel } from "@/components/admin/certificates/ai-review-panel";
+import { AnalysisProgress } from "@/components/admin/certificates/analysis-progress";
+import type { AnalysisStep } from "@/components/admin/certificates/analysis-progress";
 import { StatusBadge } from "@/components/admin/ui/status-badge";
 import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
@@ -21,23 +21,48 @@ import { AdminModal } from "@/components/admin/ui/modal";
 import type { CertificateAnalysis } from "@/lib/ai/schemas";
 
 interface Certificate {
-  id: string; title: string; organization: string; description: string;
-  professional_summary: string; category: string; issue_date: string;
-  credential_id: string; credential_url: string;
-  file_url: string; file_public_id: string; file_type: string;
-  thumbnail_url: string; thumbnail_public_id: string; skills: string[]; tags: string[];
-  status: "draft" | "published" | "archived"; created_at: string;
+  id: string;
+  title: string;
+  organization: string;
+  description: string;
+  professional_summary: string;
+  category: string;
+  issue_date: string;
+  credential_id: string;
+  credential_url: string;
+  file_url: string;
+  file_public_id: string;
+  file_type: string;
+  thumbnail_url: string;
+  thumbnail_public_id: string;
+  skills: string[];
+  technologies: string[];
+  tags: string[];
+  status: "draft" | "published" | "archived";
+  created_at: string;
   ai_generated: boolean;
+  confidence: number;
+  analysis_status: string;
+  achievement: string;
+  difficulty: string;
+  credibility: string;
 }
 
-const emptyCert = {
-  title: "", organization: "", description: "", professional_summary: "",
-  category: "Certificate", issue_date: "", credential_id: "", credential_url: "",
-  file_url: "", file_public_id: "", file_type: "pdf" as const, thumbnail_url: "", thumbnail_public_id: "",
-  skills: [] as string[], tags: [] as string[], status: "draft" as "draft" | "published" | "archived",
-};
+interface SupportingImage {
+  id?: string;
+  image_url: string;
+  image_public_id?: string;
+  image_type: string;
+  caption: string;
+  sort_order: number;
+}
 
-type Step = "idle" | "uploading" | "analyzing" | "reviewing" | "saving";
+type Step =
+  | "idle"
+  | "uploading"
+  | "analyzing"
+  | "reviewing"
+  | "saving";
 
 export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
@@ -50,9 +75,24 @@ export default function CertificatesPage() {
   // Upload / AI flow
   const [showUpload, setShowUpload] = useState(false);
   const [step, setStep] = useState<Step>("idle");
-  const [uploadedFile, setUploadedFile] = useState<{ url: string; publicId: string; type: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{
+    url: string;
+    publicId: string;
+    type: string;
+  } | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<CertificateAnalysis | null>(null);
+  const [analysisStatus, setAnalysisStatus] = useState<
+    "success" | "partial" | "fallback"
+  >("success");
+  const [analysisConfidence, setAnalysisConfidence] = useState(0);
+  const [ocrText, setOcrText] = useState<string | null>(null);
+  const [fileHash, setFileHash] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [currentAnalysisStep, setCurrentAnalysisStep] =
+    useState<AnalysisStep>("upload");
+  const [analysisProgressStatus, setAnalysisProgressStatus] = useState<
+    "running" | "completed" | "failed" | "fallback"
+  >("running");
 
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<Certificate | null>(null);
@@ -62,7 +102,7 @@ export default function CertificatesPage() {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
   function handleCloseAttempt() {
-    if (uploadedFile) {
+    if (uploadedFile || step === "analyzing") {
       setShowCloseConfirm(true);
     } else {
       resetUploadFlow();
@@ -80,8 +120,6 @@ export default function CertificatesPage() {
       const res = await fetch(`/api/admin/certificates?${params}`);
       if (res.ok) {
         const json = await res.json();
-        // The API returns apiSuccess({ data, count, page, limit })
-        // so json.data is { data: Certificate[], count, page, limit }
         setCertificates(json.data?.data || []);
       }
     } catch {
@@ -96,14 +134,31 @@ export default function CertificatesPage() {
   }, [fetchCertificates]);
 
   // Handle file upload complete
-  function handleUploadComplete(result: { url: string; publicId?: string; fileType: string }) {
-    setUploadedFile({ url: result.url, publicId: result.publicId || "", type: result.fileType });
+  function handleUploadComplete(result: {
+    url: string;
+    publicId?: string;
+    fileType: string;
+  }) {
+    setUploadedFile({
+      url: result.url,
+      publicId: result.publicId || "",
+      type: result.fileType,
+    });
     setStep("analyzing");
+    setCurrentAnalysisStep("upload");
+    setAnalysisProgressStatus("running");
     runAIAnalysis(result.url, result.fileType);
   }
 
   // Run AI analysis
   async function runAIAnalysis(fileUrl: string, fileType: string) {
+    // Simulate progress through steps
+    setCurrentAnalysisStep("compress");
+    await sleep(300);
+    setCurrentAnalysisStep("ocr");
+    await sleep(300);
+    setCurrentAnalysisStep("ai_analysis");
+
     try {
       const res = await fetch("/api/admin/certificates/analyze", {
         method: "POST",
@@ -111,19 +166,111 @@ export default function CertificatesPage() {
         body: JSON.stringify({ fileUrl, fileType }),
       });
 
-      if (!res.ok) throw new Error("Analysis failed");
-      const { data } = await res.json();
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(
+          errorData?.error?.message || "Analysis request failed"
+        );
+      }
+
+      const { data, message } = await res.json();
+
+      setCurrentAnalysisStep("validation");
+      await sleep(200);
+
+      // Check for duplicate
+      if (data.duplicate) {
+        toast.warning(data.message || "Duplicate certificate detected");
+        // Still proceed to review — let user decide
+      }
+
       setAiAnalysis(data.analysis);
+      setAnalysisStatus(data.status || "success");
+      setAnalysisConfidence(data.confidence || 0);
+      setOcrText(data.ocrText || null);
+      setFileHash(data.fileHash || null);
+
+      setCurrentAnalysisStep("complete");
+      setAnalysisProgressStatus(
+        data.status === "fallback" ? "fallback" : "completed"
+      );
+
+      // Brief pause on "complete" step before showing review
+      await sleep(800);
+
       setStep("reviewing");
-      toast.success("AI analysis complete!");
-    } catch {
-      toast.error("AI analysis failed. You can try again or enter details manually.");
-      setStep("idle");
+
+      if (data.status === "fallback") {
+        toast.info(
+          message ||
+            "Partial analysis complete. Please review and fill in missing details."
+        );
+      } else {
+        toast.success("AI analysis complete!");
+      }
+    } catch (err) {
+      // NEVER show "AI Analysis Failed" — always go to fallback review
+      console.error("[Certificate Analysis]", err);
+
+      setAnalysisProgressStatus("fallback");
+      setCurrentAnalysisStep("complete");
+
+      // Build a minimal analysis for fallback
+      const fallbackAnalysis: CertificateAnalysis = {
+        title: "Untitled Certificate",
+        organization: "Unknown",
+        participantName: null,
+        certificateNumber: null,
+        category: "Certificate",
+        categoryConfidence: 0,
+        requiresCategoryReview: true,
+        certificateType: null,
+        eventType: null,
+        description: "",
+        achievement: null,
+        position: null,
+        location: null,
+        issueDate: null,
+        expiryDate: null,
+        skills: [],
+        technologies: [],
+        tags: [],
+        keywords: [],
+        professionalSummary: "",
+        resumeSummary: null,
+        portfolioSummary: null,
+        linkedinSummary: null,
+        reflection: null,
+        seoTitle: "",
+        seoDescription: "",
+        confidence: 0,
+        difficulty: null,
+        importance: null,
+        credibility: "unknown",
+        competitionLevel: null,
+        domain: null,
+        subdomain: null,
+        estimatedHours: null,
+      };
+
+      setAiAnalysis(fallbackAnalysis);
+      setAnalysisStatus("fallback");
+      setAnalysisConfidence(0);
+
+      await sleep(800);
+      setStep("reviewing");
+
+      toast.info(
+        "We couldn't automatically extract all information. Please review and edit the details."
+      );
     }
   }
 
   // Accept AI output and save
-  async function handleAcceptAI(data: CertificateAnalysis) {
+  async function handleAcceptAI(
+    data: CertificateAnalysis,
+    supportingImages: SupportingImage[]
+  ) {
     if (!uploadedFile) return;
     setStep("saving");
 
@@ -134,31 +281,77 @@ export default function CertificatesPage() {
         body: JSON.stringify({
           title: data.title,
           organization: data.organization,
+          participant_name: data.participantName,
           description: data.description,
           professional_summary: data.professionalSummary,
           category: data.category,
           category_confidence: data.categoryConfidence,
           requires_category_review: data.requiresCategoryReview,
+          certificate_type: data.certificateType,
+          event_type: data.eventType,
+          achievement: data.achievement,
+          position: data.position,
+          location: data.location,
           issue_date: data.issueDate,
-          credential_id: data.credentialId,
+          expiry_date: data.expiryDate,
+          credential_id: data.certificateNumber,
           file_url: uploadedFile.url,
           file_public_id: uploadedFile.publicId,
           file_type: uploadedFile.type,
           skills: data.skills,
+          technologies: data.technologies,
           tags: data.tags,
+          keywords: data.keywords,
+          resume_summary: data.resumeSummary,
+          portfolio_summary: data.portfolioSummary,
+          linkedin_summary: data.linkedinSummary,
+          reflection: data.reflection,
+          confidence: data.confidence,
+          difficulty: data.difficulty,
+          importance: data.importance,
+          credibility: data.credibility,
+          competition_level: data.competitionLevel,
+          domain: data.domain,
+          subdomain: data.subdomain,
+          estimated_hours: data.estimatedHours,
+          file_hash: fileHash,
+          ocr_text: ocrText,
+          analysis_status: analysisStatus === "fallback" ? "fallback" : "completed",
+          analysis_retries: 0,
           seo_title: data.seoTitle,
           seo_description: data.seoDescription,
-          ai_generated: true,
+          ai_generated: analysisStatus !== "fallback",
           status: "draft",
         }),
       });
 
       if (!res.ok) throw new Error();
+
+      const { data: savedCert } = await res.json();
+
+      // Save supporting images
+      if (supportingImages.length > 0 && savedCert?.id) {
+        for (const img of supportingImages) {
+          await fetch("/api/admin/certificates/supporting-images", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              certificate_id: savedCert.id,
+              image_url: img.image_url,
+              image_public_id: img.image_public_id,
+              image_type: img.image_type,
+              caption: img.caption,
+              sort_order: img.sort_order,
+            }),
+          }).catch(() => {}); // Don't block save if supporting image fails
+        }
+      }
+
       toast.success("Certificate saved as draft!");
       resetUploadFlow();
       fetchCertificates();
     } catch {
-      toast.error("Failed to save certificate");
+      toast.error("Failed to save certificate. Please try again.");
       setStep("reviewing");
     }
   }
@@ -167,6 +360,9 @@ export default function CertificatesPage() {
   async function handleRegenerate() {
     if (!uploadedFile) return;
     setRegenerating(true);
+    setStep("analyzing");
+    setCurrentAnalysisStep("upload");
+    setAnalysisProgressStatus("running");
     await runAIAnalysis(uploadedFile.url, uploadedFile.type);
     setRegenerating(false);
   }
@@ -180,7 +376,9 @@ export default function CertificatesPage() {
         body: JSON.stringify({ id, status }),
       });
       if (!res.ok) throw new Error();
-      toast.success(status === "published" ? "Published!" : `Status → ${status}`);
+      toast.success(
+        status === "published" ? "Published!" : `Status → ${status}`
+      );
       fetchCertificates();
     } catch {
       toast.error("Failed to update status");
@@ -192,7 +390,10 @@ export default function CertificatesPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/certificates?id=${deleteTarget.id}`, { method: "DELETE" });
+      const res = await fetch(
+        `/api/admin/certificates?id=${deleteTarget.id}`,
+        { method: "DELETE" }
+      );
       if (!res.ok) throw new Error();
       toast.success("Certificate deleted");
       setDeleteTarget(null);
@@ -209,9 +410,13 @@ export default function CertificatesPage() {
     setStep("idle");
     setUploadedFile(null);
     setAiAnalysis(null);
+    setAnalysisStatus("success");
+    setAnalysisConfidence(0);
+    setOcrText(null);
+    setFileHash(null);
+    setCurrentAnalysisStep("upload");
+    setAnalysisProgressStatus("running");
   }
-
-  const filteredCerts = certificates;
 
   return (
     <div>
@@ -219,9 +424,14 @@ export default function CertificatesPage() {
       <div className="admin-page-header flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="admin-page-title">Certificates</h1>
-          <p className="admin-page-subtitle">{certificates.length} certificates managed</p>
+          <p className="admin-page-subtitle">
+            {certificates.length} certificates managed
+          </p>
         </div>
-        <button onClick={() => setShowUpload(true)} className="admin-btn admin-btn-primary">
+        <button
+          onClick={() => setShowUpload(true)}
+          className="admin-btn admin-btn-primary"
+        >
           <Plus size={14} /> Upload Certificate
         </button>
       </div>
@@ -229,7 +439,11 @@ export default function CertificatesPage() {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="relative flex-1 max-w-xs">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--admin-ink-muted)" }} />
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: "var(--admin-ink-muted)" }}
+          />
           <input
             className="admin-input pl-9"
             placeholder="Search certificates…"
@@ -246,7 +460,9 @@ export default function CertificatesPage() {
         >
           <option value="">All Categories</option>
           {CERTIFICATE_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
           ))}
         </select>
 
@@ -265,13 +481,17 @@ export default function CertificatesPage() {
         <div className="ml-auto flex gap-1">
           <button
             onClick={() => setView("grid")}
-            className={`admin-btn admin-btn-icon ${view === "grid" ? "admin-btn-primary" : "admin-btn-ghost"}`}
+            className={`admin-btn admin-btn-icon ${
+              view === "grid" ? "admin-btn-primary" : "admin-btn-ghost"
+            }`}
           >
             <Grid3X3 size={14} />
           </button>
           <button
             onClick={() => setView("list")}
-            className={`admin-btn admin-btn-icon ${view === "list" ? "admin-btn-primary" : "admin-btn-ghost"}`}
+            className={`admin-btn admin-btn-icon ${
+              view === "list" ? "admin-btn-primary" : "admin-btn-ghost"
+            }`}
           >
             <List size={14} />
           </button>
@@ -289,13 +509,16 @@ export default function CertificatesPage() {
             </div>
           ))}
         </div>
-      ) : filteredCerts.length === 0 ? (
+      ) : certificates.length === 0 ? (
         <EmptyState
           icon={<Award size={48} />}
           title="No certificates yet"
           description="Upload your first certificate to get started. AI will analyze and generate metadata automatically."
           action={
-            <button onClick={() => setShowUpload(true)} className="admin-btn admin-btn-primary">
+            <button
+              onClick={() => setShowUpload(true)}
+              className="admin-btn admin-btn-primary"
+            >
               <Plus size={14} /> Upload Certificate
             </button>
           }
@@ -303,7 +526,7 @@ export default function CertificatesPage() {
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
-            {filteredCerts.map((cert, i) => (
+            {certificates.map((cert, i) => (
               <motion.div
                 key={cert.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -317,43 +540,141 @@ export default function CertificatesPage() {
                   style={{ background: "var(--admin-bg-subtle)" }}
                 >
                   {cert.file_type?.includes("pdf") ? (
-                    <FileText size={32} style={{ color: "var(--admin-ink-muted)" }} />
+                    <FileText
+                      size={32}
+                      style={{ color: "var(--admin-ink-muted)" }}
+                    />
                   ) : (
-                    <SafeImage useNextImage={true} src={cert.file_url}
+                    <SafeImage
+                      useNextImage={true}
+                      src={cert.file_url}
                       alt={cert.title}
                       fill
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   )}
-                  {cert.ai_generated && (
-                    <span
-                      className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold"
-                      style={{ background: "var(--admin-glass)", backdropFilter: "blur(8px)", color: "var(--admin-accent)" }}
-                    >
-                      <Sparkles size={10} /> AI
-                    </span>
-                  )}
+
+                  {/* Badges */}
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    {cert.ai_generated && (
+                      <span
+                        className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold"
+                        style={{
+                          background: "var(--admin-glass)",
+                          backdropFilter: "blur(8px)",
+                          color: "var(--admin-accent)",
+                        }}
+                      >
+                        <Sparkles size={10} /> AI
+                      </span>
+                    )}
+                    {cert.confidence > 0 && (
+                      <span
+                        className="flex items-center gap-1 px-1.5 py-1 rounded-md text-[10px] font-bold"
+                        style={{
+                          background: "var(--admin-glass)",
+                          backdropFilter: "blur(8px)",
+                          color:
+                            cert.confidence >= 0.8
+                              ? "var(--admin-success)"
+                              : cert.confidence >= 0.5
+                                ? "var(--admin-warning)"
+                                : "var(--admin-danger)",
+                        }}
+                      >
+                        <Shield size={8} />
+                        {Math.round(cert.confidence * 100)}%
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-[13px] font-semibold truncate" style={{ color: "var(--admin-ink)" }}>
+                    <h3
+                      className="text-[13px] font-semibold truncate"
+                      style={{ color: "var(--admin-ink)" }}
+                    >
                       {cert.title}
                     </h3>
                     <StatusBadge status={cert.status} />
                   </div>
-                  <p className="text-[12px] mb-2" style={{ color: "var(--admin-ink-muted)" }}>
+                  <p
+                    className="text-[12px] mb-2"
+                    style={{ color: "var(--admin-ink-muted)" }}
+                  >
                     {cert.organization}
                   </p>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <span className="admin-tag" style={{ fontSize: 10, padding: "2px 6px" }}>
+                  <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+                    <span
+                      className="admin-tag"
+                      style={{ fontSize: 10, padding: "2px 6px" }}
+                    >
                       {cert.category}
                     </span>
+                    {cert.achievement && (
+                      <span
+                        className="admin-tag"
+                        style={{
+                          fontSize: 10,
+                          padding: "2px 6px",
+                          background: "var(--admin-accent-soft)",
+                          color: "var(--admin-accent)",
+                        }}
+                      >
+                        🏆 {cert.achievement}
+                      </span>
+                    )}
+                    {cert.difficulty && (
+                      <span
+                        className="text-[9px] font-medium capitalize px-1.5 py-0.5 rounded"
+                        style={{
+                          background: "var(--admin-bg-hover)",
+                          color: "var(--admin-ink-muted)",
+                        }}
+                      >
+                        {cert.difficulty}
+                      </span>
+                    )}
                   </div>
 
+                  {/* Skills preview */}
+                  {cert.skills && cert.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {cert.skills.slice(0, 3).map((skill, si) => (
+                        <span
+                          key={si}
+                          className="text-[9px] px-1.5 py-0.5 rounded-md"
+                          style={{
+                            background: "var(--admin-bg-hover)",
+                            color: "var(--admin-ink-muted)",
+                          }}
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {cert.skills.length > 3 && (
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded-md"
+                          style={{
+                            background: "var(--admin-bg-hover)",
+                            color: "var(--admin-ink-muted)",
+                          }}
+                        >
+                          +{cert.skills.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   {/* Actions */}
-                  <div className="flex items-center gap-1 pt-2" style={{ borderTop: "1px solid var(--admin-line)" }}>
+                  <div
+                    className="flex items-center gap-1 pt-2"
+                    style={{
+                      borderTop: "1px solid var(--admin-line)",
+                    }}
+                  >
                     {cert.status === "draft" && (
                       <button
                         onClick={() => updateStatus(cert.id, "published")}
@@ -399,46 +720,91 @@ export default function CertificatesPage() {
                 <th>Certificate</th>
                 <th>Category</th>
                 <th>Organization</th>
+                <th>Confidence</th>
                 <th>Status</th>
                 <th>Date</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {filteredCerts.map((cert) => (
+              {certificates.map((cert) => (
                 <tr key={cert.id}>
                   <td>
                     <div className="flex items-center gap-3">
                       <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
-                          background: cert.file_type?.includes("pdf") ? "var(--admin-danger-soft)" : "var(--admin-info-soft)",
-                          color: cert.file_type?.includes("pdf") ? "var(--admin-danger)" : "var(--admin-info)",
+                          background: cert.file_type?.includes("pdf")
+                            ? "var(--admin-danger-soft)"
+                            : "var(--admin-info-soft)",
+                          color: cert.file_type?.includes("pdf")
+                            ? "var(--admin-danger)"
+                            : "var(--admin-info)",
                         }}
                       >
-                        {cert.file_type?.includes("pdf") ? <FileText size={12} /> : <ImageIcon size={12} />}
+                        {cert.file_type?.includes("pdf") ? (
+                          <FileText size={12} />
+                        ) : (
+                          <ImageIcon size={12} />
+                        )}
                       </div>
                       <div>
                         <p className="text-[13px] font-medium">{cert.title}</p>
+                        {cert.ai_generated && (
+                          <span className="text-[9px] font-semibold" style={{ color: "var(--admin-accent)" }}>
+                            <Sparkles size={8} className="inline mr-0.5" /> AI Generated
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span className="admin-tag" style={{ fontSize: 11 }}>{cert.category}</span>
+                    <span className="admin-tag" style={{ fontSize: 11 }}>
+                      {cert.category}
+                    </span>
                   </td>
                   <td className="text-[13px]">{cert.organization}</td>
-                  <td><StatusBadge status={cert.status} /></td>
-                  <td className="text-[12px]" style={{ color: "var(--admin-ink-muted)" }}>
+                  <td>
+                    {cert.confidence > 0 && (
+                      <span
+                        className="text-[11px] font-bold"
+                        style={{
+                          color:
+                            cert.confidence >= 0.8
+                              ? "var(--admin-success)"
+                              : cert.confidence >= 0.5
+                                ? "var(--admin-warning)"
+                                : "var(--admin-danger)",
+                        }}
+                      >
+                        {Math.round(cert.confidence * 100)}%
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <StatusBadge status={cert.status} />
+                  </td>
+                  <td
+                    className="text-[12px]"
+                    style={{ color: "var(--admin-ink-muted)" }}
+                  >
                     {new Date(cert.created_at).toLocaleDateString()}
                   </td>
                   <td>
                     <div className="flex items-center gap-1">
                       {cert.status === "draft" && (
-                        <button onClick={() => updateStatus(cert.id, "published")} className="admin-btn admin-btn-ghost admin-btn-sm">
+                        <button
+                          onClick={() => updateStatus(cert.id, "published")}
+                          className="admin-btn admin-btn-ghost admin-btn-sm"
+                        >
                           <Globe size={12} />
                         </button>
                       )}
-                      <button onClick={() => setDeleteTarget(cert)} className="admin-btn admin-btn-ghost admin-btn-sm" style={{ color: "var(--admin-danger)" }}>
+                      <button
+                        onClick={() => setDeleteTarget(cert)}
+                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                        style={{ color: "var(--admin-danger)" }}
+                      >
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -455,39 +821,54 @@ export default function CertificatesPage() {
         open={showUpload}
         onClose={resetUploadFlow}
         onCloseAttempt={handleCloseAttempt}
-        preventClose={!!uploadedFile}
-        title={step === "reviewing" ? "Review AI Analysis" : "Upload Certificate"}
-        maxWidth={step === "reviewing" ? "720px" : "520px"}
+        preventClose={!!uploadedFile || step === "analyzing"}
+        title={
+          step === "reviewing"
+            ? "Review Certificate"
+            : step === "analyzing"
+              ? "Analyzing Certificate"
+              : "Upload Certificate"
+        }
+        maxWidth={step === "reviewing" ? "780px" : "520px"}
       >
         {step === "idle" || step === "uploading" ? (
-          <UploadZone
-            bucket="certificates"
-            folder="uploads"
-            onUploadComplete={handleUploadComplete}
-            label="Drop certificate here (PDF, PNG, JPEG, WEBP)"
-          />
-        ) : step === "analyzing" ? (
-          <div className="flex flex-col items-center py-8">
-            <Loader2 size={32} className="animate-spin mb-4" style={{ color: "var(--admin-accent)" }} />
-            <p className="text-[14px] font-semibold" style={{ color: "var(--admin-ink)" }}>
-              AI is analyzing your certificate…
-            </p>
-            <p className="text-[12px] mt-1" style={{ color: "var(--admin-ink-muted)" }}>
-              Extracting title, organization, skills, and more
-            </p>
+          <div className="p-4">
+            <UploadZone
+              bucket="certificates"
+              folder="uploads"
+              onUploadComplete={handleUploadComplete}
+              label="Drop certificate here (PDF, PNG, JPEG, WEBP)"
+            />
           </div>
+        ) : step === "analyzing" ? (
+          <AnalysisProgress
+            currentStep={currentAnalysisStep}
+            status={analysisProgressStatus}
+          />
         ) : step === "reviewing" && aiAnalysis ? (
           <AIReviewPanel
             analysis={aiAnalysis}
+            analysisStatus={analysisStatus}
+            confidence={analysisConfidence}
             onAccept={handleAcceptAI}
             onReject={resetUploadFlow}
             onRegenerate={handleRegenerate}
             regenerating={regenerating}
+            ocrText={ocrText}
+            fileUrl={uploadedFile?.url}
+            fileType={uploadedFile?.type}
           />
         ) : step === "saving" ? (
           <div className="flex flex-col items-center py-8">
-            <Loader2 size={32} className="animate-spin mb-4" style={{ color: "var(--admin-accent)" }} />
-            <p className="text-[14px] font-semibold" style={{ color: "var(--admin-ink)" }}>
+            <Loader2
+              size={32}
+              className="animate-spin mb-4"
+              style={{ color: "var(--admin-accent)" }}
+            />
+            <p
+              className="text-[14px] font-semibold"
+              style={{ color: "var(--admin-ink)" }}
+            >
               Saving certificate…
             </p>
           </div>
@@ -504,18 +885,22 @@ export default function CertificatesPage() {
         loading={deleting}
       />
 
-      <ConfirmDialog 
-        open={showCloseConfirm} 
-        onClose={() => setShowCloseConfirm(false)} 
+      <ConfirmDialog
+        open={showCloseConfirm}
+        onClose={() => setShowCloseConfirm(false)}
         onConfirm={() => {
           setShowCloseConfirm(false);
           resetUploadFlow();
-        }} 
-        title="Discard Upload?" 
-        message="You have an unsaved certificate analysis. Are you sure you want to discard it?" 
+        }}
+        title="Discard Upload?"
+        message="You have an unsaved certificate analysis. Are you sure you want to discard it?"
         confirmLabel="Discard"
         variant="danger"
       />
     </div>
   );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -62,3 +62,47 @@ export function isImageType(mimeType: string): boolean {
 export function isPdfType(mimeType: string): boolean {
   return mimeType === "application/pdf";
 }
+
+/* ---- Certificate Analysis System Constants ---- */
+
+export const CERTIFICATE_TYPES = [
+  "certificate", "award", "participation", "completion",
+  "recognition", "license", "diploma", "letter", "badge", "other",
+] as const;
+export type CertificateType = typeof CERTIFICATE_TYPES[number];
+
+export const EVENT_TYPES = [
+  "hackathon", "workshop", "webinar", "competition", "conference",
+  "seminar", "bootcamp", "training", "course", "internship",
+  "volunteer", "sports", "cultural", "technical", "other",
+] as const;
+export type EventType = typeof EVENT_TYPES[number];
+
+export const DIFFICULTY_LEVELS = ["beginner", "intermediate", "advanced", "expert"] as const;
+export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number];
+
+export const IMPORTANCE_LEVELS = ["low", "medium", "high", "critical"] as const;
+export type ImportanceLevel = typeof IMPORTANCE_LEVELS[number];
+
+export const CREDIBILITY_LEVELS = ["verified", "unverified", "unknown"] as const;
+export type CredibilityLevel = typeof CREDIBILITY_LEVELS[number];
+
+export const SUPPORTING_IMAGE_TYPES = [
+  "participation", "winning", "award_ceremony", "stage",
+  "presentation", "team", "workshop", "hackathon", "certificate", "general",
+] as const;
+export type SupportingImageType = typeof SUPPORTING_IMAGE_TYPES[number];
+
+export const ANALYSIS_STATUSES = [
+  "pending", "analyzing", "completed", "failed", "fallback",
+] as const;
+export type AnalysisStatus = typeof ANALYSIS_STATUSES[number];
+
+export const ANALYSIS_STEPS = [
+  { key: "upload", label: "Uploading File", icon: "upload" },
+  { key: "compress", label: "Compressing Image", icon: "compress" },
+  { key: "ocr", label: "Extracting Text", icon: "scan" },
+  { key: "ai_analysis", label: "Analyzing Certificate", icon: "sparkles" },
+  { key: "validation", label: "Generating Metadata", icon: "check" },
+  { key: "complete", label: "Ready for Review", icon: "party" },
+] as const;
