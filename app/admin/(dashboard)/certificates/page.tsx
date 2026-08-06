@@ -38,7 +38,7 @@ interface Certificate {
   skills: string[];
   technologies: string[];
   tags: string[];
-  status: "draft" | "published" | "archived";
+  status: "draft" | "active" | "archived";
   created_at: string;
   ai_generated: boolean;
   confidence: number;
@@ -399,7 +399,7 @@ export default function CertificatesPage() {
       });
       if (!res.ok) throw new Error();
       toast.success(
-        status === "published" ? "Published!" : `Status → ${status}`
+        status === "active" ? "Published!" : `Status → ${status}`
       );
       fetchCertificates();
     } catch {
@@ -496,7 +496,7 @@ export default function CertificatesPage() {
         >
           <option value="">All Status</option>
           <option value="draft">Draft</option>
-          <option value="published">Published</option>
+          <option value="active">Active</option>
           <option value="archived">Archived</option>
         </select>
 
@@ -699,13 +699,13 @@ export default function CertificatesPage() {
                   >
                     {cert.status === "draft" && (
                       <button
-                        onClick={() => updateStatus(cert.id, "published")}
+                        onClick={() => updateStatus(cert.id, "active")}
                         className="admin-btn admin-btn-ghost admin-btn-sm"
                       >
                         <Globe size={12} /> Publish
                       </button>
                     )}
-                    {cert.status === "published" && (
+                    {cert.status === "active" && (
                       <button
                         onClick={() => updateStatus(cert.id, "draft")}
                         className="admin-btn admin-btn-ghost admin-btn-sm"
@@ -713,12 +713,21 @@ export default function CertificatesPage() {
                         Unpublish
                       </button>
                     )}
-                    <button
-                      onClick={() => updateStatus(cert.id, "archived")}
-                      className="admin-btn admin-btn-ghost admin-btn-sm"
-                    >
-                      <Archive size={12} />
-                    </button>
+                    {cert.status === "archived" ? (
+                      <button
+                        onClick={() => updateStatus(cert.id, "draft")}
+                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                      >
+                        <RefreshCw size={12} className="mr-1" /> Restore
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => updateStatus(cert.id, "archived")}
+                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                      >
+                        <Archive size={12} />
+                      </button>
+                    )}
                     <div className="flex-1" />
                     <button
                       onClick={() => setDeleteTarget(cert)}
@@ -816,16 +825,44 @@ export default function CertificatesPage() {
                     <div className="flex items-center gap-1">
                       {cert.status === "draft" && (
                         <button
-                          onClick={() => updateStatus(cert.id, "published")}
+                          onClick={() => updateStatus(cert.id, "active")}
                           className="admin-btn admin-btn-ghost admin-btn-sm"
+                          title="Publish"
                         >
                           <Globe size={12} />
+                        </button>
+                      )}
+                      {cert.status === "active" && (
+                        <button
+                          onClick={() => updateStatus(cert.id, "draft")}
+                          className="admin-btn admin-btn-ghost admin-btn-sm"
+                          title="Unpublish"
+                        >
+                          Unpublish
+                        </button>
+                      )}
+                      {cert.status === "archived" ? (
+                        <button
+                          onClick={() => updateStatus(cert.id, "draft")}
+                          className="admin-btn admin-btn-ghost admin-btn-sm"
+                          title="Restore"
+                        >
+                          <RefreshCw size={12} className="mr-1" /> Restore
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => updateStatus(cert.id, "archived")}
+                          className="admin-btn admin-btn-ghost admin-btn-sm"
+                          title="Archive"
+                        >
+                          <Archive size={12} />
                         </button>
                       )}
                       <button
                         onClick={() => setDeleteTarget(cert)}
                         className="admin-btn admin-btn-ghost admin-btn-sm"
                         style={{ color: "var(--admin-danger)" }}
+                        title="Delete"
                       >
                         <Trash2 size={12} />
                       </button>
