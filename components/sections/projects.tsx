@@ -17,9 +17,7 @@ import type { Project } from "@/lib/portfolio/types";
  */
 export function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const { data } = usePortfolio();
-
-  const projects = data?.projects || [];
+  const { projects } = usePortfolio();
 
   if (!projects.length) return null;
 
@@ -159,7 +157,7 @@ export function Projects() {
                   More Projects Coming Soon
                 </h3>
                 <p className="text-sm text-muted-dark max-w-md mx-auto">
-                  I'm always working on new ideas and experiments. Check back later to see what I've been building.
+                  I&apos;m always working on new ideas and experiments. Check back later to see what I&apos;ve been building.
                 </p>
               </div>
             </div>

@@ -42,7 +42,7 @@ type LegacyContextType = {
   stats: { label: string; value: number; suffix: string }[];
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
   experiences: { title: string; company: string; companyUrl?: string; location: string; type: string; startDate: string; endDate: string; description: string; achievements: string[]; technologies: string[] }[];
-  projects: { id: string; title: string; subtitle: string; description: string; long_description: string; problem: string; solution: string; features: string[]; technologies: string[]; github_url?: string; live_url?: string; media?: { url: string; type: string }; category: string; featured: boolean; architecture?: string; challenges: string[]; future_scope: string[] }[];
+  projects: import("@/lib/portfolio/types").Project[];
   achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
   certifications: import("@/lib/portfolio/types").Certificate[];
   education: { degree: string; branch: string; institution: string; location: string; startYear: string; endYear: string; cgpa: string; coursework: string[]; icon: LucideIcon }[];
@@ -127,25 +127,7 @@ export function PortfolioProvider({
     }));
 
     // 5. Projects
-    const projects = (data.projects || []).map((proj) => ({
-      id: proj.id,
-      title: proj.title,
-      subtitle: proj.subtitle || "",
-      description: proj.description || "",
-      long_description: proj.long_description || "",
-      problem: proj.problem || "",
-      solution: proj.solution || "",
-      features: proj.features || [],
-      technologies: proj.technologies || [],
-      github_url: proj.github_url || undefined,
-      live_url: proj.live_url || undefined,
-      media: proj.media || undefined,
-      category: proj.category || "",
-      featured: proj.featured || false,
-      architecture: proj.architecture || undefined,
-      challenges: proj.challenges || [],
-      future_scope: proj.future_scope || [],
-    }));
+    const projects = data.projects || [];
 
     // 6. Achievements
     const achievements = (data.achievements || []).map((ach) => ({
