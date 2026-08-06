@@ -13,8 +13,13 @@ interface DraggableListProps {
   contextType?: string;
 }
 
-export function DraggableList({ items, onChange, label, placeholder, contextType }: DraggableListProps) {
+export function DraggableList({ items = [], onChange, label, placeholder, contextType }: DraggableListProps) {
   const [newItem, setNewItem] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -47,15 +52,16 @@ export function DraggableList({ items, onChange, label, placeholder, contextType
     <div className="space-y-3">
       <label className="admin-label">{label}</label>
       
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId={`droppable-${label.replace(/\s+/g, '-').toLowerCase()}`}>
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-2"
-            >
-              {items.map((item, index) => (
+      {isMounted && (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId={`droppable-${label.replace(/\s+/g, '-').toLowerCase()}`}>
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-2"
+              >
+                {items.map((item, index) => (
                 <Draggable key={`${index}-${item.substring(0, 10)}`} draggableId={`${index}`} index={index}>
                   {(provided, snapshot) => (
                     <div
@@ -96,6 +102,7 @@ export function DraggableList({ items, onChange, label, placeholder, contextType
           )}
         </Droppable>
       </DragDropContext>
+      )}
 
       <div className="flex gap-2 items-start mt-2">
         <div className="flex-1">
