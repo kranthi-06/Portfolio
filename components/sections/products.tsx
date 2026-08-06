@@ -214,7 +214,7 @@ export function ProductsSection() {
                   {active.tagline}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-8">
-                  {active.technologies?.slice(0, 5).map((tech) => (
+                  {active.technologies?.map((tech) => (
                     <span key={tech} className="text-[11px] px-3 py-1 rounded-full" style={{ background: "var(--accent-soft)", color: "var(--ink-muted)" }}>
                       {tech}
                     </span>
