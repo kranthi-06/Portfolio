@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Award, Plus, Search, Grid3X3, List, Loader2,
   Globe, Archive, Trash2, FileText, ImageIcon, Sparkles,
-  RefreshCw, Shield, Clock, Eye,
+  RefreshCw, Shield, Clock, Eye, Edit2,
 } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
@@ -74,6 +74,7 @@ export default function CertificatesPage() {
 
   // Upload / AI flow
   const [showUpload, setShowUpload] = useState(false);
+  const [editingCertId, setEditingCertId] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("idle");
   const [uploadedFile, setUploadedFile] = useState<{
     url: string;
@@ -289,61 +290,71 @@ export default function CertificatesPage() {
     setStep("saving");
 
     try {
+      const isEditing = !!editingCertId;
+      const method = isEditing ? "PATCH" : "POST";
+
+      const payload: any = {
+        title: data.title,
+        organization: data.organization,
+        participant_name: data.participantName,
+        description: data.description,
+        professional_summary: data.professionalSummary,
+        category: data.category,
+        category_confidence: data.categoryConfidence,
+        requires_category_review: data.requiresCategoryReview,
+        certificate_type: data.certificateType,
+        event_type: data.eventType,
+        achievement: data.achievement,
+        position: data.position,
+        location: data.location,
+        issue_date: data.issueDate,
+        expiry_date: data.expiryDate,
+        start_date: data.startDate,
+        end_date: data.endDate,
+        completion_date: data.completionDate,
+        duration: data.duration,
+        verification_url: data.verificationUrl,
+        credential_id: data.certificateNumber,
+        file_url: fileData.url,
+        file_public_id: fileData.publicId,
+        file_type: fileData.type,
+        skills: data.skills,
+        technologies: data.technologies,
+        tags: data.tags,
+        keywords: data.keywords,
+        resume_summary: data.resumeSummary,
+        portfolio_summary: data.portfolioSummary,
+        linkedin_summary: data.linkedinSummary,
+        reflection: data.reflection,
+        confidence: data.confidence,
+        difficulty: data.difficulty,
+        importance: data.importance,
+        credibility: data.credibility,
+        competition_level: data.competitionLevel,
+        domain: data.domain,
+        subdomain: data.subdomain,
+        estimated_hours: data.estimatedHours,
+        file_hash: hashData,
+        ocr_text: ocrData,
+        raw_ai_response: data,
+        metadata: { autoSaved: true },
+        analysis_status: analysisStatus === "fallback" ? "fallback" : "completed",
+        seo_title: data.seoTitle,
+        seo_description: data.seoDescription,
+        ai_generated: analysisStatus !== "fallback",
+        status: "active",
+      };
+
+      if (isEditing) {
+        payload.id = editingCertId;
+      } else {
+        payload.analysis_retries = 0;
+      }
+
       const res = await fetch("/api/admin/certificates", {
-        method: "POST",
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: data.title,
-          organization: data.organization,
-          participant_name: data.participantName,
-          description: data.description,
-          professional_summary: data.professionalSummary,
-          category: data.category,
-          category_confidence: data.categoryConfidence,
-          requires_category_review: data.requiresCategoryReview,
-          certificate_type: data.certificateType,
-          event_type: data.eventType,
-          achievement: data.achievement,
-          position: data.position,
-          location: data.location,
-          issue_date: data.issueDate,
-          expiry_date: data.expiryDate,
-          start_date: data.startDate,
-          end_date: data.endDate,
-          completion_date: data.completionDate,
-          duration: data.duration,
-          verification_url: data.verificationUrl,
-          credential_id: data.certificateNumber,
-          file_url: fileData.url,
-          file_public_id: fileData.publicId,
-          file_type: fileData.type,
-          skills: data.skills,
-          technologies: data.technologies,
-          tags: data.tags,
-          keywords: data.keywords,
-          resume_summary: data.resumeSummary,
-          portfolio_summary: data.portfolioSummary,
-          linkedin_summary: data.linkedinSummary,
-          reflection: data.reflection,
-          confidence: data.confidence,
-          difficulty: data.difficulty,
-          importance: data.importance,
-          credibility: data.credibility,
-          competition_level: data.competitionLevel,
-          domain: data.domain,
-          subdomain: data.subdomain,
-          estimated_hours: data.estimatedHours,
-          file_hash: hashData,
-          ocr_text: ocrData,
-          raw_ai_response: data,
-          metadata: { autoSaved: true },
-          analysis_status: analysisStatus === "fallback" ? "fallback" : "completed",
-          analysis_retries: 0,
-          seo_title: data.seoTitle,
-          seo_description: data.seoDescription,
-          ai_generated: analysisStatus !== "fallback",
-          status: "active",
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error();
@@ -368,8 +379,12 @@ export default function CertificatesPage() {
         }
       }
 
-      toast.success("Certificate saved & activated instantly!");
-      setCertificates(prev => [savedCert, ...prev]);
+      toast.success(isEditing ? "Certificate updated!" : "Certificate saved & activated instantly!");
+      if (isEditing) {
+        setCertificates(prev => prev.map(c => c.id === savedCert.id ? savedCert : c));
+      } else {
+        setCertificates(prev => [savedCert, ...prev]);
+      }
       resetUploadFlow();
       fetchCertificates();
     } catch {
@@ -427,8 +442,69 @@ export default function CertificatesPage() {
     }
   }
 
+  function handleEdit(cert: Certificate) {
+    setEditingCertId(cert.id);
+    
+    // Create a mock CertificateAnalysis based on the cert
+    const mockAnalysis: CertificateAnalysis = {
+      title: cert.title,
+      organization: cert.organization,
+      participantName: null,
+      certificateNumber: cert.credential_id || null,
+      category: cert.category as any || "Certificate",
+      categoryConfidence: 1,
+      requiresCategoryReview: false,
+      certificateType: null,
+      eventType: null,
+      description: cert.description || "",
+      achievement: cert.achievement || null,
+      position: null,
+      location: null,
+      issueDate: cert.issue_date || null,
+      expiryDate: null,
+      startDate: null,
+      endDate: null,
+      completionDate: null,
+      duration: null,
+      verificationUrl: cert.credential_url || null,
+      skills: cert.skills || [],
+      technologies: cert.technologies || [],
+      tags: cert.tags || [],
+      keywords: [],
+      professionalSummary: cert.professional_summary || "",
+      resumeSummary: null,
+      portfolioSummary: null,
+      linkedinSummary: null,
+      reflection: null,
+      seoTitle: "",
+      seoDescription: "",
+      confidence: cert.confidence || 1,
+      difficulty: cert.difficulty as any || null,
+      importance: null,
+      credibility: cert.credibility as any || "unknown",
+      competitionLevel: null,
+      domain: null,
+      subdomain: null,
+      estimatedHours: null,
+    };
+
+    setAiAnalysis(mockAnalysis);
+    setAnalysisStatus(cert.analysis_status as any || "success");
+    setAnalysisConfidence(cert.confidence || 1);
+    
+    setUploadedFile({
+      url: cert.file_url,
+      publicId: cert.file_public_id,
+      type: cert.file_type || "image/png",
+    });
+    
+    setShowUpload(true);
+    setStep("reviewing");
+  }
+
   function resetUploadFlow() {
     setShowUpload(false);
+    setEditingCertId(null);
     setStep("idle");
     setUploadedFile(null);
     setAiAnalysis(null);
@@ -697,6 +773,12 @@ export default function CertificatesPage() {
                       borderTop: "1px solid var(--admin-line)",
                     }}
                   >
+                    <button
+                      onClick={() => handleEdit(cert)}
+                      className="admin-btn admin-btn-ghost admin-btn-sm"
+                    >
+                      <Edit2 size={12} className="mr-1" /> Edit
+                    </button>
                     {cert.status === "draft" && (
                       <button
                         onClick={() => updateStatus(cert.id, "active")}
@@ -823,6 +905,13 @@ export default function CertificatesPage() {
                   </td>
                   <td>
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEdit(cert)}
+                        className="admin-btn admin-btn-ghost admin-btn-sm"
+                        title="Edit"
+                      >
+                        <Edit2 size={12} />
+                      </button>
                       {cert.status === "draft" && (
                         <button
                           onClick={() => updateStatus(cert.id, "active")}
