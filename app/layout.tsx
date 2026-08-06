@@ -32,6 +32,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#faf9f7" }, { media: "(prefers-color-scheme: dark)", color: "#0c0c0e" }], width: "device-width", initialScale: 1 };
 
+import { AnalyticsTracker } from "@/components/analytics/tracker";
+import { Suspense } from "react";
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className={`${spaceGrotesk.variable} ${inter.variable} ${instrumentSerif.variable} antialiased`}>{children}</body></html>;
+  return (
+    <html lang="en">
+      <body className={`${spaceGrotesk.variable} ${inter.variable} ${instrumentSerif.variable} antialiased`}>
+        {children}
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
+      </body>
+    </html>
+  );
 }
