@@ -199,7 +199,10 @@ export class CertificateAnalyzer {
   private async extractOCR(buffer: Buffer): Promise<string> {
     try {
       const Tesseract = await import("tesseract.js");
-      const worker = await Tesseract.createWorker("eng");
+      const worker = await Tesseract.createWorker("eng", 1, {
+        cacheMethod: "none",
+        logger: () => {}, // Disable logger to avoid stdout buffer issues
+      });
       const { data: { text } } = await worker.recognize(buffer);
       await worker.terminate();
       return text.trim();

@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CertificateAnalyzer } from "@/lib/ai/certificate-analyzer";
