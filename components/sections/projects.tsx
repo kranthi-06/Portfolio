@@ -3,20 +3,25 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Github, ArrowRight, Sparkles } from "lucide-react";
-import { projects } from "@/lib/constants";
+import { usePortfolio } from "@/components/portfolio-provider";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { ProjectModal } from "@/components/ui/project-modal";
 import { BrowserFrame } from "@/components/ui/browser-frame";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/lib/constants";
+import type { Project } from "@/lib/portfolio/types";
 
 /**
  * Premium project showcase with featured cards and detail modal
  */
 export function Projects() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const { data } = usePortfolio();
+
+  const projects = data?.projects || [];
+
+  if (!projects.length) return null;
 
   return (
     <section id="projects" className="relative section-padding">
@@ -59,8 +64,8 @@ export function Projects() {
                   >
                     <BrowserFrame
                       title={project.title}
-                      url={project.liveUrl}
-                      image={project.image}
+                      url={project.live_url || "#"}
+                      image={project.media?.url || ""}
                       accent={i % 2 === 0 ? "violet" : "ocean"}
                       aspectRatio="aspect-[16/10]"
                       className="w-full shadow-2xl"
@@ -71,10 +76,12 @@ export function Projects() {
                   <div className={cn("p-8 lg:p-10 flex flex-col justify-center", i % 2 !== 0 && "lg:order-1")}>
                     {/* Category badge */}
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="tech-badge">
-                        <Sparkles className="w-3 h-3" />
-                        {project.category}
-                      </span>
+                      {project.category && (
+                        <span className="tech-badge">
+                          <Sparkles className="w-3 h-3" />
+                          {project.category}
+                        </span>
+                      )}
                       {project.featured && (
                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
                           Featured
@@ -88,34 +95,38 @@ export function Projects() {
                     </h3>
 
                     {/* Description */}
-                    <p className="text-muted leading-relaxed mb-6">
+                    <p className="text-muted leading-relaxed mb-6 line-clamp-3">
                       {project.description}
                     </p>
 
                     {/* Key features (first 3) */}
-                    <div className="space-y-2 mb-6">
-                      {project.features.slice(0, 3).map((feature, j) => (
-                        <div key={j} className="flex items-start gap-2">
-                          <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-muted">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {project.features && project.features.length > 0 && (
+                      <div className="space-y-2 mb-6">
+                        {project.features.slice(0, 3).map((feature, j) => (
+                          <div key={j} className="flex items-start gap-2">
+                            <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-muted">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Tech stack */}
-                    <div className="flex flex-wrap gap-2 mb-8">
-                      {project.technologies.map((tech) => (
-                        <span key={tech} className="tech-badge">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
+                    {project.technologies && project.technologies.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-8">
+                        {project.technologies.slice(0, 5).map((tech) => (
+                          <span key={tech} className="tech-badge">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-4">
-                      {project.githubUrl && (
+                    <div className="flex items-center gap-4 mt-auto">
+                      {project.github_url && (
                         <MagneticButton
-                          href={project.githubUrl}
+                          href={project.github_url}
                           target="_blank"
                           variant="secondary"
                           size="sm"
@@ -148,8 +159,7 @@ export function Projects() {
                   More Projects Coming Soon
                 </h3>
                 <p className="text-sm text-muted-dark max-w-md mx-auto">
-                  I&apos;m constantly building and experimenting. Check back soon or
-                  visit my GitHub for the latest work.
+                  I'm always working on new ideas and experiments. Check back later to see what I've been building.
                 </p>
               </div>
             </div>

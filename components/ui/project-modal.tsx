@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Github, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project } from "@/lib/constants";
+import type { Project } from "@/lib/portfolio/types";
 import { MagneticButton } from "./magnetic-button";
 import { BrowserFrame } from "./browser-frame";
 import { modalOverlay, modalContent } from "@/lib/animations";
@@ -88,8 +88,8 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
             <div className="p-4 sm:p-6 bg-zinc-950/60 rounded-t-3xl border-b border-white/10">
               <BrowserFrame
                 title={project.title}
-                url={project.liveUrl}
-                image={project.image}
+                url={project.live_url || "#"}
+                image={project.media?.url || ""}
                 accent="violet"
                 aspectRatio="aspect-[16/9]"
                 className="w-full shadow-2xl"
@@ -110,44 +110,52 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
                   Overview
                 </h4>
                 <p className="text-muted leading-relaxed">
-                  {project.longDescription}
+                  {project.long_description || project.description}
                 </p>
               </div>
 
               {/* Problem & Solution */}
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
-                  <h4 className="text-sm font-semibold uppercase tracking-wider text-red-400 mb-2">
-                    The Problem
-                  </h4>
-                  <p className="text-sm text-muted leading-relaxed">
-                    {project.problem}
-                  </p>
+              {(project.problem || project.solution) && (
+                <div className="grid sm:grid-cols-2 gap-6">
+                  {project.problem && (
+                    <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-red-400 mb-2">
+                        The Problem
+                      </h4>
+                      <p className="text-sm text-muted leading-relaxed">
+                        {project.problem}
+                      </p>
+                    </div>
+                  )}
+                  {project.solution && (
+                    <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
+                      <h4 className="text-sm font-semibold uppercase tracking-wider text-green-400 mb-2">
+                        The Solution
+                      </h4>
+                      <p className="text-sm text-muted leading-relaxed">
+                        {project.solution}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                  <h4 className="text-sm font-semibold uppercase tracking-wider text-green-400 mb-2">
-                    The Solution
-                  </h4>
-                  <p className="text-sm text-muted leading-relaxed">
-                    {project.solution}
-                  </p>
-                </div>
-              </div>
+              )}
 
               {/* Features */}
-              <div>
-                <h4 className="text-lg font-semibold font-heading mb-4 text-white">
-                  Key Features
-                </h4>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {project.features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-muted">{feature}</span>
-                    </div>
-                  ))}
+              {project.features && project.features.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold font-heading mb-4 text-white">
+                    Key Features
+                  </h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {project.features.map((feature, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-muted">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Architecture */}
               {project.architecture && (
@@ -164,21 +172,23 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
               )}
 
               {/* Tech Stack */}
-              <div>
-                <h4 className="text-lg font-semibold font-heading mb-3 text-white">
-                  Tech Stack
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {project.technologies.map((tech) => (
-                    <span key={tech} className="tech-badge">
-                      {tech}
-                    </span>
-                  ))}
+              {project.technologies && project.technologies.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold font-heading mb-3 text-white">
+                    Tech Stack
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.technologies.map((tech) => (
+                      <span key={tech} className="tech-badge">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Challenges */}
-              {project.challenges && (
+              {project.challenges && project.challenges.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold font-heading mb-3 text-white">
                     Challenges & Solutions
@@ -197,13 +207,13 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
               )}
 
               {/* Future Scope */}
-              {project.futureScope && (
+              {project.future_scope && project.future_scope.length > 0 && (
                 <div>
                   <h4 className="text-lg font-semibold font-heading mb-3 text-white">
                     Future Scope
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {project.futureScope.map((scope) => (
+                    {project.future_scope.map((scope) => (
                       <span
                         key={scope}
                         className="px-3 py-1.5 rounded-full text-xs bg-accent/10 border border-accent/20 text-accent"
@@ -217,9 +227,9 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
 
               {/* Action buttons */}
               <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                {project.githubUrl && (
+                {project.github_url && (
                   <MagneticButton
-                    href={project.githubUrl}
+                    href={project.github_url}
                     target="_blank"
                     variant="secondary"
                     size="sm"
@@ -228,9 +238,9 @@ function ModalContent({ project, onClose }: { project: Project; onClose: () => v
                     View Code
                   </MagneticButton>
                 )}
-                {project.liveUrl && project.liveUrl !== "#" && (
+                {project.live_url && project.live_url !== "#" && (
                   <MagneticButton
-                    href={project.liveUrl}
+                    href={project.live_url}
                     target="_blank"
                     variant="primary"
                     size="sm"
