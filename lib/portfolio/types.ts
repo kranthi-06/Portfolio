@@ -81,29 +81,20 @@ export type Certificate = {
 export type Experience = {
   id: string;
   title: string;
-  company: string;
-  company_url: string | null;
+  organization: string | null;
+  link_url: string | null;
   location: string | null;
   type: string;
-  start_date: string;
+  start_date: string | null;
   end_date: string | null;
+  period: string | null;
+  subtitle: string | null;
   description: string | null;
   achievements: string[];
   technologies: string[];
-  sort_order: number;
-};
-
-export type Journey = {
-  id: string;
-  period: string;
-  title: string;
-  subtitle: string | null;
-  category: string;
-  description: string | null;
-  technologies: string[];
-  display_order: number;
+  image_url: string | null;
   featured: boolean;
-  status: ContentStatus;
+  sort_order: number;
 };
 
 export type Skill = {
@@ -185,7 +176,6 @@ export type PortfolioData = {
   projects: Project[];
   certificates: Certificate[];
   experience: Experience[];
-  journey: Journey[];
   skills: Skill[];
   achievements: Achievement[];
   events: Event[];

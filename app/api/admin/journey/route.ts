@@ -7,7 +7,7 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { data, error } = await supabase.from("journey").select("*").order("display_order", { ascending: true });
+    const { data, error } = await supabase.from("experience").select("*").order("sort_order", { ascending: true });
     if (error) throw error;
     return NextResponse.json({ data });
   } catch (error: any) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { data, error } = await supabase.from("journey").insert([body]).select().single();
+    const { data, error } = await supabase.from("experience").insert([body]).select().single();
     
     if (error) throw error;
     return NextResponse.json({ data });
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
     
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-    const { data, error } = await supabase.from("journey").update(updateData).eq("id", id).select().single();
+    const { data, error } = await supabase.from("experience").update(updateData).eq("id", id).select().single();
     
     if (error) throw error;
     return NextResponse.json({ data });
@@ -60,7 +60,7 @@ export async function DELETE(req: NextRequest) {
     const id = req.nextUrl.searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-    const { error } = await supabase.from("journey").delete().eq("id", id);
+    const { error } = await supabase.from("experience").delete().eq("id", id);
     if (error) throw error;
     
     return NextResponse.json({ success: true });

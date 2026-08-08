@@ -41,8 +41,7 @@ type LegacyContextType = {
   socialLinks: { name: string; url: string; icon: LucideIcon }[];
   stats: { label: string; value: number; suffix: string }[];
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
-  experiences: { title: string; company: string; companyUrl?: string; location: string; type: string; startDate: string; endDate: string; description: string; achievements: string[]; technologies: string[] }[];
-  journey: import("@/lib/portfolio/types").Journey[];
+  experience: import("@/lib/portfolio/types").Experience[];
   projects: import("@/lib/portfolio/types").Project[];
   achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
   certifications: import("@/lib/portfolio/types").Certificate[];
@@ -118,22 +117,8 @@ export function PortfolioProvider({
       suffix: typeof value === "string" && isNaN(Number(value)) ? value.replace(/^[0-9]+/, '') : "+",
     }));
 
-    // 4. Experiences
-    const experiences = (data.experience || []).map((exp) => ({
-      title: exp.title,
-      company: exp.company,
-      companyUrl: exp.company_url || undefined,
-      location: exp.location || "",
-      type: exp.type,
-      startDate: exp.start_date,
-      endDate: exp.end_date || "Present",
-      description: exp.description || "",
-      achievements: exp.achievements || [],
-      technologies: exp.technologies || [],
-    }));
-
-    // 5. Journey
-    const journey = data.journey || [];
+    // 4. Experience (Unified Timeline)
+    const experience = data.experience || [];
 
     // 6. Projects
     const projects = data.projects || [];
@@ -211,8 +196,7 @@ export function PortfolioProvider({
       socialLinks,
       stats,
       skillCategories: finalSkillCategories,
-      experiences,
-      journey,
+      experience,
       projects,
       achievements,
       certifications,

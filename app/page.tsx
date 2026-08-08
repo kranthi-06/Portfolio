@@ -6,7 +6,6 @@ import { Navigation } from "@/components/layout/navigation";
 import { ScrollProgress, SiteFooter } from "@/components/layout/footer";
 import { LandingSection } from "@/components/sections/landing";
 import { PhilosophySection } from "@/components/sections/philosophy";
-import { ExperienceSection } from "@/components/sections/experience-section";
 import { JourneySection } from "@/components/sections/journey";
 import { ProductsSection } from "@/components/sections/products";
 import { PlaygroundSection } from "@/components/sections/playground";
@@ -50,7 +49,6 @@ export default function Home() {
                 <LandingSection />
                 <PhilosophySection />
                 <PlaygroundSection />
-                <ExperienceSection />
                 <JourneySection />
                 <ProductsSection />
                 <CertificationsSection />
