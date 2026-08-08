@@ -140,19 +140,22 @@ export default function CertificatesPage() {
     publicId?: string;
     fileType: string;
   }) {
-    setUploadedFile({
+    const fileData = {
       url: result.url,
       publicId: result.publicId || "",
       type: result.fileType,
-    });
+    } as MediaAsset;
+    setUploadedFile(fileData);
     setStep("analyzing");
     setCurrentAnalysisStep("upload");
     setAnalysisProgressStatus("running");
-    runAIAnalysis(result.url, result.fileType);
+    runAIAnalysis(fileData);
   }
 
   // Run AI analysis
-  async function runAIAnalysis(fileUrl: string, fileType: string) {
+  async function runAIAnalysis(fileData: MediaAsset) {
+    const fileUrl = fileData.url;
+    const fileType = fileData.type;
     // Simulate progress through steps
     setCurrentAnalysisStep("compress");
     await sleep(300);
@@ -206,7 +209,7 @@ export default function CertificatesPage() {
       // Auto-Save Workflow (Bypass Review)
       if (data.status === "success" && data.confidence >= 0.7) {
         toast.success("AI analysis complete. Auto-saving...");
-        await handleAcceptAI(data.analysis, [], uploadedFile, data.ocrText, data.fileHash);
+        await handleAcceptAI(data.analysis, [], fileData, data.ocrText, data.fileHash);
       } else {
         setStep("reviewing");
         if (data.status === "fallback") {
@@ -400,7 +403,7 @@ export default function CertificatesPage() {
     setStep("analyzing");
     setCurrentAnalysisStep("upload");
     setAnalysisProgressStatus("running");
-    await runAIAnalysis(uploadedFile.url, uploadedFile.type);
+    await runAIAnalysis(uploadedFile);
     setRegenerating(false);
   }
 
