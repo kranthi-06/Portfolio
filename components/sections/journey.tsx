@@ -4,6 +4,31 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal } from "@/components/ui/reveal";
+import { GraduationCap, Rocket, Briefcase, CodeXml, Atom, Hexagon, Leaf, Wind, Database, GitBranch, Terminal, Code, Cloud, Box } from "lucide-react";
+
+function getTechIcon(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes('react')) return <Atom size={14} className="text-cyan-500" />;
+  if (n.includes('node') || n.includes('express')) return <Hexagon size={14} className="text-green-500" />;
+  if (n.includes('mongo')) return <Leaf size={14} className="text-green-600" />;
+  if (n.includes('tailwind')) return <Wind size={14} className="text-sky-400" />;
+  if (n.includes('supabase') || n.includes('database')) return <Database size={14} className="text-emerald-500" />;
+  if (n.includes('git')) return <GitBranch size={14} className="text-orange-500" />;
+  if (n.includes('python')) return <Terminal size={14} className="text-blue-500" />;
+  if (n.includes('cloud')) return <Cloud size={14} className="text-blue-400" />;
+  if (n.includes('dsa') || n.includes('algorithm')) return <Box size={14} className="text-indigo-500" />;
+  if (n.includes('leet')) return <Code size={14} className="text-yellow-600" />;
+  if (n.includes('hackerrank')) return <Code size={14} className="text-green-500" />;
+  return <Code size={14} className="text-slate-400" />;
+}
+
+function getTypeIcon(type: string) {
+  const t = type.toLowerCase();
+  if (t.includes('education')) return <GraduationCap size={20} />;
+  if (t.includes('project')) return <Rocket size={20} />;
+  if (t.includes('internship') || t.includes('work')) return <Briefcase size={20} />;
+  return <CodeXml size={20} />;
+}
 
 export function JourneySection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,8 +38,6 @@ export function JourneySection() {
   });
 
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-
-  // We are using the unified 'experience' data as the source of truth for the Journey timeline
   const { experience } = usePortfolio();
 
   return (
@@ -24,7 +47,7 @@ export function JourneySection() {
       style={{ background: "var(--bg-subtle)" }}
       aria-labelledby="journey-title"
     >
-      <div className="container">
+      <div className="container px-4 md:px-8 max-w-5xl mx-auto">
         <Reveal className="mb-20 max-w-2xl">
           <p className="eyebrow mb-6">My journey</p>
           <h2 id="journey-title" className="section-title mb-6">
@@ -35,93 +58,122 @@ export function JourneySection() {
           </p>
         </Reveal>
 
-        <div ref={containerRef} className="relative max-w-3xl mx-auto">
-          <div className="timeline-line" aria-hidden="true">
-            <motion.div
-              className="absolute top-0 left-0 w-full origin-top"
-              style={{
-                height: lineHeight,
-                background: "linear-gradient(to bottom, var(--gradient-1), var(--gradient-2))",
-              }}
-            />
-          </div>
+        <div ref={containerRef} className="relative">
+          {/* Vertical Line */}
+          <div className="absolute left-[90px] md:left-[160px] top-0 bottom-0 w-[1px] bg-[var(--line)]" />
+          <motion.div
+            className="absolute left-[90px] md:left-[160px] top-0 w-[1px] origin-top"
+            style={{
+              height: lineHeight,
+              background: "var(--gradient-1)",
+            }}
+          />
 
-          <div className="space-y-0">
+          <div className="space-y-12 md:space-y-16">
             {experience.map((item, i) => {
-              const displayPeriod = item.start_date 
+              const displayPeriod = item.start_date
                 ? `${item.start_date}${item.end_date ? ` — ${item.end_date}` : ''}`
-                : (item.period || "");
-                
+                : "";
+              const displaySubtext = item.period || (item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase());
               const displaySubtitle = [item.organization, item.subtitle].filter(Boolean).join(" • ");
+
+              const isLast = i === experience.length - 1;
 
               return (
                 <Reveal key={`${item.id}`} delay={i * 0.05}>
-                  <article className="relative pl-16 md:pl-20 pb-21 last:pb-0">
-                    <div
-                      className="absolute left-[18px] md:left-[18px] top-2 w-3 h-3 rounded-full z-10"
+                  <div className="relative flex items-start gap-6 md:gap-10">
+                    
+                    {/* Left Column (Date) */}
+                    <div className="w-[70px] md:w-[130px] flex-shrink-0 text-right pt-[18px]">
+                      <div className="font-display font-semibold text-[13px] md:text-base tracking-tight text-[var(--ink)] whitespace-nowrap">
+                        {displayPeriod}
+                      </div>
+                      <div className="text-[11px] md:text-[13px] font-medium text-[var(--ink-muted)] mt-1 whitespace-nowrap">
+                        {displaySubtext}
+                      </div>
+                    </div>
+
+                    {/* Timeline Dot */}
+                    <div 
+                      className="absolute left-[90px] md:left-[160px] top-[26px] -translate-x-1/2 w-[14px] h-[14px] rounded-full z-10 transition-colors duration-300"
                       style={{
-                        background: i === experience.length - 1
-                          ? "linear-gradient(135deg, var(--gradient-1), var(--gradient-2))"
-                          : "var(--bg-elevated)",
-                        border: "2px solid var(--gradient-1)",
-                        boxShadow: i === experience.length - 1 ? "0 0 12px var(--glow)" : "none",
+                        background: isLast ? "var(--gradient-1)" : "var(--bg-elevated)",
+                        border: isLast ? "none" : "2px solid var(--gradient-1)",
+                        boxShadow: "0 0 0 6px var(--bg-subtle)" 
                       }}
                     />
 
-                    <div className="flex flex-wrap items-baseline gap-3 mb-2">
-                      {displayPeriod && (
-                        <span
-                          className="font-display text-2xl font-medium tracking-tight"
-                          style={{ color: "var(--ink)" }}
+                    {/* Right Column (Content) */}
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-start gap-4 mb-3">
+                        {/* Type Icon Container */}
+                        <div 
+                          className="w-10 h-10 md:w-12 md:h-12 rounded-[14px] flex items-center justify-center flex-shrink-0 shadow-sm mt-1"
+                          style={{
+                            background: "var(--accent-soft)",
+                            color: "var(--gradient-1)", 
+                          }}
                         >
-                          {displayPeriod}
-                        </span>
-                      )}
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full"
-                        style={{ background: "var(--accent-soft)", color: "var(--ink-muted)" }}
-                      >
-                        {item.type}
-                      </span>
-                    </div>
+                          {getTypeIcon(item.type)}
+                        </div>
 
-                    <h3
-                      className="font-display text-xl md:text-2xl font-medium tracking-tight mb-1"
-                      style={{ color: "var(--ink)" }}
-                    >
-                      {item.title}
-                    </h3>
-                    {displaySubtitle && (
-                      <p className="text-sm font-medium mb-3" style={{ color: "var(--ink-muted)" }}>
-                        {displaySubtitle}
-                      </p>
-                    )}
-                    {item.description && (
-                      <p className="text-base leading-relaxed mb-4 max-w-xl" style={{ color: "var(--ink-secondary)" }}>
-                        {item.description}
-                      </p>
-                    )}
-                    
-                    {item.achievements && item.achievements.length > 0 && (
-                      <ul className="list-disc pl-4 mb-4 space-y-1 text-[13px]" style={{ color: "var(--ink-secondary)" }}>
-                        {item.achievements.map((ach, idx) => (
-                          <li key={idx}>{ach}</li>
-                        ))}
-                      </ul>
-                    )}
+                        <div className="pt-0.5">
+                          {/* Badge */}
+                          <span 
+                            className="inline-block px-2.5 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-2"
+                            style={{
+                              background: "var(--bg-elevated)",
+                              color: "var(--ink-muted)",
+                              border: "1px solid var(--line)"
+                            }}
+                          >
+                            {item.type}
+                          </span>
 
-                    <div className="flex flex-wrap gap-2">
-                      {item.technologies && item.technologies.map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[11px] font-medium px-3 py-1 rounded-full"
-                          style={{ background: "var(--bg-elevated)", color: "var(--ink-muted)", border: "1px solid var(--line)" }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                          {/* Title */}
+                          <h3 className="font-display text-lg md:text-2xl font-bold tracking-tight text-[var(--ink)] mb-1 leading-snug max-w-2xl">
+                            {item.title}
+                          </h3>
+                          
+                          {/* Subtitle */}
+                          {displaySubtitle && (
+                            <p className="text-[13px] md:text-[15px] font-medium text-[var(--ink-muted)]">
+                              {displaySubtitle}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Description & Tech */}
+                      <div className="pl-0 md:pl-[64px] max-w-3xl mt-4 md:mt-0">
+                        {item.description && (
+                          <p className="text-[14px] md:text-[15px] leading-[1.7] text-[var(--ink-secondary)] mb-6 whitespace-pre-line">
+                            {item.description}
+                          </p>
+                        )}
+                        
+                        {/* Tech Pills */}
+                        {item.technologies && item.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-2 md:gap-3">
+                            {item.technologies.map((tag) => (
+                              <span
+                                key={tag}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] md:text-[12px] font-medium shadow-sm transition-all hover:-translate-y-0.5 cursor-default"
+                                style={{
+                                  background: "var(--bg-elevated)",
+                                  color: "var(--ink-secondary)",
+                                  border: "1px solid var(--line)",
+                                }}
+                              >
+                                {getTechIcon(tag)}
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </article>
+                  </div>
                 </Reveal>
               );
             })}
