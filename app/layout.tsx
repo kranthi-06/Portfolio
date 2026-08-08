@@ -9,11 +9,11 @@ const instrumentSerif = Instrument_Serif({ subsets: ["latin"], variable: "--font
 
 export async function generateMetadata(): Promise<Metadata> {
   if (process.env.NEXT_PHASE === "phase-production-build") {
-    return { title: "Portfolio", robots: { index: true, follow: true } };
+    return { title: "Kasa Kranthi Kiran | Portfolio", robots: { index: true, follow: true } };
   }
   try {
     const portfolio = await getPortfolioData();
-    const title = portfolio.seo.title || portfolio.profile.name || "Portfolio";
+    const title = portfolio.seo.title && portfolio.seo.title !== "Portfolio" ? portfolio.seo.title : "Kasa Kranthi Kiran | Portfolio";
     const description = portfolio.seo.description || portfolio.profile.headline || portfolio.profile.tagline || portfolio.profile.bio;
     return {
       title,
@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
       robots: { index: true, follow: true },
     };
   } catch {
-    return { title: "Portfolio", robots: { index: true, follow: true } };
+    return { title: "Kasa Kranthi Kiran | Portfolio", robots: { index: true, follow: true } };
   }
 }
 
