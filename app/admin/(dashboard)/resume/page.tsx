@@ -59,7 +59,7 @@ export default function ResumePage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <a href={active.file_url} target="_blank" rel="noopener" className="admin-btn admin-btn-primary"><Download size={14} /> Download</a>
+                  <a href="/api/resume/download" className="admin-btn admin-btn-primary"><Download size={14} /> Download</a>
                   <a href={active.file_url} target="_blank" rel="noopener" className="admin-btn admin-btn-secondary">Preview</a>
                 </div>
               </div>

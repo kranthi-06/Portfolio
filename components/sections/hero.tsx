@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Download, Mail, ChevronDown } from "lucide-react";
-import { personalInfo, socialLinks, stats } from "@/lib/constants";
+import { usePortfolio } from "@/components/portfolio-provider";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { TypingAnimation } from "@/components/ui/typing-animation";
 import { AnimatedText } from "@/components/ui/animated-text";
@@ -17,6 +17,28 @@ import { fadeInUp, staggerContainer } from "@/lib/animations";
  * Jaw-dropping hero section with layered effects, typing animation, stats, and CTAs
  */
 export function Hero() {
+  const { personalInfo, socialLinks, stats } = usePortfolio();
+
+  // Combine platform links in specific order and append Email and Resume
+  const platformOrder = ["GitHub", "LeetCode", "HackerRank", "Kaggle", "LinkedIn"];
+  const platformLinks = [...socialLinks]
+    .filter(link => platformOrder.includes(link.name) && link.url)
+    .sort((a, b) => platformOrder.indexOf(a.name) - platformOrder.indexOf(b.name));
+
+  const dockActions = [
+    ...platformLinks,
+    ...(personalInfo.email ? [{
+      name: "Email",
+      url: `mailto:${personalInfo.email}`,
+      icon: Mail,
+    }] : []),
+    {
+      name: "Resume",
+      url: "/api/resume/download",
+      icon: Download,
+    }
+  ];
+
   return (
     <section
       id="home"
@@ -124,20 +146,20 @@ export function Hero() {
             variants={fadeInUp}
             className="flex items-center gap-3 mb-16"
           >
-            {socialLinks.map((link, i) => (
+            {dockActions.map((link, i) => (
               <motion.a
                 key={link.name}
                 href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={link.name === "Email" || link.name === "Resume" ? undefined : "_blank"}
+                rel={link.name === "Email" || link.name === "Resume" ? undefined : "noopener noreferrer"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 + i * 0.1 }}
                 whileHover={{ y: -3, scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-primary/10 transition-all duration-300 group"
-                aria-label={link.name}
-                title={link.name}
+                aria-label={link.name === "Resume" ? "Download Resume" : link.name}
+                title={link.name === "Resume" ? "Download Resume" : link.name}
               >
                 <link.icon className="w-5 h-5 text-muted group-hover:text-primary transition-colors" />
               </motion.a>
