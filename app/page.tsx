@@ -6,8 +6,11 @@ import { Navigation } from "@/components/layout/navigation";
 import { ScrollProgress, SiteFooter } from "@/components/layout/footer";
 import { LandingSection } from "@/components/sections/landing";
 import { PhilosophySection } from "@/components/sections/philosophy";
+import { ExperienceSection } from "@/components/sections/experience-section";
 import { JourneySection } from "@/components/sections/journey";
 import { ProductsSection } from "@/components/sections/products";
+import { PlaygroundSection } from "@/components/sections/playground";
+import { CertificationsSection } from "@/components/sections/certifications";
 import { BeyondTheCodeSection } from "@/components/sections/beyond-the-code";
 import { GitHubSection } from "@/components/sections/github-dashboard";
 import { WhatsNextSection } from "@/components/sections/whats-next";
@@ -46,8 +49,11 @@ export default function Home() {
               <main>
                 <LandingSection />
                 <PhilosophySection />
+                <PlaygroundSection />
+                <ExperienceSection />
                 <JourneySection />
                 <ProductsSection />
+                <CertificationsSection />
                 <BeyondTheCodeSection />
                 <GitHubSection />
                 <WhatsNextSection />

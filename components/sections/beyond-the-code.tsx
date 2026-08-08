@@ -8,12 +8,12 @@ import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal } from "@/components/ui/reveal";
 
 export function BeyondTheCodeSection() {
-  const { events, achievements, gallery, certifications } = usePortfolio();
+  const { events, achievements, gallery } = usePortfolio();
   const [activeTab, setActiveTab] = useState<"events" | "achievements" | "gallery">("achievements");
 
   const tabs = [
     { id: "events", label: "Events", icon: Calendar, count: events.length },
-    { id: "achievements", label: "Achievements & Certs", icon: Trophy, count: achievements.length + certifications.length },
+    { id: "achievements", label: "Achievements", icon: Trophy, count: achievements.length },
     { id: "gallery", label: "Gallery", icon: ImageIcon, count: gallery.length },
   ] as const;
 
@@ -69,27 +69,6 @@ export function BeyondTheCodeSection() {
                 transition={{ duration: 0.3 }}
                 className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
               >
-                {/* Certificates */}
-                {certifications.map((cert) => (
-                  <div key={`cert-${cert.id}`} className="flex flex-col p-5 rounded-2xl" style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
-                        <Award size={20} />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full" style={{ background: "var(--bg-subtle)", color: "var(--ink-muted)" }}>
-                        {cert.category}
-                      </span>
-                    </div>
-                    <h3 className="text-base font-semibold mb-1" style={{ color: "var(--ink)" }}>{cert.title}</h3>
-                    {cert.organization && <p className="text-sm font-medium mb-3" style={{ color: "var(--ink-muted)" }}>{cert.organization}</p>}
-                    <p className="text-sm line-clamp-3 mb-4" style={{ color: "var(--ink-secondary)" }}>{cert.description}</p>
-                    {cert.credential_url && (
-                      <a href={cert.credential_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold mt-auto hover:underline" style={{ color: "var(--accent)" }}>
-                        View Credential <ExternalLink size={12} />
-                      </a>
-                    )}
-                  </div>
-                ))}
                 {/* Achievements */}
                 {achievements.map((ach) => (
                   <div key={`ach-${ach.title}`} className="flex flex-col p-5 rounded-2xl" style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}>
