@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
+    body.status = "published"; // Automatically publish journey entries
     const { data, error } = await supabase.from("experience").insert([body]).select().single();
     
     if (error) throw error;
@@ -42,6 +43,7 @@ export async function PATCH(req: NextRequest) {
     
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
+    updateData.status = "published"; // Automatically publish journey entries
     const { data, error } = await supabase.from("experience").update(updateData).eq("id", id).select().single();
     
     if (error) throw error;
