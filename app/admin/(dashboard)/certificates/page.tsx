@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/admin/ui/empty-state";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
 import type { CertificateAnalysis } from "@/lib/ai/schemas";
+import type { MediaAsset } from "@/lib/portfolio/types";
 
 interface Certificate {
   id: string;
@@ -76,11 +77,7 @@ export default function CertificatesPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [editingCertId, setEditingCertId] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("idle");
-  const [uploadedFile, setUploadedFile] = useState<{
-    url: string;
-    publicId: string;
-    type: string;
-  } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<MediaAsset | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<CertificateAnalysis | null>(null);
   const [analysisStatus, setAnalysisStatus] = useState<
     "success" | "partial" | "fallback"
@@ -498,7 +495,7 @@ export default function CertificatesPage() {
     setUploadedFile({
       url: cert.file_url,
       publicId: cert.file_public_id,
-      type: cert.file_type || "image/png",
+      type: (cert.file_type || "image") as "image" | "pdf" | "video" | "unknown",
     });
     
     setShowUpload(true);
