@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDownRight, Sparkles, Download } from "lucide-react";
+import { ArrowDownRight, Sparkles, Download, Mail } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { ParticleField } from "@/components/effects/particle-field";
 import { Reveal } from "@/components/ui/reveal";
@@ -49,6 +49,26 @@ export function LandingSection() {
       y: ((e.clientY - rect.top) / rect.height - 0.5) * 2,
     });
   };
+
+  // Combine platform links in specific order and append Email and Resume
+  const platformOrder = ["GitHub", "LeetCode", "HackerRank", "Kaggle", "LinkedIn"];
+  const platformLinks = [...socialLinks]
+    .filter(link => platformOrder.includes(link.name) && link.url)
+    .sort((a, b) => platformOrder.indexOf(a.name) - platformOrder.indexOf(b.name));
+
+  const dockActions = [
+    ...platformLinks,
+    ...(personal.email ? [{
+      name: "Email",
+      url: `mailto:${personal.email}`,
+      icon: Mail,
+    }] : []),
+    {
+      name: "Resume",
+      url: "/api/resume/download",
+      icon: Download,
+    }
+  ];
 
   return (
     <section
@@ -111,8 +131,8 @@ export function LandingSection() {
                   </a>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  {socialLinks.map((link) => {
-                    const isResume = link.name.toLowerCase() === "resume";
+                  {dockActions.map((link) => {
+                    const isResume = link.name === "Resume";
                     // Only render if there's a URL
                     if (!link.url) return null;
                     
