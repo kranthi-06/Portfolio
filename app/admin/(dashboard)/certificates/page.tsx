@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Award, Plus, Search, Grid3X3, List, Loader2,
@@ -20,6 +21,14 @@ import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { AdminModal } from "@/components/admin/ui/modal";
 import type { CertificateAnalysis } from "@/lib/ai/schemas";
 import type { MediaAsset } from "@/lib/portfolio/types";
+
+const PdfThumbnail = dynamic(
+  () => import("@/components/certificates/pdf-thumbnail").then((module) => module.PdfThumbnail),
+  {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 animate-pulse bg-zinc-800/50" />,
+  }
+);
 
 interface Certificate {
   id: string;
@@ -638,10 +647,7 @@ export default function CertificatesPage() {
                   style={{ background: "var(--admin-bg-subtle)" }}
                 >
                   {cert.file_type?.includes("pdf") ? (
-                    <FileText
-                      size={32}
-                      style={{ color: "var(--admin-ink-muted)" }}
-                    />
+                    <PdfThumbnail src={cert.file_url} title={cert.title} />
                   ) : (
                     <SafeImage
                       useNextImage={true}
@@ -856,7 +862,9 @@ export default function CertificatesPage() {
                         }}
                       >
                         {cert.file_type?.includes("pdf") ? (
-                          <FileText size={12} />
+                          <div className="w-8 h-8 relative overflow-hidden rounded-lg">
+                            <PdfThumbnail src={cert.file_url} title={cert.title} />
+                          </div>
                         ) : (
                           <ImageIcon size={12} />
                         )}

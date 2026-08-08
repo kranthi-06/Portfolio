@@ -77,7 +77,11 @@ function certificateMap(item: Record<string, unknown>): Certificate {
     certificate_type: item.certificate_type as string | null, event_type: item.event_type as string | null,
     achievement: item.achievement as string | null,
     credential_id: item.credential_id as string | null, credential_url: item.credential_url as string | null,
-    media: { url: String(item.file_url), publicId: item.file_public_id as string | undefined, type: getMediaType(String(item.file_url)) },
+    media: { 
+      url: String(item.file_url), 
+      publicId: item.file_public_id as string | undefined, 
+      type: (item.file_type as string)?.toLowerCase().includes('pdf') ? 'pdf' : getMediaType(String(item.file_url)) 
+    },
     thumbnail_url: item.thumbnail_url as string | null, skills: stringArray(item.skills),
     technologies: stringArray(item.technologies),
     tags: stringArray(item.tags), sort_order: Number(item.sort_order ?? 0),
