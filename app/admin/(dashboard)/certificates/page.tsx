@@ -646,7 +646,15 @@ export default function CertificatesPage() {
                   className="h-36 flex items-center justify-center relative overflow-hidden"
                   style={{ background: "var(--admin-bg-subtle)" }}
                 >
-                  {cert.file_type?.includes("pdf") ? (
+                  {cert.file_url?.match(/\.(png|jpe?g|webp|gif|svg)$/i) ? (
+                    <SafeImage
+                      useNextImage={true}
+                      src={cert.file_url}
+                      alt={cert.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : cert.file_type?.includes("pdf") ? (
                     <PdfThumbnail src={cert.file_url} title={cert.title} />
                   ) : (
                     <SafeImage
@@ -861,7 +869,9 @@ export default function CertificatesPage() {
                             : "var(--admin-info)",
                         }}
                       >
-                        {cert.file_type?.includes("pdf") ? (
+                        {cert.file_url?.match(/\.(png|jpe?g|webp|gif|svg)$/i) ? (
+                          <ImageIcon size={12} />
+                        ) : cert.file_type?.includes("pdf") ? (
                           <div className="w-8 h-8 relative overflow-hidden rounded-lg">
                             <PdfThumbnail src={cert.file_url} title={cert.title} />
                           </div>

@@ -80,7 +80,9 @@ function certificateMap(item: Record<string, unknown>): Certificate {
     media: { 
       url: String(item.file_url), 
       publicId: item.file_public_id as string | undefined, 
-      type: (item.file_type as string)?.toLowerCase().includes('pdf') ? 'pdf' : getMediaType(String(item.file_url)) 
+      type: String(item.file_url).match(/\.(png|jpe?g|webp|gif|svg)$/i) ? 'image' 
+          : (item.file_type as string)?.toLowerCase().includes('pdf') ? 'pdf' 
+          : getMediaType(String(item.file_url)) 
     },
     thumbnail_url: item.thumbnail_url as string | null, skills: stringArray(item.skills),
     technologies: stringArray(item.technologies),
