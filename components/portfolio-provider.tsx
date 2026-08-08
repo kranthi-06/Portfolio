@@ -20,6 +20,7 @@ import {
   Globe,
   LucideIcon,
 } from "lucide-react";
+import { SiLeetcode, SiHackerrank, SiKaggle } from "@icons-pack/react-simple-icons";
 import { skillCategories as defaultSkillCategories } from "@/lib/constants";
 
 type LegacyContextType = {
@@ -38,12 +39,12 @@ type LegacyContextType = {
     resumeUrl: string;
     avatar_url: string;
   };
-  socialLinks: { name: string; url: string; icon: LucideIcon }[];
+  socialLinks: { name: string; url: string; icon: React.ElementType }[];
   stats: { label: string; value: number; suffix: string }[];
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
   experience: import("@/lib/portfolio/types").Experience[];
   projects: import("@/lib/portfolio/types").Project[];
-  achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
+  achievements: { title: string; event: string; position: string; date: string; description: string; icon: React.ElementType; color: string; media?: { url: string; type: string } }[];
   certifications: import("@/lib/portfolio/types").Certificate[];
   events: import("@/lib/portfolio/types").Event[];
   gallery: import("@/lib/portfolio/types").GalleryItem[];
@@ -63,15 +64,25 @@ export function usePortfolio() {
   return context;
 }
 
-const getIcon = (name: string): LucideIcon => {
+const getProperSocialName = (name: string): string => {
+  const n = name.toLowerCase();
+  if (n.includes("leetcode")) return "LeetCode";
+  if (n.includes("hackerrank")) return "HackerRank";
+  if (n.includes("kaggle")) return "Kaggle";
+  if (n.includes("github")) return "GitHub";
+  if (n.includes("linkedin")) return "LinkedIn";
+  return name.charAt(0).toUpperCase() + name.slice(1);
+};
+
+const getIcon = (name: string): React.ElementType => {
   const n = name.toLowerCase();
   if (n.includes("github")) return Github;
   if (n.includes("linkedin")) return Linkedin;
   if (n.includes("twitter") || n.includes("x")) return Twitter;
   if (n.includes("mail") || n.includes("email")) return Mail;
-  if (n.includes("leetcode")) return Code2;
-  if (n.includes("hackerrank")) return Server;
-  if (n.includes("kaggle")) return Brain;
+  if (n.includes("leetcode")) return SiLeetcode;
+  if (n.includes("hackerrank")) return SiHackerrank;
+  if (n.includes("kaggle")) return SiKaggle;
   if (n.includes("trophy")) return Trophy;
   if (n.includes("award")) return Award;
   if (n.includes("star")) return Star;
@@ -105,7 +116,7 @@ export function PortfolioProvider({
 
     // 2. Social Links
     const socialLinks = Object.entries(data.socialLinks || {}).map(([key, url]) => ({
-      name: key.charAt(0).toUpperCase() + key.slice(1),
+      name: getProperSocialName(key),
       url: url || "",
       icon: getIcon(key),
     }));

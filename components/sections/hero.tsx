@@ -137,6 +137,7 @@ export function Hero() {
                 whileTap={{ scale: 0.9 }}
                 className="p-3 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-primary/10 transition-all duration-300 group"
                 aria-label={link.name}
+                title={link.name}
               >
                 <link.icon className="w-5 h-5 text-muted group-hover:text-primary transition-colors" />
               </motion.a>

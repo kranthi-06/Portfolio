@@ -155,6 +155,7 @@ export function LandingSection() {
                           e.currentTarget.style.boxShadow = "none";
                         }}
                         aria-label={link.name}
+                        title={link.name}
                       >
                         <link.icon size={18} />
                       </a>

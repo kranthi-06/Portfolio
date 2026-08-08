@@ -12,6 +12,7 @@
     "3": "^2.1.0",
     "@google/genai": "^2.15.0",
     "@hello-pangea/dnd": "^18.0.1",
+    "@icons-pack/react-simple-icons": "^13.13.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.0",
     "@tiptap/extension-link": "^3.29.2",
