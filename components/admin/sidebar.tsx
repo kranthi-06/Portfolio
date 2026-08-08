@@ -34,7 +34,6 @@ const navSections = [
       { label: "Events", href: "/admin/events", icon: CalendarDays },
       { label: "Achievements", href: "/admin/achievements", icon: Trophy },
       { label: "Gallery", href: "/admin/gallery", icon: ImageIcon },
-      { label: "Experience", href: "/admin/experience", icon: Briefcase },
       { label: "Journey", href: "/admin/journey", icon: Briefcase },
       { label: "Skills", href: "/admin/skills", icon: Cpu },
       { label: "Resume", href: "/admin/resume", icon: FileText },
