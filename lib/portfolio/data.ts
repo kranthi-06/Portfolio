@@ -9,6 +9,7 @@ import type {
   Experience,
   GalleryItem,
   GithubStats,
+  Journey,
   PortfolioData,
   ProfileSettings,
   Project,
@@ -130,15 +131,28 @@ function resumeMap(item: Record<string, unknown>): Resume {
   };
 }
 
+function journeyMap(item: Record<string, unknown>): Journey {
+  return {
+    ...item,
+    id: String(item.id), period: String(item.period), title: String(item.title),
+    subtitle: item.subtitle as string | null, category: String(item.category),
+    description: item.description as string | null, technologies: stringArray(item.technologies),
+    display_order: Number(item.display_order ?? 0), featured: Boolean(item.featured),
+    status: (item.status as Journey["status"]) || "published"
+  };
+}
+
+
 export async function getPortfolioData(): Promise<PortfolioData> {
   const supabase = createPublicSupabaseClient();
   if (!supabase) throw new Error("The public Supabase configuration is missing.");
 
-  const [settingsResult, projectsResult, certificatesResult, experienceResult, skillsResult, achievementsResult, eventsResult, galleryResult, resumeResult, githubResult] = await Promise.all([
+  const [settingsResult, projectsResult, certificatesResult, experienceResult, journeyResult, skillsResult, achievementsResult, eventsResult, galleryResult, resumeResult, githubResult] = await Promise.all([
     supabase.from("settings").select("key,value"),
     supabase.from("projects").select("*").order("featured", { ascending: false }).order("sort_order", { ascending: true }),
     supabase.from("certificates").select("*").order("sort_order", { ascending: true }),
     supabase.from("experience").select("*").order("sort_order", { ascending: true }),
+    supabase.from("journey").select("*").order("display_order", { ascending: true }),
     supabase.from("skills").select("*").order("sort_order", { ascending: true }),
     supabase.from("achievements").select("*").order("sort_order", { ascending: true }),
     supabase.from("events").select("*").order("sort_order", { ascending: true }),
@@ -147,7 +161,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
     supabase.from("github_stats").select("*").order("fetched_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
-  const results = [settingsResult, projectsResult, certificatesResult, experienceResult, skillsResult, achievementsResult, eventsResult, galleryResult, resumeResult, githubResult];
+  const results = [settingsResult, projectsResult, certificatesResult, experienceResult, journeyResult, skillsResult, achievementsResult, eventsResult, galleryResult, resumeResult, githubResult];
   const failed = results.find((result) => result.error);
   if (failed?.error) throw failed.error;
 
@@ -161,6 +175,7 @@ export async function getPortfolioData(): Promise<PortfolioData> {
     projects: (projectsResult.data ?? []).map((item) => project(item as Record<string, unknown>)),
     certificates: (certificatesResult.data ?? []).map((item) => certificateMap(item as Record<string, unknown>)),
     experience: (experienceResult.data ?? []) as Experience[],
+    journey: (journeyResult.data ?? []).map((item) => journeyMap(item as Record<string, unknown>)),
     skills: (skillsResult.data ?? []) as Skill[],
     achievements: (achievementsResult.data ?? []).map((item) => achievementMap(item as Record<string, unknown>)),
     events: (eventsResult.data ?? []).map((item) => eventMap(item as Record<string, unknown>)),

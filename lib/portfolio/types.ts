@@ -93,6 +93,19 @@ export type Experience = {
   sort_order: number;
 };
 
+export type Journey = {
+  id: string;
+  period: string;
+  title: string;
+  subtitle: string | null;
+  category: string;
+  description: string | null;
+  technologies: string[];
+  display_order: number;
+  featured: boolean;
+  status: ContentStatus;
+};
+
 export type Skill = {
   id: string;
   name: string;
@@ -172,6 +185,7 @@ export type PortfolioData = {
   projects: Project[];
   certificates: Certificate[];
   experience: Experience[];
+  journey: Journey[];
   skills: Skill[];
   achievements: Achievement[];
   events: Event[];

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowDownRight, Sparkles } from "lucide-react";
+import { ArrowDownRight, Sparkles, Download } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { ParticleField } from "@/components/effects/particle-field";
 import { Reveal } from "@/components/ui/reveal";
@@ -12,7 +12,7 @@ import { Magnetic } from "@/components/ui/magnetic";
 const rotatingWords = ["useful.", "human.", "inevitable."];
 
 export function LandingSection() {
-  const { personalInfo: personal } = usePortfolio();
+  const { personalInfo: personal, socialLinks } = usePortfolio();
   const [wordIndex, setWordIndex] = useState(0);
   const [displayText, setDisplayText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -99,15 +99,68 @@ export function LandingSection() {
             </Reveal>
 
             <Reveal delay={0.45}>
-              <div className="flex flex-wrap items-center gap-4">
-                <Magnetic>
-                  <a href="#products" className="btn btn-primary">
-                    Explore products <ArrowDownRight size={16} />
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-wrap items-center gap-4">
+                  <Magnetic>
+                    <a href="#products" className="btn btn-primary">
+                      Explore products <ArrowDownRight size={16} />
+                    </a>
+                  </Magnetic>
+                  <a href="#philosophy" className="btn btn-ghost">
+                    Read my philosophy
                   </a>
-                </Magnetic>
-                <a href="#philosophy" className="btn btn-ghost">
-                  Read my philosophy
-                </a>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {socialLinks.map((link) => {
+                    const isResume = link.name.toLowerCase() === "resume";
+                    // Only render if there's a URL
+                    if (!link.url) return null;
+                    
+                    return isResume ? (
+                      <a
+                        key={link.name}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all"
+                        style={{
+                          background: "var(--bg-elevated)",
+                          color: "var(--ink)",
+                          border: "1px solid var(--line)",
+                        }}
+                        aria-label="Download Resume"
+                      >
+                        <Download size={14} /> Resume
+                      </a>
+                    ) : (
+                      <a
+                        key={link.name}
+                        href={link.name.toLowerCase() === 'email' ? `mailto:${link.url}` : link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center w-10 h-10 rounded-full transition-all hover:-translate-y-1"
+                        style={{
+                          background: "var(--bg-elevated)",
+                          color: "var(--ink-muted)",
+                          border: "1px solid var(--line)",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = "var(--ink)";
+                          e.currentTarget.style.borderColor = "var(--line-strong)";
+                          e.currentTarget.style.boxShadow = "0 4px 12px var(--glow)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = "var(--ink-muted)";
+                          e.currentTarget.style.borderColor = "var(--line)";
+                          e.currentTarget.style.boxShadow = "none";
+                        }}
+                        aria-label={link.name}
+                      >
+                        <link.icon size={18} />
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
             </Reveal>
 

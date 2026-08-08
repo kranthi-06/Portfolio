@@ -14,7 +14,7 @@ export function JourneySection() {
 
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
-  const { experiences } = usePortfolio();
+  const { journey } = usePortfolio();
 
   return (
     <section
@@ -46,17 +46,17 @@ export function JourneySection() {
           </div>
 
           <div className="space-y-0">
-            {experiences.map((item, i) => (
-              <Reveal key={`${item.startDate}-${item.title}`} delay={i * 0.05}>
+            {journey.map((item, i) => (
+              <Reveal key={`${item.id}`} delay={i * 0.05}>
                 <article className="relative pl-16 md:pl-20 pb-21 last:pb-0">
                   <div
                     className="absolute left-[18px] md:left-[18px] top-2 w-3 h-3 rounded-full z-10"
                     style={{
-                      background: i === experiences.length - 1
+                      background: i === journey.length - 1
                         ? "linear-gradient(135deg, var(--gradient-1), var(--gradient-2))"
                         : "var(--bg-elevated)",
                       border: "2px solid var(--gradient-1)",
-                      boxShadow: i === experiences.length - 1 ? "0 0 12px var(--glow)" : "none",
+                      boxShadow: i === journey.length - 1 ? "0 0 12px var(--glow)" : "none",
                     }}
                   />
 
@@ -65,13 +65,13 @@ export function JourneySection() {
                       className="font-display text-2xl font-medium tracking-tight"
                       style={{ color: "var(--ink)" }}
                     >
-                      {item.startDate}
+                      {item.period}
                     </span>
                     <span
                       className="text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-full"
                       style={{ background: "var(--accent-soft)", color: "var(--ink-muted)" }}
                     >
-                      {item.type}
+                      {item.category}
                     </span>
                   </div>
 
@@ -81,12 +81,16 @@ export function JourneySection() {
                   >
                     {item.title}
                   </h3>
-                  <p className="text-sm font-medium mb-3" style={{ color: "var(--ink-muted)" }}>
-                    {item.company}
-                  </p>
-                  <p className="text-base leading-relaxed mb-4 max-w-xl" style={{ color: "var(--ink-secondary)" }}>
-                    {item.description}
-                  </p>
+                  {item.subtitle && (
+                    <p className="text-sm font-medium mb-3" style={{ color: "var(--ink-muted)" }}>
+                      {item.subtitle}
+                    </p>
+                  )}
+                  {item.description && (
+                    <p className="text-base leading-relaxed mb-4 max-w-xl" style={{ color: "var(--ink-secondary)" }}>
+                      {item.description}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2">
                     {item.technologies.map((tag) => (
                       <span

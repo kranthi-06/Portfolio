@@ -8,9 +8,7 @@ import { LandingSection } from "@/components/sections/landing";
 import { PhilosophySection } from "@/components/sections/philosophy";
 import { JourneySection } from "@/components/sections/journey";
 import { ProductsSection } from "@/components/sections/products";
-import { PlaygroundSection } from "@/components/sections/playground";
-import { AchievementsSection } from "@/components/sections/achievements";
-import { CertificationsSection } from "@/components/sections/certifications";
+import { BeyondTheCodeSection } from "@/components/sections/beyond-the-code";
 import { GitHubSection } from "@/components/sections/github-dashboard";
 import { WhatsNextSection } from "@/components/sections/whats-next";
 import { CollaborateSection } from "@/components/sections/collaborate";
@@ -50,9 +48,7 @@ export default function Home() {
                 <PhilosophySection />
                 <JourneySection />
                 <ProductsSection />
-                <PlaygroundSection />
-                <AchievementsSection />
-                <CertificationsSection />
+                <BeyondTheCodeSection />
                 <GitHubSection />
                 <WhatsNextSection />
                 <CollaborateSection />

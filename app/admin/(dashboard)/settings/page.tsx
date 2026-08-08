@@ -87,6 +87,9 @@ export default function SettingsPage() {
               <div className="admin-field"><label className="admin-label">LinkedIn</label><input className="admin-input" value={social.linkedin || ""} onChange={e => updateSetting("social_links", "linkedin", e.target.value)} /></div>
               <div className="admin-field"><label className="admin-label">Twitter</label><input className="admin-input" value={social.twitter || ""} onChange={e => updateSetting("social_links", "twitter", e.target.value)} /></div>
               <div className="admin-field"><label className="admin-label">Website</label><input className="admin-input" value={social.website || ""} onChange={e => updateSetting("social_links", "website", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">LeetCode</label><input className="admin-input" value={social.leetcode || ""} onChange={e => updateSetting("social_links", "leetcode", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">HackerRank</label><input className="admin-input" value={social.hackerrank || ""} onChange={e => updateSetting("social_links", "hackerrank", e.target.value)} /></div>
+              <div className="admin-field"><label className="admin-label">Kaggle</label><input className="admin-input" value={social.kaggle || ""} onChange={e => updateSetting("social_links", "kaggle", e.target.value)} /></div>
               <button onClick={() => save("social_links")} disabled={saving} className="admin-btn admin-btn-primary">{saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save Links</button>
             </>)}
 

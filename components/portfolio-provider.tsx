@@ -42,9 +42,12 @@ type LegacyContextType = {
   stats: { label: string; value: number; suffix: string }[];
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
   experiences: { title: string; company: string; companyUrl?: string; location: string; type: string; startDate: string; endDate: string; description: string; achievements: string[]; technologies: string[] }[];
+  journey: import("@/lib/portfolio/types").Journey[];
   projects: import("@/lib/portfolio/types").Project[];
   achievements: { title: string; event: string; position: string; date: string; description: string; icon: LucideIcon; color: string; media?: { url: string; type: string } }[];
   certifications: import("@/lib/portfolio/types").Certificate[];
+  events: import("@/lib/portfolio/types").Event[];
+  gallery: import("@/lib/portfolio/types").GalleryItem[];
   education: { degree: string; branch: string; institution: string; location: string; startYear: string; endYear: string; cgpa: string; coursework: string[]; icon: LucideIcon }[];
   navItems: { label: string; href: string }[];
   techMarqueeItems: string[];
@@ -67,6 +70,9 @@ const getIcon = (name: string): LucideIcon => {
   if (n.includes("linkedin")) return Linkedin;
   if (n.includes("twitter") || n.includes("x")) return Twitter;
   if (n.includes("mail") || n.includes("email")) return Mail;
+  if (n.includes("leetcode")) return Code2;
+  if (n.includes("hackerrank")) return Server;
+  if (n.includes("kaggle")) return Brain;
   if (n.includes("trophy")) return Trophy;
   if (n.includes("award")) return Award;
   if (n.includes("star")) return Star;
@@ -126,7 +132,10 @@ export function PortfolioProvider({
       technologies: exp.technologies || [],
     }));
 
-    // 5. Projects
+    // 5. Journey
+    const journey = data.journey || [];
+
+    // 6. Projects
     const projects = data.projects || [];
 
     // 6. Achievements
@@ -203,9 +212,12 @@ export function PortfolioProvider({
       stats,
       skillCategories: finalSkillCategories,
       experiences,
+      journey,
       projects,
       achievements,
       certifications,
+      events: data.events || [],
+      gallery: data.gallery || [],
       education,
       navItems,
       techMarqueeItems: techMarqueeItems.length > 0 ? techMarqueeItems : ["React", "Next.js"],
