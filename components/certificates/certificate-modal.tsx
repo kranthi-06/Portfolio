@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, FileText, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 import type { CertificateAsset } from "@/lib/generated-certificates";
 
 interface CertificateModalProps {
@@ -54,7 +58,17 @@ export function CertificateModal({ certificates, activeIndex, onClose, onChange 
               </div>
             </header>
             <div className="relative min-h-0 flex-1 overflow-auto p-3 sm:p-6" style={{ background: "var(--bg-subtle)" }}>
-              {imageFailed ? <div className="flex h-full min-h-[440px] flex-col items-center justify-center gap-3 text-center" style={{ color: "var(--ink-secondary)" }}><FileText size={32} style={{ color: "var(--gradient-1)" }} /><p className="text-sm font-semibold">Unable to load certificate.</p></div> : <div className="flex min-h-full min-w-max items-center justify-center"><Image src={certificate.src} alt={certificate.title} width={1800} height={1300} priority className="h-auto max-h-full w-auto max-w-full rounded-xl transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }} onError={() => setImageFailed(true)} /></div>}
+              {imageFailed ? (
+                <div className="flex h-full min-h-[440px] flex-col items-center justify-center gap-3 text-center" style={{ color: "var(--ink-secondary)" }}><FileText size={32} style={{ color: "var(--gradient-1)" }} /><p className="text-sm font-semibold">Unable to load certificate.</p></div>
+              ) : certificate.type === "pdf" ? (
+                <div className="flex min-h-full min-w-max items-center justify-center transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}>
+                  <Document file={certificate.src} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onLoadError={() => setImageFailed(true)} onSourceError={() => setImageFailed(true)}>
+                    <Page pageNumber={1} width={800} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onRenderError={() => setImageFailed(true)} />
+                  </Document>
+                </div>
+              ) : (
+                <div className="flex min-h-full min-w-max items-center justify-center"><Image src={certificate.src} alt={certificate.title} width={1800} height={1300} priority className="h-auto max-h-full w-auto max-w-full rounded-xl transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }} onError={() => setImageFailed(true)} /></div>
+              )}
             </div>
             <div className="flex items-center justify-between border-t px-4 py-3 sm:px-6" style={{ borderColor: "var(--line)" }}><p className="hidden text-xs sm:block" style={{ color: "var(--ink-muted)" }}>{certificate.organisation}</p><div className="ml-auto flex gap-2"><button type="button" onClick={previous} className="certificate-nav-button" aria-label="Previous certificate"><ChevronLeft size={17} /> Previous</button><button type="button" onClick={next} className="certificate-nav-button" aria-label="Next certificate">Next <ChevronRight size={17} /></button></div></div>
           </motion.div>

@@ -7,8 +7,13 @@ import { type CertificateAsset } from "@/lib/generated-certificates";
 import { getCertificateCategories } from "@/lib/certificate-utils";
 import { CategoryFilter } from "@/components/certificates/category-filter";
 import { CertificateGrid } from "@/components/certificates/certificate-grid";
-import { CertificateModal } from "@/components/certificates/certificate-modal";
+import dynamic from "next/dynamic";
 import { usePortfolio } from "@/components/portfolio-provider";
+
+const CertificateModal = dynamic(
+  () => import("@/components/certificates/certificate-modal").then(mod => mod.CertificateModal),
+  { ssr: false }
+);
 import type { Certificate } from "@/lib/portfolio/types";
 
 export function CertificationsSection() {
@@ -41,14 +46,9 @@ export function CertificationsSection() {
     });
   }, [activeCategory, search, certifications]);
 
-  const imageCertificates = useMemo(() => visibleCertificates.filter((certificate) => certificate.media?.type !== "pdf"), [visibleCertificates]);
-  const selectedIndex = selectedCertificate ? imageCertificates.findIndex((certificate) => certificate.id === selectedCertificate.id) : null;
+  const selectedIndex = selectedCertificate ? visibleCertificates.findIndex((certificate) => certificate.id === selectedCertificate.id) : null;
   
   const handleView = (certificate: Certificate) => {
-    if (certificate.media?.type === "pdf") {
-      window.open(certificate.media.url, "_blank", "noopener,noreferrer");
-      return;
-    }
     setSelectedCertificate(certificate);
   };
 
@@ -74,7 +74,19 @@ export function CertificationsSection() {
 
         <CertificateGrid certificates={visibleCertificates} onView={handleView} />
       </div>
-      {/* We need to temporarily disable CertificateModal or rewrite it for Certificate. For now we will cast or rewrite. */}
+      <CertificateModal 
+        certificates={visibleCertificates.map(c => ({ 
+          id: c.id,
+          src: c.media?.url || "", 
+          title: c.title, 
+          category: c.category, 
+          organisation: c.organization || "",
+          type: c.media?.type === "pdf" ? "pdf" : "image"
+        }))} 
+        activeIndex={selectedIndex} 
+        onClose={() => setSelectedCertificate(null)} 
+        onChange={(index) => setSelectedCertificate(visibleCertificates[index])} 
+      />
     </section>
   );
 }
