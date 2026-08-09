@@ -101,8 +101,8 @@ export function AIModal({ open, onClose, originalText, contextType, onAccept }: 
       
       addToHistory(accumulatedText.trim());
       
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if ((err as Error).name === 'AbortError') {
         toast.info("Generation cancelled");
       } else {
         toast.error(err instanceof Error ? err.message : "An error occurred during generation");

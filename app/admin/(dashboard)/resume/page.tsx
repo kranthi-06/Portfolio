@@ -14,7 +14,7 @@ export default function ResumePage() {
 
   async function fetchResume() {
     try { const res = await fetch("/api/admin/resume"); if (res.ok) { const { data } = await res.json(); setVersions(data || []); } }
-    catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchResume(); }, []);
@@ -28,7 +28,7 @@ export default function ResumePage() {
       if (!res.ok) throw new Error();
       toast.success("Resume uploaded! Previous version deactivated.");
       fetchResume();
-    } catch { toast.error("Failed to save resume"); }
+    } catch (err) { console.error(err); toast.error("Failed to save resume"); }
   }
 
   const active = versions.find(v => v.is_active);

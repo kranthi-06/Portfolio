@@ -92,7 +92,7 @@ export function ImageGallery({ images, activeIndex, onClose, onChange }: ImageGa
       a.download = image.caption || `image-${(activeIndex || 0) + 1}`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) { console.error(err);
       // Fallback: open in new tab
       window.open(image.url, "_blank");
     }

@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
           const { data } = await res.json();
           setData(data);
         }
-      } catch {
+      } catch (err) { console.error(err);
         // Silently handle — dashboard will show zeros
       } finally {
         setLoading(false);

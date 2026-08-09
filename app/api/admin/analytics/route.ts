@@ -48,7 +48,7 @@ export const GET = withApiAuth(async (request: NextRequest) => {
     .slice(0, 10);
 
   // 4. Time Series (Daily Visitors)
-  let dailyVisitors: any = null;
+  let dailyVisitors: unknown = null;
   try {
     const res = await supabase.rpc("get_daily_visitors", { start_date: startDate, end_date: endDate });
     dailyVisitors = res.data;

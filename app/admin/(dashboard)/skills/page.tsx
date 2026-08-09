@@ -67,7 +67,7 @@ export default function SkillsPage() {
 
   const fetchSkills = useCallback(async () => {
     try { const res = await fetch("/api/admin/skills"); if (res.ok) { const { data } = await res.json(); setSkills(data || []); } }
-    catch { toast.error("Failed to load skills"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load skills"); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchSkills(); }, [fetchSkills]);
@@ -83,13 +83,13 @@ export default function SkillsPage() {
       setShowEditor(false); 
       setEditing(emptySkill); 
       fetchSkills();
-    } catch { toast.error("Failed to save"); } finally { setSaving(false); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); } finally { setSaving(false); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
     try { await fetch(`/api/admin/skills?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); fetchSkills(); }
-    catch { toast.error("Failed to delete"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed to delete"); } finally { setDeleting(false); }
   }
 
   const grouped = SKILL_CATEGORIES.reduce((acc, cat) => {

@@ -102,7 +102,7 @@ export function useFileUpload() {
       
       toast.success("File deleted");
       return true;
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to delete file");
       return false;
     }

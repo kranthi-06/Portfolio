@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "3": "^2.1.0",
     "@google/genai": "^2.15.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@icons-pack/react-simple-icons": "^13.13.0",

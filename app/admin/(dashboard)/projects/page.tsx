@@ -78,7 +78,7 @@ export default function ProjectsPage() {
       const params = search ? `?search=${encodeURIComponent(search)}` : "";
       const res = await fetch(`/api/admin/projects${params}`);
       if (res.ok) { const { data } = await res.json(); setProjects(data || []); }
-    } catch { toast.error("Failed to load projects"); }
+    } catch (err) { console.error(err); toast.error("Failed to load projects"); }
     finally { setLoading(false); }
   }, [search]);
 
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
       setEditing(emptyProject); 
       setOriginalEditing(emptyProject);
       fetchProjects();
-    } catch { toast.error("Failed to save project"); }
+    } catch (err) { console.error(err); toast.error("Failed to save project"); }
     finally { setSaving(false); }
   }
 
@@ -113,7 +113,7 @@ export default function ProjectsPage() {
       if (!res.ok) throw new Error();
       toast.success(status === "published" ? "Published!" : `Status → ${status}`);
       fetchProjects();
-    } catch { toast.error("Failed to update"); }
+    } catch (err) { console.error(err); toast.error("Failed to update"); }
   }
 
   async function handleDelete() {
@@ -123,7 +123,7 @@ export default function ProjectsPage() {
       const res = await fetch(`/api/admin/projects?id=${deleteTarget.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       toast.success("Project deleted"); setDeleteTarget(null); fetchProjects();
-    } catch { toast.error("Failed to delete"); }
+    } catch (err) { console.error(err); toast.error("Failed to delete"); }
     finally { setDeleting(false); }
   }
 

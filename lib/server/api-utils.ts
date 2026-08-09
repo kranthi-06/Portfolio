@@ -1,15 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
+import { rateLimit } from "./rate-limit";
+import { User } from "@supabase/supabase-js";
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
     requestId?: string;
     timestamp: string;
   };
@@ -24,7 +26,6 @@ export function apiSuccess<T>(data: T, message?: string, status = 200) {
 export function revalidateData(paths: string[] = ["/", "/admin"]) {
   try {
     paths.forEach(p => {
-      // Revalidate layout to cover all nested pages
       revalidatePath(p, "layout");
       revalidatePath(p, "page");
     });
@@ -34,18 +35,12 @@ export function revalidateData(paths: string[] = ["/", "/admin"]) {
   }
 }
 
-/**
- * Escape SQL LIKE/ILIKE wildcard characters in user input.
- * Prevents `%` and `_` in search terms from acting as SQL wildcards.
- */
 export function escapeSqlLike(input: string): string {
   return input.replace(/[%_\\]/g, "\\$&");
 }
 
-export function apiError(error: any, status = 400, requestId?: string) {
+export function apiError(error: unknown, status = 400, requestId?: string) {
   const timestamp = new Date().toISOString();
-  
-  // Do not expose raw database errors directly unless we sanitize them
   let code = "INTERNAL_SERVER_ERROR";
   let message = "An unexpected error occurred.";
   let details = undefined;
@@ -62,24 +57,19 @@ export function apiError(error: any, status = 400, requestId?: string) {
       status = 400;
     }
   } else if (error instanceof Error) {
-    // If it's a known error type, we can extract the message securely.
-    // Be careful not to leak stack traces or Postgres syntax errors.
     if (status >= 400 && status < 500) {
       code = "CLIENT_ERROR";
       message = error.message;
     } else {
-      // Log the internal error securely on the server
       console.error(`[API Error ${requestId || timestamp}]:`, error);
-      // We can expose the message if it's a standard Error object without DB secrets
       if (!error.message.includes('relation') && !error.message.includes('syntax')) {
         message = error.message;
       }
     }
   } else {
-    // For SDKs (like Cloudinary) that throw raw objects instead of Error instances
     console.error(`[API Unknown Error ${requestId || timestamp}]:`, error);
     if (error && typeof error === 'object' && 'message' in error) {
-      message = String(error.message);
+      message = String((error as Error).message);
     } else if (typeof error === 'string') {
       message = error;
     }
@@ -93,11 +83,11 @@ export function apiError(error: any, status = 400, requestId?: string) {
   return NextResponse.json(response, { status });
 }
 
-// Wrapper to catch errors automatically
-export function withApiAuth(handler: (req: any, user: any) => Promise<NextResponse>) {
-  return async (req: any) => {
+// Wrapper to catch errors automatically for authenticated routes
+export function withApiAuth(handler: (req: NextRequest, user: User) => Promise<NextResponse>) {
+  return async (req: NextRequest) => {
     const start = Date.now();
-    const requestId = Math.random().toString(36).substring(7);
+    const requestId = crypto.randomUUID();
     const method = req.method;
     const url = req.url;
 
@@ -106,9 +96,9 @@ export function withApiAuth(handler: (req: any, user: any) => Promise<NextRespon
     try {
       const { createSupabaseServerClient } = await import("@/lib/supabase/server");
       const supabase = await createSupabaseServerClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (!user) {
+      if (error || !user) {
         console.warn(`[API Auth Failed ${requestId}] Unauthorized access attempt`);
         return apiError(new Error("Unauthorized"), 401, requestId);
       }
@@ -121,7 +111,45 @@ export function withApiAuth(handler: (req: any, user: any) => Promise<NextRespon
       return response;
     } catch (error) {
       console.error(`[API Exception ${requestId}] ${method} ${url} failed:`, error);
-      // Unhandled exceptions are server errors (500), not client errors (400)
+      return apiError(error, 500, requestId);
+    }
+  };
+}
+
+// Wrapper for public routes with rate limiting
+export function withPublicApi(handler: (req: NextRequest) => Promise<NextResponse>, customLimit = 60) {
+  return async (req: NextRequest) => {
+    const start = Date.now();
+    const requestId = crypto.randomUUID();
+    const method = req.method;
+    const url = req.url;
+    
+    // IP based rate limiting
+    // Fallback if IP headers are missing in local dev
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+    const rl = rateLimit(ip, customLimit);
+
+    console.log(`[Public API Request ${requestId}] ${method} ${url} (IP: ${ip})`);
+
+    if (!rl.success) {
+      console.warn(`[API Rate Limit Exceeded ${requestId}] IP: ${ip}`);
+      return apiError(new Error("Too many requests, please try again later."), 429, requestId);
+    }
+
+    try {
+      const response = await handler(req);
+      
+      // Set rate limit headers
+      response.headers.set("X-RateLimit-Limit", rl.limit.toString());
+      response.headers.set("X-RateLimit-Remaining", rl.remaining.toString());
+      response.headers.set("X-RateLimit-Reset", rl.resetTime.toString());
+
+      const duration = Date.now() - start;
+      console.log(`[Public API Response ${requestId}] ${method} ${url} - Status ${response.status} - ${duration}ms`);
+      
+      return response;
+    } catch (error) {
+      console.error(`[Public API Exception ${requestId}] ${method} ${url} failed:`, error);
       return apiError(error, 500, requestId);
     }
   };

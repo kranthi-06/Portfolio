@@ -81,7 +81,7 @@ export default function EventsPage() {
     try {
       const res = await fetch("/api/admin/events");
       if (res.ok) { const { data } = await res.json(); setEvents(data || []); }
-    } catch { toast.error("Failed to load events"); }
+    } catch (err) { console.error(err); toast.error("Failed to load events"); }
     finally { setLoading(false); }
   }, []);
 
@@ -102,7 +102,7 @@ export default function EventsPage() {
       setShowEditor(false); 
       setEditing(emptyEvent); 
       fetchEvents();
-    } catch { toast.error("Failed to save"); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); }
     finally { setSaving(false); }
   }
 
@@ -110,15 +110,14 @@ export default function EventsPage() {
     try {
       await fetch("/api/admin/events", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) });
       toast.success(status === "published" ? "Published!" : `Status → ${status}`); fetchEvents();
-    } catch { toast.error("Failed to update"); }
+    } catch (err) { console.error(err); toast.error("Failed to update"); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
     try { await fetch(`/api/admin/events?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Event deleted"); setDeleteTarget(null); fetchEvents(); }
-    catch { toast.error("Failed to delete"); }
-    finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed to delete"); } finally { setDeleting(false); }
   }
 
   function addEventImage(result: { url: string; publicId?: string }) {

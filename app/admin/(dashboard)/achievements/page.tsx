@@ -70,7 +70,7 @@ export default function AchievementsPage() {
 
   const fetchItems = useCallback(async () => {
     try { const res = await fetch("/api/admin/achievements"); if (res.ok) { const { data } = await res.json(); setItems(data || []); } }
-    catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
@@ -86,18 +86,18 @@ export default function AchievementsPage() {
       setShowEditor(false); 
       setEditing(emptyAch); 
       fetchItems();
-    } catch { toast.error("Failed to save"); } finally { setSaving(false); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); } finally { setSaving(false); }
   }
 
   async function updateStatus(id: string, status: string) {
     try { await fetch("/api/admin/achievements", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) }); toast.success("Updated"); fetchItems(); }
-    catch { toast.error("Failed"); }
+    catch (err) { console.error(err); toast.error("Failed"); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
     try { await fetch(`/api/admin/achievements?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); fetchItems(); }
-    catch { toast.error("Failed"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed"); } finally { setDeleting(false); }
   }
 
   return (

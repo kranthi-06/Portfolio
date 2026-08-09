@@ -27,7 +27,7 @@ export async function logActivity(entry: LogEntry) {
       entity_title: entry.entityTitle,
       metadata: entry.metadata || {},
     });
-  } catch {
+  } catch (err) { console.error(err);
     // Activity logging should never break the main flow
     console.error("Failed to log activity:", entry);
   }

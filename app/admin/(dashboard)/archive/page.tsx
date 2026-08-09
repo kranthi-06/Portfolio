@@ -38,7 +38,7 @@ export default function ArchivePage() {
         }));
         setItems(mapped);
       }
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to fetch archived items");
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export default function ArchivePage() {
       toast.success("Item restored successfully");
       fetchArchived();
       setRestoreTarget(null);
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to restore item");
     } finally {
       setProcessing(false);
@@ -80,7 +80,7 @@ export default function ArchivePage() {
       toast.success("Item permanently deleted");
       fetchArchived();
       setDeleteTarget(null);
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to delete item permanently");
     } finally {
       setProcessing(false);

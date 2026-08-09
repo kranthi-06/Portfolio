@@ -11,7 +11,7 @@ export class GroqProvider implements IAIProvider {
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<string> {
-    const messages: any[] = [];
+    const messages: Groq.Chat.ChatCompletionMessageParam[] = [];
     if (systemPrompt) {
       messages.push({ role: "system", content: systemPrompt });
     }
@@ -28,7 +28,7 @@ export class GroqProvider implements IAIProvider {
   }
 
   async *streamText(prompt: string, systemPrompt?: string): AsyncIterable<string> {
-    const messages: any[] = [];
+    const messages: Groq.Chat.ChatCompletionMessageParam[] = [];
     if (systemPrompt) {
       messages.push({ role: "system", content: systemPrompt });
     }
@@ -56,7 +56,7 @@ export class GroqProvider implements IAIProvider {
     return mimeType.startsWith("image/");
   }
 
-  async analyzeDocument(data: string, mimeType: string, prompt: string, schema?: any): Promise<any> {
+  async analyzeDocument(data: string, mimeType: string, prompt: string, schema?: Record<string, unknown>): Promise<unknown> {
     // Groq Vision requires a vision-capable model and only supports images.
     const visionModel = "llama-3.2-90b-vision-preview";
 
@@ -69,7 +69,7 @@ export class GroqProvider implements IAIProvider {
       );
     }
 
-    const messages: any[] = [
+    const messages: Groq.Chat.ChatCompletionMessageParam[] = [
       {
         role: "user",
         content: [

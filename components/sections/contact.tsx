@@ -63,7 +63,7 @@ export function Contact() {
       setStatus("success");
       setForm({ name: "", email: "", subject: "", message: "" });
       setTimeout(() => setStatus("idle"), 4000);
-    } catch {
+    } catch (err) { console.error(err);
       setStatus("error");
       setTimeout(() => setStatus("idle"), 4000);
     }

@@ -29,7 +29,7 @@ export default function MediaPage() {
       const params = search ? `?search=${encodeURIComponent(search)}` : "";
       const res = await fetch(`/api/admin/media${params}`);
       if (res.ok) { const { data } = await res.json(); setItems(data || []); }
-    } catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    } catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }, [search]);
 
   useEffect(() => { fetchMedia(); }, [fetchMedia]);
@@ -44,13 +44,13 @@ export default function MediaPage() {
         }),
       });
       toast.success("File added to media library"); setShowUpload(false); fetchMedia();
-    } catch { toast.error("Failed to save"); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
     try { await fetch(`/api/admin/media?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); fetchMedia(); }
-    catch { toast.error("Failed"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed"); } finally { setDeleting(false); }
   }
 
   function copyUrl(url: string) { navigator.clipboard.writeText(url); toast.success("URL copied to clipboard"); }

@@ -39,7 +39,7 @@ export default function GitHubPage() {
         })),
       });
       toast.success("GitHub stats loaded");
-    } catch { toast.error("Failed to fetch GitHub data"); }
+    } catch (err) { console.error(err); toast.error("Failed to fetch GitHub data"); }
     finally { setLoading(false); }
   }
 

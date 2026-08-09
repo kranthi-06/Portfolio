@@ -11,7 +11,7 @@ export class GeminiProvider implements IAIProvider {
   }
 
   async generateText(prompt: string, systemPrompt?: string): Promise<string> {
-    const contents: any[] = [];
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
     if (systemPrompt) {
       contents.push({ role: "system", parts: [{ text: systemPrompt }] });
     }
@@ -27,7 +27,7 @@ export class GeminiProvider implements IAIProvider {
   }
 
   async *streamText(prompt: string, systemPrompt?: string): AsyncIterable<string> {
-    const contents: any[] = [];
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
     if (systemPrompt) {
       contents.push({ role: "system", parts: [{ text: systemPrompt }] });
     }
@@ -45,7 +45,7 @@ export class GeminiProvider implements IAIProvider {
     }
   }
 
-  async analyzeDocument(data: string, mimeType: string, prompt: string, schema?: any): Promise<any> {
+  async analyzeDocument(data: string, mimeType: string, prompt: string, schema?: Record<string, unknown>): Promise<unknown> {
     const response = await this.client.models.generateContent({
       model: this.model,
       contents: [{

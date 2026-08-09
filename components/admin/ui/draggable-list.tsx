@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { GripVertical, X, Plus } from "lucide-react";
 import { AIAssistantField } from "./ai-assistant-field";
 
@@ -21,7 +21,7 @@ export function DraggableList({ items = [], onChange, label, placeholder, contex
     setIsMounted(true);
   }, []);
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     
     const reordered = Array.from(items);

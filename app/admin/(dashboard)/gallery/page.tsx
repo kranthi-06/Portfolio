@@ -44,7 +44,7 @@ export default function GalleryPage() {
       const params = albumFilter ? `?album=${encodeURIComponent(albumFilter)}` : "";
       const res = await fetch(`/api/admin/gallery${params}`);
       if (res.ok) { const { data } = await res.json(); setItems(data || []); }
-    } catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    } catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }, [albumFilter]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
@@ -57,7 +57,7 @@ export default function GalleryPage() {
       });
       if (!res.ok) throw new Error();
       toast.success("Image added to gallery"); setShowUpload(false); setUploadCaption(""); fetchItems();
-    } catch { toast.error("Failed to save"); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); }
   }
 
   async function updateStatus(id: string, status: string) {
@@ -66,7 +66,7 @@ export default function GalleryPage() {
       if (!res.ok) throw new Error("Failed to update status");
       toast.success("Updated"); fetchItems();
     }
-    catch { toast.error("Failed"); }
+    catch (err) { console.error(err); toast.error("Failed"); }
   }
 
   async function handleDelete() {
@@ -76,7 +76,7 @@ export default function GalleryPage() {
       if (!res.ok) throw new Error("Failed to delete");
       toast.success("Deleted"); setDeleteTarget(null); fetchItems();
     }
-    catch { toast.error("Failed"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed"); } finally { setDeleting(false); }
   }
 
   const albums = [...new Set(items.map(i => i.album))];

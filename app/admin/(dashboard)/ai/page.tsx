@@ -30,7 +30,7 @@ export default function AIAssistantPage() {
       const { data } = await res.json();
       setOutput(data.result);
       toast.success("AI response generated!");
-    } catch { toast.error("AI generation failed"); }
+    } catch (err) { console.error(err); toast.error("AI generation failed"); }
     finally { setLoading(false); }
   }
 

@@ -129,7 +129,7 @@ export default function CertificatesPage() {
         const json = await res.json();
         setCertificates(json.data?.data || []);
       }
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to fetch certificates");
     } finally {
       setLoading(false);
@@ -302,7 +302,7 @@ export default function CertificatesPage() {
       const isEditing = !!editingCertId;
       const method = isEditing ? "PATCH" : "POST";
 
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         title: data.title,
         organization: data.organization,
         participant_name: data.participantName,
@@ -396,7 +396,7 @@ export default function CertificatesPage() {
       }
       resetUploadFlow();
       fetchCertificates();
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to save certificate. Please try again.");
       setStep("reviewing");
     }
@@ -426,7 +426,7 @@ export default function CertificatesPage() {
         status === "active" ? "Published!" : `Status → ${status}`
       );
       fetchCertificates();
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to update status");
     }
   }
@@ -444,7 +444,7 @@ export default function CertificatesPage() {
       toast.success("Certificate deleted");
       setDeleteTarget(null);
       fetchCertificates();
-    } catch {
+    } catch (err) { console.error(err);
       toast.error("Failed to delete");
     } finally {
       setDeleting(false);
@@ -488,9 +488,9 @@ export default function CertificatesPage() {
       seoTitle: "",
       seoDescription: "",
       confidence: cert.confidence || 1,
-      difficulty: cert.difficulty as any || null,
+      difficulty: cert.difficulty as string || null,
       importance: null,
-      credibility: cert.credibility as any || "unknown",
+      credibility: cert.credibility as string || "unknown",
       competitionLevel: null,
       domain: null,
       subdomain: null,

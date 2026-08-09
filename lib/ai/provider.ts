@@ -18,7 +18,7 @@ export interface IAIProvider {
    * Note: Not all providers support vision/documents. The implementation may throw
    * or fallback if the capability is unsupported.
    */
-  analyzeDocument(data: string, mimeType: string, prompt: string, schema?: any): Promise<any>;
+  analyzeDocument(data: string, mimeType: string, prompt: string, schema?: Record<string, unknown>): Promise<unknown>;
 
   /**
    * Whether this provider supports analyzing the given MIME type.
@@ -106,6 +106,6 @@ export const AIService = {
   streamText: (prompt: string, systemPrompt?: string) =>
     AIServiceManager.getProvider().streamText(prompt, systemPrompt),
 
-  analyzeDocument: (data: string, mimeType: string, prompt: string, schema?: any) =>
+  analyzeDocument: (data: string, mimeType: string, prompt: string, schema?: Record<string, unknown>) =>
     AIServiceManager.getDocumentAnalyzer(mimeType).analyzeDocument(data, mimeType, prompt, schema),
 };

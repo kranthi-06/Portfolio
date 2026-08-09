@@ -74,7 +74,7 @@ export function SupportingImagesManager({
                 const { data } = await res.json();
                 newImage.id = data.id;
               }
-            } catch {
+            } catch (err) { console.error(err);
               // Image is already uploaded to cloudinary, add to local state
             }
           }

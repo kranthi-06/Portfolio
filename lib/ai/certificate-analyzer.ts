@@ -255,7 +255,7 @@ export class CertificateAnalyzer {
     try {
       // Try direct parse first
       return certificateAnalysisSchema.parse(raw);
-    } catch {
+    } catch (err) { console.error(err);
       // Try to repair common issues
       try {
         const obj = raw as Record<string, unknown>;
@@ -287,7 +287,7 @@ export class CertificateAnalyzer {
         }
 
         return certificateAnalysisSchema.parse(obj);
-      } catch {
+      } catch (err) { console.error(err);
         return null;
       }
     }

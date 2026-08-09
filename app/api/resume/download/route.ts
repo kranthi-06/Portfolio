@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { withPublicApi } from "@/lib/server/api-utils";
 
-export async function GET(request: NextRequest) {
+export const GET = withPublicApi(async (request: NextRequest) => {
+  const supabase = await createSupabaseServerClient();
+  const { data: activeResume, error } = await supabase
+    .from("resume")
+    .select("*")
+    .eq("is_active", true)
+    .single();
+
+  if (error || !activeResume?.file_url) {
+    return new NextResponse("Resume not found", { status: 404 });
+  }
+
+  // Fetch the file from Cloudinary (or existing URL) with a timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: activeResume, error } = await supabase
-      .from("resume")
-      .select("*")
-      .eq("is_active", true)
-      .single();
-
-    if (error || !activeResume?.file_url) {
-      return new NextResponse("Resume not found", { status: 404 });
-    }
-
-    // Fetch the file from Cloudinary (or existing URL)
-    const response = await fetch(activeResume.file_url);
+    const response = await fetch(activeResume.file_url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch resume: ${response.statusText}`);
     }
@@ -39,8 +45,8 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers,
     });
-  } catch (error) {
-    console.error("Download resume error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err; // Let withPublicApi catch and handle it
   }
-}
+});

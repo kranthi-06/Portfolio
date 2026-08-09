@@ -46,7 +46,7 @@ export default function AnalyticsDashboard() {
           const json = await res.json();
           setLiveData(json.data);
         }
-      } catch {}
+      } catch (err) { console.error(err);}
     }
     fetchLive();
     const interval = setInterval(fetchLive, 10000);

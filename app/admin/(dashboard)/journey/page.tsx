@@ -98,7 +98,7 @@ export default function JourneyPage() {
 
   const fetchItems = useCallback(async () => {
     try { const res = await fetch("/api/admin/journey"); if (res.ok) { const { data } = await res.json(); setItems(data || []); } }
-    catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
@@ -129,13 +129,13 @@ export default function JourneyPage() {
       setShowEditor(false); 
       setEditing(emptyJourney); 
       fetchItems();
-    } catch { toast.error("Failed to save"); } finally { setSaving(false); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); } finally { setSaving(false); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
     try { await fetch(`/api/admin/journey?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); fetchItems(); }
-    catch { toast.error("Failed"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed"); } finally { setDeleting(false); }
   }
 
   return (

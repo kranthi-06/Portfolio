@@ -92,7 +92,7 @@ export function AnalyticsTracker() {
       const anchorElement = target.closest('a');
       
       let eventName = "";
-      let eventData: any = {};
+      let eventData: Record<string, unknown> = {};
       
       if (trackElement) {
         eventName = trackElement.getAttribute('data-track') || "click";

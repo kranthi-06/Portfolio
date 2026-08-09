@@ -1,4 +1,4 @@
-import { Sparkles, Wand2, ArrowLeftRight, Maximize2, Minimize2 } from "lucide-react";
+import { Sparkles, Wand2, ArrowLeftRight, Maximize2, Minimize2, LucideIcon } from "lucide-react";
 import { AIActions, AITones, AIAction, AITone } from "@/lib/ai/prompts";
 
 interface AIToolbarProps {
@@ -9,7 +9,7 @@ interface AIToolbarProps {
 }
 
 export function AIToolbar({ onAction, tone, setTone, loading }: AIToolbarProps) {
-  const commonActions: { id: AIAction; label: string; icon: any }[] = [
+  const commonActions: { id: AIAction; label: string; icon: LucideIcon }[] = [
     { id: "optimize", label: "Optimize", icon: Sparkles },
     { id: "rewrite", label: "Rewrite", icon: ArrowLeftRight },
     { id: "expand", label: "Expand", icon: Maximize2 },

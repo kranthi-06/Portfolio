@@ -70,9 +70,9 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   // Replace images if provided
   if (images) {
     if (existingEvent?.event_images?.length) {
-      const currentImages = images.map((img: any) => img.image_url);
+      const currentImages = images.map((img: { image_url: string }) => img.image_url);
       const removedImages = existingEvent.event_images
-        .filter((img: any) => !currentImages.includes(img.image_url));
+        .filter((img: { image_url: string, image_public_id?: string | null }) => !currentImages.includes(img.image_url));
         
       for (const img of removedImages) {
         const pubId = img.image_public_id || CloudinaryService.extractPublicId(img.image_url);

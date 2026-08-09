@@ -22,20 +22,20 @@ export default function MessagesPage() {
 
   async function fetchMessages() {
     try { const res = await fetch("/api/admin/messages"); if (res.ok) { const { data } = await res.json(); setMessages(data || []); } }
-    catch { toast.error("Failed to load"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchMessages(); }, []);
 
   async function updateStatus(id: string, status: string) {
     try { await fetch("/api/admin/messages", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, status }) }); fetchMessages(); }
-    catch { toast.error("Failed"); }
+    catch (err) { console.error(err); toast.error("Failed"); }
   }
 
   async function handleDelete() {
     if (!deleteTarget) return; setDeleting(true);
     try { await fetch(`/api/admin/messages?id=${deleteTarget.id}`, { method: "DELETE" }); toast.success("Deleted"); setDeleteTarget(null); if (selected?.id === deleteTarget.id) setSelected(null); fetchMessages(); }
-    catch { toast.error("Failed"); } finally { setDeleting(false); }
+    catch (err) { console.error(err); toast.error("Failed"); } finally { setDeleting(false); }
   }
 
   function openMessage(msg: Message) {

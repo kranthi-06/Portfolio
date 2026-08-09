@@ -22,7 +22,7 @@ export default function SettingsPage() {
 
   async function fetchSettings() {
     try { const res = await fetch("/api/admin/settings"); if (res.ok) { const { data } = await res.json(); setSettings(data || {}); } }
-    catch { toast.error("Failed to load settings"); } finally { setLoading(false); }
+    catch (err) { console.error(err); toast.error("Failed to load settings"); } finally { setLoading(false); }
   }
 
   useEffect(() => { fetchSettings(); }, []);
@@ -43,7 +43,7 @@ export default function SettingsPage() {
       });
       if (!res.ok) throw new Error();
       toast.success("Settings saved!");
-    } catch { toast.error("Failed to save"); }
+    } catch (err) { console.error(err); toast.error("Failed to save"); }
     finally { setSaving(false); }
   }
 
