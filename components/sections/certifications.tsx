@@ -19,7 +19,7 @@ import type { Certificate } from "@/lib/portfolio/types";
 export function CertificationsSection() {
   const { certifications } = usePortfolio();
 
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState("Internship");
   const [search, setSearch] = useState("");
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
   
