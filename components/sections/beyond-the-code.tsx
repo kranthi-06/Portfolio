@@ -6,10 +6,13 @@ import Image from "next/image";
 import { Calendar, Trophy, Image as ImageIcon, Award, ExternalLink } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal } from "@/components/ui/reveal";
+import { AchievementModal } from "@/components/ui/achievement-modal";
+import type { Achievement } from "@/lib/portfolio/types";
 
 export function BeyondTheCodeSection() {
   const { events, achievements, gallery } = usePortfolio();
   const [activeTab, setActiveTab] = useState<"events" | "achievements" | "gallery">("achievements");
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
 
   const tabs = [
     { id: "events", label: "Events", icon: Calendar, count: events.length },
@@ -71,9 +74,14 @@ export function BeyondTheCodeSection() {
               >
                 {/* Achievements */}
                 {achievements.map((ach) => (
-                  <div key={`ach-${ach.title}`} className="flex flex-col p-5 rounded-2xl" style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}>
+                  <div 
+                    key={`ach-${ach.title}`} 
+                    onClick={() => setSelectedAchievement(ach)}
+                    className="flex flex-col p-5 rounded-2xl cursor-pointer hover:shadow-md transition-shadow group" 
+                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
+                  >
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: ach.color ? `${ach.color}15` : "var(--accent-soft)", color: ach.color || "var(--accent)" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" style={{ background: ach.color ? `${ach.color}15` : "var(--accent-soft)", color: ach.color || "var(--accent)" }}>
                         <Trophy size={20} />
                       </div>
                     </div>
@@ -143,6 +151,12 @@ export function BeyondTheCodeSection() {
           </AnimatePresence>
         </div>
       </div>
+      
+      <AchievementModal 
+        achievement={selectedAchievement} 
+        isOpen={!!selectedAchievement} 
+        onClose={() => setSelectedAchievement(null)} 
+      />
     </section>
   );
 }
