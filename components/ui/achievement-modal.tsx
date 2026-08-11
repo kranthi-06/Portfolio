@@ -8,17 +8,17 @@ import type { Achievement } from "@/lib/portfolio/types";
 import { modalOverlay, modalContent } from "@/lib/animations";
 import Image from "next/image";
 import { Lightbox } from "./lightbox";
+import dynamic from "next/dynamic";
+
+const PdfThumbnail = dynamic(
+  () => import("@/components/certificates/pdf-thumbnail").then(mod => mod.PdfThumbnail),
+  { ssr: false, loading: () => <div className="animate-pulse w-full h-full" style={{ background: "var(--bg-subtle)" }} /> }
+);
 
 interface AchievementModalProps {
   achievement: Achievement | null;
   isOpen: boolean;
   onClose: () => void;
-}
-
-function getPreviewUrl(url?: string | null) {
-  if (!url) return "";
-  if (url.toLowerCase().endsWith(".pdf")) return url.replace(/\.pdf$/i, ".jpg");
-  return url;
 }
 
 export function AchievementModal({ achievement, isOpen, onClose }: AchievementModalProps) {
@@ -53,6 +53,7 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
   
   const hasExternalEvidence = achievement.evidence && achievement.evidence.length > 0;
   const hasCertificate = !!achievement.certificate_url;
+  const isPdf = hasCertificate && achievement.certificate_url!.toLowerCase().endsWith(".pdf");
   const hasGallery = galleryImages.length > 0;
 
   return (
@@ -65,7 +66,7 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
         className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
         onClick={onClose}
       >
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-md" />
+        <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }} />
 
         <motion.div
           variants={modalContent}
@@ -78,33 +79,41 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
           aria-label={`${achievement.title} details`}
           className={cn(
             "relative w-full max-w-4xl max-h-[90vh] overflow-y-auto",
-            "bg-white dark:bg-zinc-950",
             "rounded-[24px] sm:rounded-[32px]",
-            "border border-zinc-200 dark:border-zinc-800",
             "shadow-2xl"
           )}
+          style={{ 
+            background: "var(--bg-elevated)", 
+            border: "1px solid var(--line)", 
+            color: "var(--ink)" 
+          }}
         >
           <button
             onClick={onClose}
             aria-label="Close modal"
-            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 backdrop-blur-md transition-colors"
+            className="absolute top-4 right-4 z-50 p-2 rounded-full transition-colors flex items-center justify-center"
+            style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink)" }}
           >
-            <X className="w-5 h-5 text-zinc-900 dark:text-white" />
+            <X className="w-5 h-5" />
           </button>
 
           <div className="flex flex-col">
             {/* Header Certificate */}
             {hasCertificate && (
-               <div className="relative w-full border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-                  <div className="relative w-full aspect-[1.414/1] max-h-[60vh]">
-                    <Image 
-                      src={getPreviewUrl(achievement.certificate_url)} 
-                      alt={achievement.title} 
-                      fill 
-                      className="object-contain" 
-                      sizes="(max-width: 768px) 100vw, 1200px"
-                      priority
-                    />
+               <div className="relative w-full border-b" style={{ borderColor: "var(--line)", background: "var(--bg-subtle)" }}>
+                  <div className="relative w-full aspect-[1.414/1] max-h-[60vh] flex items-center justify-center">
+                    {isPdf ? (
+                       <PdfThumbnail src={achievement.certificate_url!} title={achievement.title} />
+                    ) : (
+                      <Image 
+                        src={achievement.certificate_url!} 
+                        alt={achievement.title} 
+                        fill 
+                        className="object-contain" 
+                        sizes="(max-width: 768px) 100vw, 1200px"
+                        priority
+                      />
+                    )}
                   </div>
                </div>
             )}
@@ -113,22 +122,22 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
             <div className="p-6 sm:p-10 space-y-8">
               {/* Header Info */}
               <div className="space-y-5">
-                <h3 className="text-3xl sm:text-4xl font-display font-semibold text-zinc-900 dark:text-zinc-50">
+                <h3 className="text-3xl sm:text-4xl font-display font-semibold" style={{ color: "var(--ink)" }}>
                   {achievement.title}
                 </h3>
                 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800/50 pb-6">
-                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-zinc-600 dark:text-zinc-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6" style={{ borderColor: "var(--line)" }}>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4" style={{ color: "var(--ink-secondary)" }}>
                     {achievement.event && (
                       <span className="text-lg font-medium">
                         {achievement.event}
                       </span>
                     )}
                     {achievement.event && achievement.date && (
-                      <span className="hidden sm:block w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                      <span className="hidden sm:block w-1.5 h-1.5 rounded-full" style={{ background: "var(--line-strong)" }} />
                     )}
                     {achievement.date && (
-                      <span className="flex items-center gap-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                      <span className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--ink-muted)" }}>
                         <Calendar size={16} />
                         {achievement.date}
                       </span>
@@ -140,7 +149,7 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
                 {(achievement.position || hasExternalEvidence) && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {achievement.position && (
-                      <span className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300">
+                      <span className="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium" style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink-secondary)" }}>
                         {achievement.position}
                       </span>
                     )}
@@ -150,7 +159,8 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
                         href={ev.url} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors hover:brightness-95"
+                        style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink-secondary)" }}
                       >
                         {ev.label}
                         <ExternalLink size={12} />
@@ -162,8 +172,8 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
 
               {/* Description */}
               {achievement.description && (
-                <div className="prose prose-zinc dark:prose-invert max-w-none">
-                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-base sm:text-lg">
+                <div className="prose max-w-none">
+                  <p className="leading-relaxed text-base sm:text-lg" style={{ color: "var(--ink-secondary)" }}>
                     {achievement.description}
                   </p>
                 </div>
@@ -171,15 +181,16 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
 
               {/* Event & Recognition Gallery */}
               {hasGallery && (
-                <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50">
-                  <h4 className="text-lg sm:text-xl font-semibold mb-6 text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-                     <ImageIcon size={20} className="text-zinc-900 dark:text-zinc-50" /> Event & Recognition Gallery
+                <div className="pt-6 border-t" style={{ borderColor: "var(--line)" }}>
+                  <h4 className="text-lg sm:text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: "var(--ink)" }}>
+                     <ImageIcon size={20} style={{ color: "var(--ink)" }} /> Event & Recognition Gallery
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     {galleryImages.map((img, i) => (
                       <div 
                         key={img.url} 
-                        className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all"
+                        className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border shadow-sm hover:shadow-md transition-all"
+                        style={{ borderColor: "var(--line)" }}
                         onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
                       >
                         <Image src={img.url} alt={img.caption || `Gallery image ${i + 1}`} fill className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="(max-width: 768px) 50vw, 25vw" />
