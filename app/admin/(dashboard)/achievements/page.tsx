@@ -94,13 +94,17 @@ export default function AchievementsPage() {
     setSaving(true);
     try {
       const method = editing.id ? "PATCH" : "POST";
-      await fetch("/api/admin/achievements", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(editing) });
+      const res = await fetch("/api/admin/achievements", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(editing) });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error?.message || "Failed to save");
+      }
       toast.success(editing.id ? "Updated" : "Created"); 
       clearDraft();
       setShowEditor(false); 
       setEditing(emptyAch); 
       fetchItems();
-    } catch (err) { console.error(err); toast.error("Failed to save"); } finally { setSaving(false); }
+    } catch (err: any) { console.error(err); toast.error(err.message || "Failed to save"); } finally { setSaving(false); }
   }
 
   async function updateStatus(id: string, status: string) {
