@@ -92,29 +92,25 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
             <X className="w-5 h-5" />
           </button>
 
-          {/* Header Certificate / Cover Image */}
-          {(achievement.certificate_url || achievement.media?.url) ? (
+          {/* Header Certificate */}
+          {achievement.certificate_url && (
              <div className="relative w-full min-h-[300px] sm:min-h-[400px] bg-zinc-950/80 rounded-t-3xl border-b border-white/10 overflow-hidden flex items-center justify-center p-8">
-                {achievement.certificate_url && (
-                  <div className="absolute top-4 left-4 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider border border-white/10 flex items-center gap-2">
-                    <FileText size={14} /> Official Certificate
-                  </div>
-                )}
+                <div className="absolute top-4 left-4 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider border border-white/10 flex items-center gap-2">
+                  <FileText size={14} /> Official Certificate
+                </div>
                 <Image 
-                  src={getPreviewUrl(achievement.certificate_url || achievement.media?.url)} 
+                  src={getPreviewUrl(achievement.certificate_url)} 
                   alt={achievement.title} 
                   fill 
-                  className={cn("transition-opacity duration-500", achievement.certificate_url ? "object-contain p-8 sm:p-12" : "object-cover opacity-80")} 
+                  className="transition-opacity duration-500 object-contain p-8 sm:p-12" 
                   sizes="100vw" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
              </div>
-          ) : (
-            <div className="w-full h-32 bg-zinc-950/60 rounded-t-3xl border-b border-white/10" />
           )}
 
           {/* Content */}
-          <div className={cn("p-6 sm:p-8 space-y-8 relative z-10", (achievement.certificate_url || achievement.media?.url) ? "-mt-20 sm:-mt-24" : "-mt-16")}>
+          <div className={cn("p-6 sm:p-8 space-y-8 relative z-10", achievement.certificate_url ? "-mt-20 sm:-mt-24" : "")}>
             {/* Title & Badge */}
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <div

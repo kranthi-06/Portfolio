@@ -58,29 +58,16 @@ export function AchievementsSection() {
                 style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
                 onClick={() => setSelectedAchievement(award)}
               >
-                {/* Cover Image / Certificate */}
-                {(award.certificate_url || award.media?.url) ? (
+                {/* Certificate */}
+                {award.certificate_url ? (
                   <div className="relative w-full h-48 overflow-hidden bg-zinc-950/20">
-                    <Image src={getPreviewUrl(award.certificate_url || award.media?.url)} alt={award.title} fill className={`${award.certificate_url ? 'object-contain p-4' : 'object-cover'} transition-transform duration-500 group-hover:scale-105`} sizes="(max-width: 768px) 100vw, 50vw" />
+                    <Image src={getPreviewUrl(award.certificate_url)} alt={award.title} fill className="object-contain p-4 transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 50vw" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                    {award.certificate_url && (
-                      <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider">
-                        Certificate
-                      </div>
-                    )}
-                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
-                       <div
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
-                          style={{ background: `${award.color || '#FFD700'}90`, color: '#fff', backdropFilter: "blur(4px)" }}
-                        >
-                          <Trophy size={20} />
-                        </div>
-                        <span className="text-[11px] font-semibold text-white/90 drop-shadow-md">
-                          {award.date}
-                        </span>
+                    <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                      Certificate
                     </div>
                   </div>
-                ) : (
+                ) : null}
                   <div className="p-6 pb-0 flex items-start justify-between">
                     <div
                       className="w-12 h-12 rounded-2xl flex items-center justify-center"
@@ -88,11 +75,7 @@ export function AchievementsSection() {
                     >
                       <Trophy size={20} />
                     </div>
-                    <span className="text-[11px] font-semibold" style={{ color: "var(--ink-muted)" }}>
-                      {award.date}
-                    </span>
                   </div>
-                )}
                 
                 {/* Details */}
                 <div className="p-6 sm:p-8 flex-1 flex flex-col">
