@@ -53,7 +53,10 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
   
   const hasExternalEvidence = achievement.evidence && achievement.evidence.length > 0;
   const hasCertificate = !!achievement.certificate_url;
-  const isPdf = hasCertificate && achievement.certificate_url!.toLowerCase().endsWith(".pdf");
+  const isPdf = hasCertificate && (
+    achievement.certificate_url!.toLowerCase().endsWith(".pdf") || 
+    achievement.certificate_type === "application/pdf"
+  );
   const hasGallery = galleryImages.length > 0;
 
   return (

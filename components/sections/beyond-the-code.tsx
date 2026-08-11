@@ -70,24 +70,103 @@ export function BeyondTheCodeSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                className="grid gap-6 md:grid-cols-2"
               >
                 {/* Achievements */}
                 {achievements.map((ach) => (
                   <div 
                     key={`ach-${ach.title}`} 
                     onClick={() => setSelectedAchievement(ach)}
-                    className="flex flex-col p-5 rounded-2xl cursor-pointer hover:shadow-md transition-shadow group" 
-                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
+                    className="flex flex-col p-6 sm:p-8 rounded-[24px] cursor-pointer group transition-all hover:-translate-y-1" 
+                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)", boxShadow: "var(--shadow-sm)" }}
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105" style={{ background: ach.color ? `${ach.color}15` : "var(--accent-soft)", color: ach.color || "var(--accent)" }}>
-                        <Trophy size={20} />
+                    {/* Top Pill (Position/Prize) */}
+                    {ach.position && (
+                      <div 
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest self-start mb-6"
+                        style={{ 
+                          background: ach.color ? `${ach.color}15` : "#fef3c7", 
+                          color: ach.color || "#b45309", 
+                          border: `1px solid ${ach.color ? ach.color+'40' : '#fcd34d'}` 
+                        }}
+                      >
+                        <Trophy size={14} />
+                        {ach.position}
                       </div>
-                    </div>
-                    <h3 className="text-base font-semibold mb-1" style={{ color: "var(--ink)" }}>{ach.title}</h3>
-                    {ach.event && <p className="text-sm font-medium mb-3" style={{ color: "var(--ink-muted)" }}>{ach.event}</p>}
-                    {ach.description && <p className="text-sm line-clamp-3" style={{ color: "var(--ink-secondary)" }}>{ach.description}</p>}
+                    )}
+
+                    {/* Date */}
+                    {ach.date && (
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--gradient-1)" }}>
+                        <Calendar size={14} />
+                        {ach.date}
+                      </div>
+                    )}
+
+                    {/* Title */}
+                    <h3 className="text-2xl sm:text-3xl font-display font-medium mb-3 leading-tight" style={{ color: "var(--ink)" }}>{ach.title}</h3>
+                    
+                    {/* Event / Subtitle */}
+                    {ach.event && (
+                      <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-5" style={{ color: "var(--gradient-2)" }}>
+                        {ach.event}
+                      </p>
+                    )}
+
+                    {/* Description */}
+                    {ach.description && (
+                      <p className="text-sm sm:text-[15px] leading-relaxed mb-6" style={{ color: "var(--ink-secondary)" }}>
+                        {ach.description}
+                      </p>
+                    )}
+
+                    {/* Media Preview Grid */}
+                    {ach.gallery && ach.gallery.length > 0 && (
+                      <div className="grid grid-cols-2 gap-3 mb-6 relative">
+                        {/* Media count badge */}
+                        <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[10px] font-medium tracking-wide">
+                          <ImageIcon size={10} />
+                          {ach.gallery.length} Media
+                        </div>
+
+                        {ach.gallery.slice(0, 2).map((img, i) => (
+                          <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)" }}>
+                            <Image 
+                              src={img.url} 
+                              alt={img.caption || `Gallery preview ${i+1}`} 
+                              fill 
+                              className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                              sizes="(max-width: 768px) 50vw, 25vw" 
+                            />
+                            {i === 1 && ach.gallery!.length > 2 && (
+                              <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center text-white font-medium text-sm">
+                                +{ach.gallery!.length - 2} More
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Tags / Evidence */}
+                    {ach.evidence && ach.evidence.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                        {ach.evidence.map((ev, i) => (
+                          <span 
+                            key={i} 
+                            className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                            style={{ 
+                              color: "var(--gradient-2)", 
+                              background: "transparent", 
+                              border: "1px solid var(--gradient-2)",
+                              opacity: 0.8
+                            }}
+                          >
+                            {ev.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </motion.div>
