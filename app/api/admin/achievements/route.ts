@@ -31,7 +31,16 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   const { id, ...updates } = rawBody;
   
   if (!id) return apiError(new Error("ID required"), 400);
-  const body = achievementSchema.partial().parse(updates);
+  const parsedBody = achievementSchema.partial().parse(updates);
+  
+  // Only include fields that were explicitly provided in the request
+  // This prevents Zod defaults from overwriting omitted fields (e.g. omitted gallery becomes [])
+  const body: any = {};
+  for (const key in updates) {
+    if (key in parsedBody) {
+      body[key] = (parsedBody as any)[key];
+    }
+  }
 
   // Fetch existing achievement to compare images
   const { data: existingAch } = await supabase.from("achievements").select("image_url, image_public_id, certificate_url, gallery").eq("id", id).single();

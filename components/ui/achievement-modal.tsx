@@ -16,6 +16,12 @@ interface AchievementModalProps {
   onClose: () => void;
 }
 
+function getPreviewUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.toLowerCase().endsWith(".pdf")) return url.replace(/\.pdf$/i, ".jpg");
+  return url;
+}
+
 export function AchievementModal({ achievement, isOpen, onClose }: AchievementModalProps) {
   if (!achievement) return null;
 
@@ -86,33 +92,48 @@ function ModalContent({ achievement, onClose }: { achievement: Achievement; onCl
             <X className="w-5 h-5" />
           </button>
 
-          {/* Header Cover Image */}
-          {achievement.media?.url ? (
-             <div className="relative w-full h-64 sm:h-80 bg-zinc-950/60 rounded-t-3xl border-b border-white/10 overflow-hidden">
-                <Image src={achievement.media.url} alt={achievement.title} fill className="object-cover opacity-80" sizes="100vw" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+          {/* Header Certificate / Cover Image */}
+          {(achievement.certificate_url || achievement.media?.url) ? (
+             <div className="relative w-full min-h-[300px] sm:min-h-[400px] bg-zinc-950/80 rounded-t-3xl border-b border-white/10 overflow-hidden flex items-center justify-center p-8">
+                {achievement.certificate_url && (
+                  <div className="absolute top-4 left-4 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-bold text-white uppercase tracking-wider border border-white/10 flex items-center gap-2">
+                    <FileText size={14} /> Official Certificate
+                  </div>
+                )}
+                <Image 
+                  src={getPreviewUrl(achievement.certificate_url || achievement.media?.url)} 
+                  alt={achievement.title} 
+                  fill 
+                  className={cn("transition-opacity duration-500", achievement.certificate_url ? "object-contain p-8 sm:p-12" : "object-cover opacity-80")} 
+                  sizes="100vw" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent pointer-events-none" />
              </div>
           ) : (
             <div className="w-full h-32 bg-zinc-950/60 rounded-t-3xl border-b border-white/10" />
           )}
 
           {/* Content */}
-          <div className="p-6 sm:p-8 space-y-8 -mt-16 sm:-mt-24 relative z-10">
+          <div className={cn("p-6 sm:p-8 space-y-8 relative z-10", (achievement.certificate_url || achievement.media?.url) ? "-mt-20 sm:-mt-24" : "-mt-16")}>
             {/* Title & Badge */}
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl"
-                style={{ background: `${achievement.color || '#FFD700'}20`, color: achievement.color || '#FFD700', border: `1px solid ${achievement.color || '#FFD700'}40` }}
+                className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl bg-background/50 backdrop-blur-sm"
+                style={{ color: achievement.color || '#FFD700', border: `1px solid ${achievement.color || '#FFD700'}40` }}
               >
                 <Award size={32} />
               </div>
               <div className="pt-2">
-                <h3 className="text-2xl sm:text-4xl font-display font-medium text-white mb-2">{achievement.title}</h3>
+                {achievement.position && (
+                  <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: achievement.color || '#FFD700' }}>
+                    {achievement.position}
+                  </p>
+                )}
+                <h3 className="text-2xl sm:text-4xl font-display font-medium text-white mb-3">{achievement.title}</h3>
                 <div className="flex flex-wrap items-center gap-3 text-muted text-sm font-medium">
                   {achievement.event && <span className="text-primary">{achievement.event}</span>}
                   {achievement.event && achievement.date && <span className="w-1 h-1 rounded-full bg-white/20" />}
                   {achievement.date && <span>{achievement.date}</span>}
-                  {achievement.position && <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: `${achievement.color || '#FFD700'}20`, color: achievement.color || '#FFD700' }}>{achievement.position}</span>}
                 </div>
               </div>
             </div>

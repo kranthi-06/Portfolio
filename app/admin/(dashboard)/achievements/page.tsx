@@ -83,7 +83,7 @@ export default function AchievementsPage() {
   }
 
   const fetchItems = useCallback(async () => {
-    try { const res = await fetch("/api/admin/achievements"); if (res.ok) { const { data } = await res.json(); setItems(data || []); } }
+    try { const res = await fetch(`/api/admin/achievements?t=${Date.now()}`, { cache: "no-store" }); if (res.ok) { const { data } = await res.json(); setItems(data || []); } }
     catch (err) { console.error(err); toast.error("Failed to load"); } finally { setLoading(false); }
   }, []);
 

@@ -9,6 +9,12 @@ import type { Achievement } from "@/lib/portfolio/types";
 import { AchievementModal } from "@/components/ui/achievement-modal";
 import Image from "next/image";
 
+function getPreviewUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.toLowerCase().endsWith(".pdf")) return url.replace(/\.pdf$/i, ".jpg");
+  return url;
+}
+
 export function AchievementsSection() {
   const { achievements, stats, certifications } = usePortfolio();
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
@@ -52,11 +58,16 @@ export function AchievementsSection() {
                 style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
                 onClick={() => setSelectedAchievement(award)}
               >
-                {/* Cover Image */}
-                {award.media?.url ? (
+                {/* Cover Image / Certificate */}
+                {(award.certificate_url || award.media?.url) ? (
                   <div className="relative w-full h-48 overflow-hidden bg-zinc-950/20">
-                    <Image src={award.media.url} alt={award.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 50vw" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <Image src={getPreviewUrl(award.certificate_url || award.media?.url)} alt={award.title} fill className={`${award.certificate_url ? 'object-contain p-4' : 'object-cover'} transition-transform duration-500 group-hover:scale-105`} sizes="(max-width: 768px) 100vw, 50vw" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                    {award.certificate_url && (
+                      <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                        Certificate
+                      </div>
+                    )}
                     <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
                        <div
                           className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
@@ -85,15 +96,27 @@ export function AchievementsSection() {
                 
                 {/* Details */}
                 <div className="p-6 sm:p-8 flex-1 flex flex-col">
+                  {award.position && (
+                    <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: award.color || "var(--primary)" }}>
+                      {award.position}
+                    </p>
+                  )}
                   <p
                     className="font-display text-xl font-medium tracking-tight mb-1"
                     style={{ color: "var(--ink)" }}
                   >
                     {award.title}
                   </p>
-                  <p className="text-sm font-semibold mb-3" style={{ color: award.color || "var(--primary)" }}>
-                    {award.event || award.position}
-                  </p>
+                  {award.event && (
+                    <p className="text-sm font-semibold mb-1" style={{ color: "var(--ink-secondary)" }}>
+                      {award.event}
+                    </p>
+                  )}
+                  {award.date && (
+                    <p className="text-xs font-medium mb-3" style={{ color: "var(--ink-muted)" }}>
+                      {award.date}
+                    </p>
+                  )}
                   <p className="text-sm leading-relaxed line-clamp-3 mb-6 flex-1" style={{ color: "var(--ink-secondary)" }}>
                     {award.description}
                   </p>

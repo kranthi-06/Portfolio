@@ -140,7 +140,18 @@ export const achievementSchema = z.object({
   certificate_filename: z.string().nullable().optional(),
   certificate_mime_type: z.string().nullable().optional(),
   verification_url: z.string().url().nullable().optional().or(z.literal("")),
-  gallery: z.array(z.any()).default([]),
+  gallery: z.array(
+    z.object({
+      id: z.string().optional(),
+      url: z.string(),
+      public_id: z.string().nullable().optional(),
+      filename: z.string().nullable().optional(),
+      type: z.string().nullable().optional(),
+      order: z.number().nullable().optional(),
+      isCover: z.boolean().nullable().optional(),
+      caption: z.string().nullable().optional()
+    }).passthrough()
+  ).default([]),
   evidence: z.array(z.any()).default([]),
 });
 

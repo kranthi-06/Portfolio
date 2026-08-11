@@ -9,11 +9,14 @@ import { toast } from "sonner";
 import { useFileUpload } from "@/hooks/use-file-upload";
 
 export interface GalleryItem {
+  id?: string;
   url: string;
   public_id?: string;
   filename?: string;
   caption?: string;
   isCover?: boolean;
+  type?: string;
+  order?: number;
 }
 
 interface GalleryManagerProps {
@@ -39,11 +42,14 @@ export function GalleryManager({ images, onChange, onCoverSelect, coverUrl }: Ga
 
         if (result) {
           const newImg: GalleryItem = {
+            id: crypto.randomUUID(),
             url: result.url,
             public_id: result.publicId,
             filename: file.name,
             caption: "",
             isCover: false,
+            type: "image",
+            order: newImages.length,
           };
           newImages.push(newImg);
           toast.success("Image uploaded");
@@ -68,11 +74,13 @@ export function GalleryManager({ images, onChange, onCoverSelect, coverUrl }: Ga
   });
 
   function removeImage(index: number) {
+    if (!confirm("Remove this image?")) return;
     const item = images[index];
     const newImages = images.filter((_, i) => i !== index);
-    onChange(newImages);
+    const updatedImages = newImages.map((img, idx) => ({ ...img, order: idx }));
+    onChange(updatedImages);
     if (item.url === coverUrl) {
-      if (newImages.length > 0) onCoverSelect(newImages[0].url);
+      if (updatedImages.length > 0) onCoverSelect(updatedImages[0].url);
       else onCoverSelect("");
     }
   }
@@ -83,7 +91,10 @@ export function GalleryManager({ images, onChange, onCoverSelect, coverUrl }: Ga
     const temp = newImages[index];
     newImages[index] = newImages[index + direction];
     newImages[index + direction] = temp;
-    onChange(newImages);
+    
+    // Update order metadata for all images
+    const updatedImages = newImages.map((img, idx) => ({ ...img, order: idx }));
+    onChange(updatedImages);
   }
 
   return (

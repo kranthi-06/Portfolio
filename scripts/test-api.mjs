@@ -1,17 +1,7 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
 
-async function run() {
-  try {
-    const res = await fetch('https://wepflhbhesqemfoamvsl.supabase.co/rest/v1/', {
-      headers: {
-        'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
-      }
-    });
-    const data = await res.json();
-    console.log(data);
-  } catch (err) {
-    console.error(err);
-  }
-}
-run();
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
+// To test the API, I would need a valid auth token.
+// The problem must be in the logic I just read.
