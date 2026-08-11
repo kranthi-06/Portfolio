@@ -135,6 +135,13 @@ export const achievementSchema = z.object({
   color: z.string().default("#FFD700"),
   sort_order: z.number().int().default(0),
   status: contentStatusSchema.default("draft"),
+  certificate_url: z.string().url().nullable().optional().or(z.literal("")),
+  certificate_type: z.string().nullable().optional(),
+  certificate_filename: z.string().nullable().optional(),
+  certificate_mime_type: z.string().nullable().optional(),
+  verification_url: z.string().url().nullable().optional().or(z.literal("")),
+  gallery: z.array(z.any()).default([]),
+  evidence: z.array(z.any()).default([]),
 });
 
 export const skillCategorySchema = z.enum([

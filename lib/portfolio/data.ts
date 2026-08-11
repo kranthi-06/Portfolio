@@ -100,7 +100,14 @@ function achievementMap(item: Record<string, unknown>): Achievement {
     position: item.position as string | null, date: item.date as string | null,
     description: item.description as string | null, 
     media: item.image_url ? { url: String(item.image_url), type: "image" } : null,
-    color: item.color as string | null, sort_order: Number(item.sort_order ?? 0)
+    color: item.color as string | null, sort_order: Number(item.sort_order ?? 0),
+    certificate_url: item.certificate_url as string | null,
+    certificate_filename: item.certificate_filename as string | null,
+    certificate_type: item.certificate_type as string | null,
+    certificate_mime_type: item.certificate_mime_type as string | null,
+    verification_url: item.verification_url as string | null,
+    gallery: Array.isArray(item.gallery) ? item.gallery : [],
+    evidence: Array.isArray(item.evidence) ? item.evidence : []
   };
 }
 

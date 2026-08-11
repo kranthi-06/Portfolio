@@ -44,7 +44,7 @@ type LegacyContextType = {
   skillCategories: { title: string; icon: LucideIcon; description: string; color: string; skills: { name: string; level: number }[] }[];
   experience: import("@/lib/portfolio/types").Experience[];
   projects: import("@/lib/portfolio/types").Project[];
-  achievements: { title: string; event: string; position: string; date: string; description: string; icon: React.ElementType; color: string; media?: { url: string; type: string } }[];
+  achievements: (import("@/lib/portfolio/types").Achievement & { icon: React.ElementType })[];
   certifications: import("@/lib/portfolio/types").Certificate[];
   events: import("@/lib/portfolio/types").Event[];
   gallery: import("@/lib/portfolio/types").GalleryItem[];
@@ -136,14 +136,14 @@ export function PortfolioProvider({
 
     // 6. Achievements
     const achievements = (data.achievements || []).map((ach) => ({
-      title: ach.title,
+      ...ach,
       event: ach.event || "",
       position: ach.position || "",
       date: ach.date || "",
       description: ach.description || "",
       icon: getIcon(ach.title),
       color: ach.color || "#6C63FF",
-      media: ach.media || undefined,
+      media: ach.media || null,
     }));
 
     // 7. Certifications

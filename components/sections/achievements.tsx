@@ -1,12 +1,17 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import { Trophy, ArrowRight } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal, StaggerReveal, StaggerItem } from "@/components/ui/reveal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { useState } from "react";
+import type { Achievement } from "@/lib/portfolio/types";
+import { AchievementModal } from "@/components/ui/achievement-modal";
+import Image from "next/image";
 
 export function AchievementsSection() {
   const { achievements, stats, certifications } = usePortfolio();
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
 
   return (
     <section id="achievements" className="section" aria-labelledby="achievements-title">
@@ -43,32 +48,60 @@ export function AchievementsSection() {
           {achievements.map((award) => (
             <StaggerItem key={award.title}>
               <article
-                className="group p-8 rounded-3xl h-full transition-all duration-300 hover:shadow-lg"
+                className="group relative flex flex-col h-full rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer"
                 style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
+                onClick={() => setSelectedAchievement(award)}
               >
-                <div className="flex items-start justify-between mb-6">
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                    style={{ background: `${award.color}20`, color: award.color }}
-                  >
-                    <Trophy size={20} />
+                {/* Cover Image */}
+                {award.media?.url ? (
+                  <div className="relative w-full h-48 overflow-hidden bg-zinc-950/20">
+                    <Image src={award.media.url} alt={award.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 50vw" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
+                       <div
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                          style={{ background: `${award.color || '#FFD700'}90`, color: '#fff', backdropFilter: "blur(4px)" }}
+                        >
+                          <Trophy size={20} />
+                        </div>
+                        <span className="text-[11px] font-semibold text-white/90 drop-shadow-md">
+                          {award.date}
+                        </span>
+                    </div>
                   </div>
-                  <span className="text-[11px] font-semibold" style={{ color: "var(--ink-muted)" }}>
-                    {award.date}
-                  </span>
+                ) : (
+                  <div className="p-6 pb-0 flex items-start justify-between">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                      style={{ background: `${award.color || '#FFD700'}20`, color: award.color || '#FFD700' }}
+                    >
+                      <Trophy size={20} />
+                    </div>
+                    <span className="text-[11px] font-semibold" style={{ color: "var(--ink-muted)" }}>
+                      {award.date}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Details */}
+                <div className="p-6 sm:p-8 flex-1 flex flex-col">
+                  <p
+                    className="font-display text-xl font-medium tracking-tight mb-1"
+                    style={{ color: "var(--ink)" }}
+                  >
+                    {award.title}
+                  </p>
+                  <p className="text-sm font-semibold mb-3" style={{ color: award.color || "var(--primary)" }}>
+                    {award.event || award.position}
+                  </p>
+                  <p className="text-sm leading-relaxed line-clamp-3 mb-6 flex-1" style={{ color: "var(--ink-secondary)" }}>
+                    {award.description}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-sm font-medium mt-auto transition-colors" style={{ color: "var(--primary)" }}>
+                    View Achievement <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                  </div>
                 </div>
-                <p
-                  className="font-display text-xl font-medium tracking-tight mb-1"
-                  style={{ color: "var(--ink)" }}
-                >
-                  {award.title}
-                </p>
-                <p className="text-sm font-semibold mb-3" style={{ color: award.color }}>
-                  {award.event || award.position}
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--ink-secondary)" }}>
-                  {award.description}
-                </p>
               </article>
             </StaggerItem>
           ))}
@@ -102,6 +135,12 @@ export function AchievementsSection() {
           </div>
         </Reveal>
       </div>
+
+      <AchievementModal 
+        achievement={selectedAchievement} 
+        isOpen={!!selectedAchievement} 
+        onClose={() => setSelectedAchievement(null)} 
+      />
     </section>
   );
 }

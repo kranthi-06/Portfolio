@@ -118,6 +118,13 @@ export type Achievement = {
   media: MediaAsset | null;
   color: string | null;
   sort_order: number;
+  certificate_url?: string | null;
+  certificate_filename?: string | null;
+  certificate_type?: string | null;
+  certificate_mime_type?: string | null;
+  verification_url?: string | null;
+  gallery?: any[];
+  evidence?: { label: string; url: string }[];
 };
 
 export type Event = {

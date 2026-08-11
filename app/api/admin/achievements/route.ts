@@ -34,7 +34,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   const body = achievementSchema.partial().parse(updates);
 
   // Fetch existing achievement to compare images
-  const { data: existingAch } = await supabase.from("achievements").select("image_url, image_public_id").eq("id", id).single();
+  const { data: existingAch } = await supabase.from("achievements").select("image_url, image_public_id, certificate_url, gallery").eq("id", id).single();
 
   const { data, error } = await supabase.from("achievements").update(body).eq("id", id).select().single();
   if (error) throw error;
@@ -43,6 +43,25 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   if (existingAch && body.image_url !== undefined && existingAch.image_url && body.image_url !== existingAch.image_url) {
     const pubId = existingAch.image_public_id || CloudinaryService.extractPublicId(existingAch.image_url);
     if (pubId) await CloudinaryService.deleteAsset(pubId);
+  }
+
+  // Cleanup old certificate if replaced
+  if (existingAch && body.certificate_url !== undefined && existingAch.certificate_url && body.certificate_url !== existingAch.certificate_url) {
+    const pubId = CloudinaryService.extractPublicId(existingAch.certificate_url);
+    if (pubId) await CloudinaryService.deleteAsset(pubId);
+  }
+
+  // Cleanup removed gallery images
+  if (existingAch && body.gallery !== undefined) {
+    const oldGallery = Array.isArray(existingAch.gallery) ? existingAch.gallery : [];
+    const newGalleryUrls = (Array.isArray(body.gallery) ? body.gallery : []).map((item: any) => item.url);
+    
+    for (const oldItem of oldGallery) {
+      if (oldItem.url && !newGalleryUrls.includes(oldItem.url)) {
+        const pubId = oldItem.public_id || CloudinaryService.extractPublicId(oldItem.url);
+        if (pubId) await CloudinaryService.deleteAsset(pubId);
+      }
+    }
   }
 
   await logActivity({ action: "update", entityType: "achievement", entityId: data.id, entityTitle: data.title });
@@ -55,7 +74,7 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);
 
-  const { data: ach } = await supabase.from("achievements").select("title, image_url, image_public_id").eq("id", id).single();
+  const { data: ach } = await supabase.from("achievements").select("title, image_url, image_public_id, certificate_url, gallery").eq("id", id).single();
   const { error } = await supabase.from("achievements").delete().eq("id", id);
   if (error) throw error;
 
@@ -63,6 +82,20 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   if (ach?.image_url) {
     const pubId = ach.image_public_id || CloudinaryService.extractPublicId(ach.image_url);
     if (pubId) await CloudinaryService.deleteAsset(pubId);
+  }
+  
+  if (ach?.certificate_url) {
+    const pubId = CloudinaryService.extractPublicId(ach.certificate_url);
+    if (pubId) await CloudinaryService.deleteAsset(pubId);
+  }
+
+  if (ach?.gallery && Array.isArray(ach.gallery)) {
+    for (const item of ach.gallery) {
+      if (item.url) {
+        const pubId = item.public_id || CloudinaryService.extractPublicId(item.url);
+        if (pubId) await CloudinaryService.deleteAsset(pubId);
+      }
+    }
   }
 
   await logActivity({ action: "delete", entityType: "achievement", entityId: id, entityTitle: ach?.title });
