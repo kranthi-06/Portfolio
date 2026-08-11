@@ -70,77 +70,71 @@ export function BeyondTheCodeSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="grid gap-6 md:grid-cols-2"
+                className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
               >
                 {/* Achievements */}
                 {achievements.map((ach) => (
                   <div 
                     key={`ach-${ach.title}`} 
                     onClick={() => setSelectedAchievement(ach)}
-                    className="flex flex-col p-6 sm:p-8 rounded-[24px] cursor-pointer group transition-all hover:-translate-y-1" 
+                    className="flex flex-col p-5 rounded-[20px] cursor-pointer group transition-all hover:-translate-y-1" 
                     style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)", boxShadow: "var(--shadow-sm)" }}
                   >
                     {/* Top Pill (Position/Prize) */}
                     {ach.position && (
                       <div 
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest self-start mb-6"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest self-start mb-4"
                         style={{ 
                           background: ach.color ? `${ach.color}15` : "#fef3c7", 
                           color: ach.color || "#b45309", 
                           border: `1px solid ${ach.color ? ach.color+'40' : '#fcd34d'}` 
                         }}
                       >
-                        <Trophy size={14} />
+                        <Trophy size={12} />
                         {ach.position}
                       </div>
                     )}
 
                     {/* Date */}
                     {ach.date && (
-                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "var(--gradient-1)" }}>
-                        <Calendar size={14} />
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--gradient-1)" }}>
+                        <Calendar size={12} />
                         {ach.date}
                       </div>
                     )}
 
                     {/* Title */}
-                    <h3 className="text-2xl sm:text-3xl font-display font-medium mb-3 leading-tight" style={{ color: "var(--ink)" }}>{ach.title}</h3>
+                    <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 leading-tight" style={{ color: "var(--ink)" }}>{ach.title}</h3>
                     
                     {/* Event / Subtitle */}
                     {ach.event && (
-                      <p className="text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-5" style={{ color: "var(--gradient-2)" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: "var(--gradient-2)" }}>
                         {ach.event}
                       </p>
                     )}
 
                     {/* Description */}
                     {ach.description && (
-                      <p className="text-sm sm:text-[15px] leading-relaxed mb-6" style={{ color: "var(--ink-secondary)" }}>
+                      <p className="text-[13px] leading-relaxed mb-5 line-clamp-3" style={{ color: "var(--ink-secondary)" }}>
                         {ach.description}
                       </p>
                     )}
 
-                    {/* Media Preview Grid */}
+                    {/* Media Preview (Small Thumbnails) */}
                     {ach.gallery && ach.gallery.length > 0 && (
-                      <div className="grid grid-cols-2 gap-3 mb-6 relative">
-                        {/* Media count badge */}
-                        <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[10px] font-medium tracking-wide">
-                          <ImageIcon size={10} />
-                          {ach.gallery.length} Media
-                        </div>
-
-                        {ach.gallery.slice(0, 2).map((img, i) => (
-                          <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden border" style={{ borderColor: "var(--line)" }}>
+                      <div className="flex gap-2 mb-5">
+                        {ach.gallery.slice(0, 3).map((img, i) => (
+                          <div key={i} className="relative h-14 w-20 sm:h-16 sm:w-24 rounded-lg overflow-hidden border shrink-0" style={{ borderColor: "var(--line)" }}>
                             <Image 
                               src={img.url} 
                               alt={img.caption || `Gallery preview ${i+1}`} 
                               fill 
                               className="object-cover transition-transform duration-500 group-hover:scale-105" 
-                              sizes="(max-width: 768px) 50vw, 25vw" 
+                              sizes="100px" 
                             />
-                            {i === 1 && ach.gallery!.length > 2 && (
-                              <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center text-white font-medium text-sm">
-                                +{ach.gallery!.length - 2} More
+                            {i === 2 && ach.gallery!.length > 3 && (
+                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-white font-medium text-[10px]">
+                                +{ach.gallery!.length - 3}
                               </div>
                             )}
                           </div>
@@ -150,11 +144,11 @@ export function BeyondTheCodeSection() {
 
                     {/* Tags / Evidence */}
                     {ach.evidence && ach.evidence.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                      <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
                         {ach.evidence.map((ev, i) => (
                           <span 
                             key={i} 
-                            className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                            className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider"
                             style={{ 
                               color: "var(--gradient-2)", 
                               background: "transparent", 
