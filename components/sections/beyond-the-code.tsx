@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Calendar, Trophy, Image as ImageIcon, Award, ExternalLink } from "lucide-react";
+import { Trophy, Calendar, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal } from "@/components/ui/reveal";
 import { AchievementModal } from "@/components/ui/achievement-modal";
 import type { Achievement } from "@/lib/portfolio/types";
+import dynamic from "next/dynamic";
+
+const PdfThumbnail = dynamic(
+  () => import("@/components/certificates/pdf-thumbnail").then(mod => mod.PdfThumbnail),
+  { ssr: false, loading: () => <div className="absolute inset-0 animate-pulse w-full h-full" style={{ background: "var(--bg-subtle)" }} /> }
+);
 
 export function BeyondTheCodeSection() {
   const { events, achievements, gallery } = usePortfolio();
@@ -73,96 +79,124 @@ export function BeyondTheCodeSection() {
                 className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
               >
                 {/* Achievements */}
-                {achievements.map((ach) => (
-                  <div 
-                    key={`ach-${ach.title}`} 
-                    onClick={() => setSelectedAchievement(ach)}
-                    className="flex flex-col p-5 rounded-[20px] cursor-pointer group transition-all hover:-translate-y-1" 
-                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)", boxShadow: "var(--shadow-sm)" }}
-                  >
-                    {/* Top Pill (Position/Prize) */}
-                    {ach.position && (
-                      <div 
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest self-start mb-4"
-                        style={{ 
-                          background: ach.color ? `${ach.color}15` : "#fef3c7", 
-                          color: ach.color || "#b45309", 
-                          border: `1px solid ${ach.color ? ach.color+'40' : '#fcd34d'}` 
-                        }}
-                      >
-                        <Trophy size={12} />
-                        {ach.position}
-                      </div>
-                    )}
+                {achievements.map((ach) => {
+                  const hasCertificate = !!ach.certificate_url;
+                  const isPdf = hasCertificate && (
+                    ach.certificate_url!.toLowerCase().endsWith(".pdf") || 
+                    ach.certificate_type === "application/pdf"
+                  );
 
-                    {/* Date */}
-                    {ach.date && (
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--gradient-1)" }}>
-                        <Calendar size={12} />
-                        {ach.date}
-                      </div>
-                    )}
-
-                    {/* Title */}
-                    <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 leading-tight" style={{ color: "var(--ink)" }}>{ach.title}</h3>
-                    
-                    {/* Event / Subtitle */}
-                    {ach.event && (
-                      <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: "var(--gradient-2)" }}>
-                        {ach.event}
-                      </p>
-                    )}
-
-                    {/* Description */}
-                    {ach.description && (
-                      <p className="text-[13px] leading-relaxed mb-5 line-clamp-3" style={{ color: "var(--ink-secondary)" }}>
-                        {ach.description}
-                      </p>
-                    )}
-
-                    {/* Media Preview (Small Thumbnails) */}
-                    {ach.gallery && ach.gallery.length > 0 && (
-                      <div className="flex gap-2 mb-5">
-                        {ach.gallery.slice(0, 3).map((img, i) => (
-                          <div key={i} className="relative h-14 w-20 sm:h-16 sm:w-24 rounded-lg overflow-hidden border shrink-0" style={{ borderColor: "var(--line)" }}>
+                  return (
+                    <div 
+                      key={`ach-${ach.title}`} 
+                      onClick={() => setSelectedAchievement(ach)}
+                      className="flex flex-col rounded-[20px] overflow-hidden cursor-pointer group transition-all hover:-translate-y-1" 
+                      style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)", boxShadow: "var(--shadow-sm)" }}
+                    >
+                      {/* Full bleed Certificate Image */}
+                      {hasCertificate && (
+                        <div className="relative block aspect-[1.42/1] w-full overflow-hidden shrink-0 border-b" style={{ borderColor: "var(--line)", background: "var(--bg-subtle)" }}>
+                          {isPdf ? (
+                            <PdfThumbnail src={ach.certificate_url!} title={ach.title} />
+                          ) : (
                             <Image 
-                              src={img.url} 
-                              alt={img.caption || `Gallery preview ${i+1}`} 
+                              src={ach.certificate_url!} 
+                              alt={`Certificate for ${ach.title}`} 
                               fill 
-                              className="object-cover transition-transform duration-500 group-hover:scale-105" 
-                              sizes="100px" 
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" 
+                              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]" 
                             />
-                            {i === 2 && ach.gallery!.length > 3 && (
-                              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-white font-medium text-[10px]">
-                                +{ach.gallery!.length - 3}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          )}
+                          <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        </div>
+                      )}
 
-                    {/* Tags / Evidence */}
-                    {ach.evidence && ach.evidence.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
-                        {ach.evidence.map((ev, i) => (
-                          <span 
-                            key={i} 
-                            className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                      <div className="flex flex-col p-5 flex-grow">
+                        {/* Top Pill (Position/Prize) */}
+                        {ach.position && (
+                          <div 
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest self-start mb-4"
                             style={{ 
-                              color: "var(--gradient-2)", 
-                              background: "transparent", 
-                              border: "1px solid var(--gradient-2)",
-                              opacity: 0.8
+                              background: ach.color ? `${ach.color}15` : "#fef3c7", 
+                              color: ach.color || "#b45309", 
+                              border: `1px solid ${ach.color ? ach.color+'40' : '#fcd34d'}` 
                             }}
                           >
-                            {ev.label}
-                          </span>
-                        ))}
+                            <Trophy size={12} />
+                            {ach.position}
+                          </div>
+                        )}
+
+                        {/* Date */}
+                        {ach.date && (
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "var(--gradient-1)" }}>
+                            <Calendar size={12} />
+                            {ach.date}
+                          </div>
+                        )}
+
+                        {/* Title */}
+                        <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 leading-tight" style={{ color: "var(--ink)" }}>{ach.title}</h3>
+                        
+                        {/* Event / Subtitle */}
+                        {ach.event && (
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: "var(--gradient-2)" }}>
+                            {ach.event}
+                          </p>
+                        )}
+
+                        {/* Description */}
+                        {ach.description && (
+                          <p className="text-[13px] leading-relaxed mb-5 line-clamp-3" style={{ color: "var(--ink-secondary)" }}>
+                            {ach.description}
+                          </p>
+                        )}
+
+                        {/* Media Preview (Small Thumbnails) */}
+                        {ach.gallery && ach.gallery.length > 0 && (
+                          <div className="flex gap-2 mb-5">
+                            {ach.gallery.slice(0, 3).map((img, i) => (
+                              <div key={i} className="relative h-14 w-20 sm:h-16 sm:w-24 rounded-lg overflow-hidden border shrink-0" style={{ borderColor: "var(--line)" }}>
+                                <Image 
+                                  src={img.url} 
+                                  alt={img.caption || `Gallery preview ${i+1}`} 
+                                  fill 
+                                  className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                                  sizes="100px" 
+                                />
+                                {i === 2 && ach.gallery!.length > 3 && (
+                                  <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-white font-medium text-[10px]">
+                                    +{ach.gallery!.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Tags / Evidence */}
+                        {ach.evidence && ach.evidence.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
+                            {ach.evidence.map((ev, i) => (
+                              <span 
+                                key={i} 
+                                className="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                                style={{ 
+                                  color: "var(--gradient-2)", 
+                                  background: "transparent", 
+                                  border: "1px solid var(--gradient-2)",
+                                  opacity: 0.8
+                                }}
+                              >
+                                {ev.label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </motion.div>
             )}
 
