@@ -1,32 +1,14 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { apiSuccess, withAdminAuth } from "@/lib/server/admin-auth";
-import { subDays, startOfDay, endOfDay } from "date-fns";
-
-function parseRange(range: string | null): { start: string; end: string } {
-  const now = new Date();
-  const endDate = endOfDay(now).toISOString();
-  let start: Date;
-
-  switch (range) {
-    case "today": start = startOfDay(now); break;
-    case "yesterday": start = startOfDay(subDays(now, 1)); break;
-    case "7": start = startOfDay(subDays(now, 7)); break;
-    case "30": start = startOfDay(subDays(now, 30)); break;
-    case "90": start = startOfDay(subDays(now, 90)); break;
-    case "all": start = new Date("2020-01-01"); break;
-    default: start = startOfDay(subDays(now, 30));
-  }
-
-  return { start: start.toISOString(), end: endDate };
-}
+import { parseAnalyticsRange } from "@/lib/analytics/date-utils";
 
 export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const range = url.searchParams.get("range") || "30";
   const limit = parseInt(url.searchParams.get("limit") || "50", 10);
-  const { start, end } = parseRange(range);
+  const { start, end } = parseAnalyticsRange(range);
 
   const { data: events } = await supabase
     .from("analytics_events")

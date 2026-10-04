@@ -1,13 +1,13 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { apiSuccess, withAdminAuth } from "@/lib/server/admin-auth";
-import { subMinutes } from "date-fns";
+import { getActiveThreshold } from "@/lib/analytics/date-utils";
 
 export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const windowMinutes = parseInt(url.searchParams.get("window") || "5", 10);
-  const activeThreshold = subMinutes(new Date(), windowMinutes).toISOString();
+  const activeThreshold = getActiveThreshold(windowMinutes);
 
   // Get active visitors from the view
   const { data: activeVisitors } = await supabase
