@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth, revalidateData, escapeSqlLike } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth, revalidateData, escapeSqlLike } from "@/lib/server/admin-auth";
 import { CloudinaryService } from "@/lib/services/cloudinary";
 import { projectSchema } from "@/lib/server/validations";
 
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
@@ -24,7 +24,7 @@ export const GET = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data);
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const body = projectSchema.parse(rawBody);
@@ -37,7 +37,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Project created successfully", 201);
 });
 
-export const PATCH = withApiAuth(async (request: NextRequest) => {
+export const PATCH = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { id, ...updates } = rawBody;
@@ -75,7 +75,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Project updated successfully");
 });
 
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);
@@ -100,3 +100,4 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   revalidateData();
   return apiSuccess(null, "Project deleted successfully");
 });
+

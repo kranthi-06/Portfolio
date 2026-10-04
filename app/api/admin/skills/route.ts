@@ -1,17 +1,17 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth, revalidateData } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth, revalidateData } from "@/lib/server/admin-auth";
 import { skillSchema } from "@/lib/server/validations";
 
-export const GET = withApiAuth(async () => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("skills").select("*").order("category").order("sort_order");
   if (error) throw error;
   return apiSuccess(data);
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const body = skillSchema.parse(rawBody);
@@ -24,7 +24,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Skill created successfully", 201);
 });
 
-export const PATCH = withApiAuth(async (request: NextRequest) => {
+export const PATCH = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { id, ...updates } = rawBody;
@@ -39,7 +39,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Skill updated successfully");
 });
 
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);
@@ -51,3 +51,4 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   revalidateData();
   return apiSuccess(null, "Skill deleted successfully");
 });
+

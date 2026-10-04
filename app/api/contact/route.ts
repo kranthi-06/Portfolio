@@ -1,38 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import crypto from "crypto";
 
-// Simple in-memory rate limiter for contact form submissions.
-// In production with multiple instances, use Redis or a database-backed approach.
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_MAX = 5; // max submissions
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
-
-function isRateLimited(email: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(email);
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(email, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
-    return false;
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return true;
-  }
-
-  entry.count++;
-  return false;
-}
-
-// Periodic cleanup of expired entries to prevent memory leak
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of rateLimitMap) {
-      if (now > entry.resetAt) rateLimitMap.delete(key);
-    }
-  }, 5 * 60 * 1000); // Clean up every 5 minutes
-}
+const CONTACT_RATE_LIMIT = 5; // max submissions per hour
+const CONTACT_RATE_WINDOW_SECONDS = 60 * 60; // 1 hour
+const CSRF_TOKEN_NAME = "csrf_token";
 
 /**
  * Strip HTML tags from user input to prevent XSS in stored messages.
@@ -41,11 +13,47 @@ function sanitizeHtml(input: string): string {
   return input.replace(/<[^>]*>/g, "").trim();
 }
 
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "127.0.0.1";
+}
+
+function getHashSecret(): string {
+  const salt = process.env.ANALYTICS_SALT;
+  if (!salt) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ANALYTICS_SALT environment variable is required in production");
+    }
+    return "portfolio-analytics-secret-salt-dev-only";
+  }
+  return salt;
+}
+
+function hashIp(ip: string, userAgent: string): string {
+  return crypto.createHash("sha256").update(`${ip}-${userAgent}-${getHashSecret()}`).digest("hex");
+}
+
+function getCsrfTokenFromRequest(req: NextRequest): string | null {
+  const cookie = req.cookies.get(CSRF_TOKEN_NAME);
+  return cookie?.value || null;
+}
+
+function validateCsrfToken(req: NextRequest, bodyToken: string | null): boolean {
+  const cookieToken = getCsrfTokenFromRequest(req);
+  return !!cookieToken && !!bodyToken && cookieToken === bodyToken;
+}
+
 // Public endpoint for contact form submissions — no auth required
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, subject, message } = body;
+    const { name, email, subject, message, csrfToken } = body;
+
+    // Validate CSRF token
+    if (!validateCsrfToken(request, csrfToken)) {
+      return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
+    }
 
     if (!name || !email || !message) {
       return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 });
@@ -54,15 +62,6 @@ export async function POST(request: NextRequest) {
     // Basic email validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
-    }
-
-    // Rate limiting
-    const normalizedEmail = email.toLowerCase().trim();
-    if (isRateLimited(normalizedEmail)) {
-      return NextResponse.json(
-        { error: "Too many messages. Please try again later." },
-        { status: 429 }
-      );
     }
 
     // Sanitize inputs
@@ -74,21 +73,160 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Name and message cannot be empty after sanitization" }, { status: 400 });
     }
 
+    // Get idempotency key from header (required)
+    const idempotencyKey = request.headers.get("Idempotency-Key");
+    
+    if (!idempotencyKey) {
+      return NextResponse.json(
+        { error: "Idempotency-Key header is required" },
+        { status: 400 }
+      );
+    }
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(idempotencyKey)) {
+      return NextResponse.json(
+        { error: "Invalid Idempotency-Key format" },
+        { status: 400 }
+      );
+    }
+
+    // Rate limiting - check both email and IP
+    const normalizedEmail = email.toLowerCase().trim();
+    const ip = getClientIp(request);
+    
     const supabase = createPublicSupabaseClient();
     if (!supabase) {
       console.error("[Contact Form Error]: Supabase public client configuration missing");
       return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
     }
+
+    // Check email-based rate limit
+    const { data: emailRateLimit } = await supabase.rpc("check_rate_limit", {
+      p_identifier: normalizedEmail,
+      p_endpoint: "contact_email",
+      p_limit: CONTACT_RATE_LIMIT,
+      p_window_seconds: CONTACT_RATE_WINDOW_SECONDS,
+    });
+    
+    if (emailRateLimit && !emailRateLimit[0]?.allowed) {
+      const resetAt = emailRateLimit[0]?.reset_at;
+      const retryAfter = resetAt ? Math.ceil((new Date(resetAt).getTime() - Date.now()) / 1000) : 3600;
+      return NextResponse.json(
+        { error: "Too many messages from this email. Please try again later." },
+        { 
+          status: 429,
+          headers: { "Retry-After": retryAfter.toString() }
+        }
+      );
+    }
+
+    // Check IP-based rate limit (stricter)
+    const { data: ipRateLimit } = await supabase.rpc("check_rate_limit", {
+      p_identifier: ip,
+      p_endpoint: "contact_ip",
+      p_limit: 3, // 3 per hour per IP
+      p_window_seconds: CONTACT_RATE_WINDOW_SECONDS,
+    });
+    
+    if (ipRateLimit && !ipRateLimit[0]?.allowed) {
+      const resetAt = ipRateLimit[0]?.reset_at;
+      const retryAfter = resetAt ? Math.ceil((new Date(resetAt).getTime() - Date.now()) / 1000) : 3600;
+      return NextResponse.json(
+        { error: "Too many requests from this IP. Please try again later." },
+        { 
+          status: 429,
+          headers: { "Retry-After": retryAfter.toString() }
+        }
+      );
+    }
+
+    // Check for existing message with same idempotency key
+    const { data: existingMessage } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle();
+
+    if (existingMessage) {
+      // Return success without creating duplicate
+      return NextResponse.json({ success: true, duplicate: true });
+    }
+
+    // Try to find visitor and session from analytics tables
+    let visitorId: string | null = null;
+    let sessionId: string | null = null;
+
+    const visitorHash = hashIp(ip, request.headers.get("user-agent") || "unknown");
+
+    // Find visitor by hash
+    const { data: visitor } = await supabase
+      .from("analytics_visitors")
+      .select("id")
+      .eq("visitor_hash", visitorHash)
+      .maybeSingle();
+
+    if (visitor) {
+      visitorId = visitor.id;
+
+      // Find active session (last 30 minutes)
+      const { data: session } = await supabase
+        .from("analytics_sessions")
+        .select("id")
+        .eq("visitor_id", visitorId)
+        .gte("started_at", new Date(Date.now() - 30 * 60 * 1000).toISOString())
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (session) {
+        sessionId = session.id;
+      }
+    }
+
+    // Insert message with idempotency key and visitor/session linkage
     const { error } = await supabase.from("messages").insert({
-      name: cleanName, email: normalizedEmail, subject: cleanSubject, message: cleanMessage, status: "unread",
+      name: cleanName,
+      email: normalizedEmail,
+      subject: cleanSubject,
+      message: cleanMessage,
+      status: "unread",
+      idempotency_key: idempotencyKey,
+      visitor_id: visitorId,
+      session_id: sessionId,
+      source: "contact_form",
+      metadata: {
+        ip_hash: visitorHash.substring(0, 16), // Store truncated hash for reference
+        user_agent: request.headers.get("user-agent")?.substring(0, 200) || "unknown",
+      },
     });
 
     if (error) {
       console.error("[Contact Form Error]:", error);
+      
+      // If unique constraint violation on idempotency_key, treat as success
+      if (error.code === "23505" && error.message.includes("idempotency_key")) {
+        return NextResponse.json({ success: true, duplicate: true });
+      }
+      
       return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
     }
+
+    // Also insert analytics event for contact submission
+    if (visitorId && sessionId) {
+      await supabase.from("analytics_events").insert({
+        session_id: sessionId,
+        visitor_id: visitorId,
+        event_name: "contact_submit",
+        event_data: { subject: cleanSubject },
+        path: "/contact",
+      });
+    }
+
     return NextResponse.json({ success: true });
-  } catch (err) { console.error(err);
+  } catch (err) {
+    console.error("[Contact Form Error]:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

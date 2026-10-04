@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, withAdminAuth } from "@/lib/server/admin-auth";
 
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
 
   // Fetch all counts in parallel
@@ -78,3 +78,4 @@ export const GET = withApiAuth(async (request: NextRequest) => {
 
   return apiSuccess(dashboard);
 });
+

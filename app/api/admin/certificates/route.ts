@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth, revalidateData, escapeSqlLike } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth, revalidateData, escapeSqlLike } from "@/lib/server/admin-auth";
 import { CloudinaryService } from "@/lib/services/cloudinary";
 import { certificateSchema } from "@/lib/server/validations";
 
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
@@ -34,7 +34,7 @@ export const GET = withApiAuth(async (request: NextRequest) => {
   return apiSuccess({ data, count, page, limit });
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const body = certificateSchema.parse(rawBody);
@@ -52,7 +52,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Certificate created successfully", 201);
 });
 
-export const PATCH = withApiAuth(async (request: NextRequest) => {
+export const PATCH = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { id, ...updates } = rawBody;
@@ -94,7 +94,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Certificate updated successfully");
 });
 
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const id = url.searchParams.get("id");
@@ -134,3 +134,4 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
     return apiSuccess(null, "Certificate archived successfully");
   }
 });
+

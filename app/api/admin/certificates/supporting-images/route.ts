@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { CloudinaryService } from "@/lib/services/cloudinary";
 import { z } from "zod";
 
@@ -22,7 +22,7 @@ const updateSchema = z.object({
 });
 
 // GET — list supporting images for a certificate
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const certificateId = url.searchParams.get("certificate_id");
@@ -42,7 +42,7 @@ export const GET = withApiAuth(async (request: NextRequest) => {
 });
 
 // POST — add a supporting image
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const body = createSchema.parse(rawBody);
@@ -67,7 +67,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
 });
 
 // PATCH — update a supporting image
-export const PATCH = withApiAuth(async (request: NextRequest) => {
+export const PATCH = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { id, ...updates } = updateSchema.parse(rawBody);
@@ -84,7 +84,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
 });
 
 // DELETE — remove a supporting image
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const id = new URL(request.url).searchParams.get("id");
 
@@ -119,3 +119,4 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
 
   return apiSuccess(null, "Supporting image deleted");
 });
+

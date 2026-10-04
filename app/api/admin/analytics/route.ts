@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { subDays, startOfDay, endOfDay } from "date-fns";
 
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const url = new URL(request.url);
   const range = url.searchParams.get("range") || "30"; // days
@@ -105,3 +105,4 @@ export const GET = withApiAuth(async (request: NextRequest) => {
     }
   });
 });
+

@@ -75,7 +75,7 @@ export function AnalyticsTracker() {
           }).catch(() => {});
         }
       }
-    }, 10000); // 10 seconds
+    }, 30000); // 30 seconds
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

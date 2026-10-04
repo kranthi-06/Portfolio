@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, withAdminAuth } from "@/lib/server/admin-auth";
 import { subMinutes } from "date-fns";
 
-export const GET = withApiAuth(async (request: NextRequest) => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   
   // Consider users "active" if their last ping/pageview was within the last 3 minutes
@@ -64,3 +64,4 @@ export const GET = withApiAuth(async (request: NextRequest) => {
     timeline
   });
 });
+

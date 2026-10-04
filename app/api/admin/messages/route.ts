@@ -1,20 +1,20 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { z } from "zod";
 
 const messageUpdateSchema = z.object({
   status: z.enum(["unread", "read", "archived"]).optional(),
 }).strict();
 
-export const GET = withApiAuth(async () => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("messages").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return apiSuccess(data);
 });
 
-export const PATCH = withApiAuth(async (request: NextRequest) => {
+export const PATCH = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const { id, ...rawUpdates } = await request.json();
   if (!id) return apiError(new Error("ID required"), 400);
@@ -24,7 +24,7 @@ export const PATCH = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data);
 });
 
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);

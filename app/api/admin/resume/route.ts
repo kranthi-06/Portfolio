@@ -1,18 +1,18 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { CloudinaryService } from "@/lib/services/cloudinary";
 import { resumeSchema } from "@/lib/server/validations";
 
-export const GET = withApiAuth(async () => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("resume").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return apiSuccess(data);
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const body = resumeSchema.parse(rawBody);
@@ -39,7 +39,7 @@ export const POST = withApiAuth(async (request: NextRequest) => {
   return apiSuccess(data, "Resume uploaded successfully", 201);
 });
 
-export const DELETE = withApiAuth(async (request: NextRequest) => {
+export const DELETE = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const id = new URL(request.url).searchParams.get("id");
   if (!id) return apiError(new Error("ID required"), 400);
@@ -60,3 +60,4 @@ export const DELETE = withApiAuth(async (request: NextRequest) => {
   await logActivity({ action: "delete", entityType: "resume", entityId: id, entityTitle: res?.file_name });
   return apiSuccess(null, "Resume deleted successfully");
 });
+

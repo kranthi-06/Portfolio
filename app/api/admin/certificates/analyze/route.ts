@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CertificateAnalyzer } from "@/lib/ai/certificate-analyzer";
 import { getServerEnvironment } from "@/lib/server/env";
 import { logActivity } from "@/lib/admin/log-activity";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { z } from "zod";
 
 const analyzeSchema = z.object({
@@ -13,7 +13,7 @@ const analyzeSchema = z.object({
   entityId: z.string().optional().nullable(),
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { fileUrl, fileType, entityId } = analyzeSchema.parse(rawBody);
@@ -120,3 +120,4 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     : "Certificate analyzed successfully"
   );
 });
+

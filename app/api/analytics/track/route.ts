@@ -2,165 +2,193 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { UAParser } from "ua-parser-js";
+import { parseDeviceInfo } from "@/lib/analytics/device-detection";
+import { parseReferrer } from "@/lib/analytics/referrer";
+import { parseVercelGeolocationHeaders, hasVercelGeolocationHeaders } from "@/lib/analytics/geolocation";
 
-// Hashing secret for visitor IDs (should use env variable in prod)
-const HASH_SECRET = process.env.ANALYTICS_SALT || "portfolio-analytics-secret-salt";
+function getHashSecret(): string {
+  const salt = process.env.ANALYTICS_SALT;
+  if (!salt) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("ANALYTICS_SALT environment variable is required in production");
+    }
+    return "portfolio-analytics-secret-salt-dev-only";
+  }
+  return salt;
+}
+const VISITOR_COOKIE_NAME = "pv_visitor_id";
 
 function hashIp(ip: string, userAgent: string) {
-  return crypto.createHash("sha256").update(`${ip}-${userAgent}-${HASH_SECRET}`).digest("hex");
+  return crypto.createHash("sha256").update(`${ip}-${userAgent}-${getHashSecret()}`).digest("hex");
+}
+
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") || "127.0.0.1";
+}
+
+function getVisitorIdFromRequest(req: NextRequest): string | null {
+  const cookie = req.cookies.get(VISITOR_COOKIE_NAME);
+  return cookie?.value || null;
+}
+
+function setVisitorIdCookie(response: NextResponse, visitorId: string) {
+  response.cookies.set(VISITOR_COOKIE_NAME, visitorId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365 * 2, // 2 years
+    path: "/",
+  });
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { action, payload, sessionId: clientSessionId } = body;
-    
+
     // Extract headers
-    const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
+    const ip = getClientIp(req);
     const userAgent = req.headers.get("user-agent") || "unknown";
-    const country = req.headers.get("x-vercel-ip-country") || "Unknown";
-    let region = req.headers.get("x-vercel-ip-country-region") || "Unknown";
-    const city = req.headers.get("x-vercel-ip-city") || "Unknown";
+    
+    // Parse device info
+    const deviceInfo = parseDeviceInfo(userAgent);
+
+    // Parse referrer
+    const referrer = payload.referrer || "direct";
+    const referrerInfo = parseReferrer(referrer);
+
+    // Resolve geolocation using Vercel headers
+    const geo = parseVercelGeolocationHeaders(req.headers);
+    const country = geo.country;
+    const countryCode = geo.countryCode;
+    const region = geo.region;
+    const regionCode = geo.regionCode;
+    const city = geo.city;
     const timezone = req.headers.get("x-vercel-ip-timezone") || "Unknown";
+    
+    // Check if we have meaningful geolocation data
+    const hasGeoData = hasVercelGeolocationHeaders(req.headers);
 
-    // Indian State Mapping
-    if (country === "IN" && region !== "Unknown") {
-      const stateMap: Record<string, string> = {
-        "AP": "Andhra Pradesh", "AR": "Arunachal Pradesh", "AS": "Assam", "BR": "Bihar",
-        "CG": "Chhattisgarh", "GA": "Goa", "GJ": "Gujarat", "HR": "Haryana",
-        "HP": "Himachal Pradesh", "JH": "Jharkhand", "KA": "Karnataka", "KL": "Kerala",
-        "MP": "Madhya Pradesh", "MH": "Maharashtra", "MN": "Manipur", "ML": "Meghalaya",
-        "MZ": "Mizoram", "NL": "Nagaland", "OD": "Odisha", "PB": "Punjab", "RJ": "Rajasthan",
-        "SK": "Sikkim", "TN": "Tamil Nadu", "TG": "Telangana", "TR": "Tripura",
-        "UP": "Uttar Pradesh", "UK": "Uttarakhand", "WB": "West Bengal",
-        "AN": "Andaman and Nicobar Islands", "CH": "Chandigarh", "DN": "Dadra and Nagar Haveli",
-        "DD": "Daman and Diu", "DL": "Delhi", "JK": "Jammu and Kashmir", "LA": "Ladakh",
-        "LD": "Lakshadweep", "PY": "Puducherry"
-      };
-      region = stateMap[region] || region;
-    }
-
+    // Generate visitor hash for backward compatibility
     const visitorHash = hashIp(ip, userAgent);
 
-    // Parse UA
-    const parser = new UAParser(userAgent);
-    const browser = parser.getBrowser().name || "Unknown";
-    const os = parser.getOS().name || "Unknown";
-    const deviceType = parser.getDevice().type || "desktop";
+    // Get or create first-party visitor_id from cookie
+    let visitorIdCookie = getVisitorIdFromRequest(req);
     
+    // If no cookie, generate one (will be set in response)
+    if (!visitorIdCookie) {
+      const array = new Uint8Array(16);
+      crypto.getRandomValues(array);
+      visitorIdCookie = Array.from(array, (byte) => byte.toString(16).padStart(2, "")).join("");
+    }
+
     const supabase = await createSupabaseServerClient();
 
-    // 1. Get or Create Visitor
-    const { data: existingVisitor } = await supabase
-      .from("analytics_visitors")
-      .select("id, first_seen_at")
-      .eq("visitor_hash", visitorHash)
-      .maybeSingle();
+    // 1. Get or Create Visitor using database function
+    const { data: visitorDbId, error: visitorError } = await supabase.rpc("get_or_create_visitor", {
+      p_visitor_id: visitorIdCookie,
+      p_visitor_hash: visitorHash,
+      p_country: country,
+      p_region: region,
+      p_city: city,
+      p_timezone: timezone,
+      p_browser: deviceInfo.browser,
+      p_os: deviceInfo.os,
+      p_device_type: deviceInfo.deviceType,
+      p_device_brand: deviceInfo.deviceBrand,
+      p_resolution: payload.resolution || "Unknown",
+      p_language: payload.language || "Unknown",
+      p_referrer_source: referrerInfo.source,
+      p_landing_page: payload.pathname || "/",
+    });
 
-    let visitorId = existingVisitor?.id;
-    let isReturning = false;
-
-    if (existingVisitor) {
-      // Check if it's been more than 24h for "returning" definition or similar
-      isReturning = true;
-      await supabase.from("analytics_visitors").update({ last_seen_at: new Date().toISOString() }).eq("id", visitorId);
-    } else {
-      const { data: newVisitor } = await supabase.from("analytics_visitors").insert({
-        visitor_hash: visitorHash,
-        country,
-        region,
-        city,
-        timezone,
-        browser,
-        os,
-        device_type: deviceType,
-        resolution: payload.resolution || "Unknown",
-        language: payload.language || "Unknown",
-        is_returning: false,
-      }).select("id").single();
-      if (newVisitor) visitorId = newVisitor.id;
+    if (visitorError || !visitorDbId) {
+      console.error("[Analytics Track Error] Visitor resolution failed:", visitorError);
+      return NextResponse.json({ error: "Failed to resolve visitor" }, { status: 500 });
     }
 
-    if (!visitorId) return NextResponse.json({ error: "Failed to resolve visitor" }, { status: 500 });
+    // 2. Get or Create Session
+    const { data: sessionDbId, error: sessionError } = await supabase.rpc("get_or_create_session", {
+      p_visitor_id: visitorDbId,
+      p_session_id: clientSessionId || null,
+      p_referrer: referrer,
+      p_referrer_source: referrerInfo.source,
+      p_landing_page: payload.pathname || "/",
+      p_exit_page: payload.pathname || "/",
+      p_country: country,
+      p_region: region,
+      p_city: city,
+      p_browser: deviceInfo.browser,
+      p_os: deviceInfo.os,
+      p_device_type: deviceInfo.deviceType,
+      p_device_brand: deviceInfo.deviceBrand,
+    });
 
-    // 2. Manage Session
-    let sessionId = clientSessionId;
-    let session;
-    
-    if (sessionId) {
-      const { data: existingSession } = await supabase
-        .from("analytics_sessions")
-        .select("*")
-        .eq("id", sessionId)
-        .maybeSingle();
-        
-      if (existingSession) {
-        session = existingSession;
-        // Update session ended_at
-        const now = new Date();
-        const started = new Date(session.started_at);
-        const duration = Math.floor((now.getTime() - started.getTime()) / 1000);
-        await supabase.from("analytics_sessions").update({
-          ended_at: now.toISOString(),
-          duration,
-          is_bounced: duration < 10 // Consider not bounced if they stay > 10s
-        }).eq("id", sessionId);
-      }
+    if (sessionError || !sessionDbId) {
+      console.error("[Analytics Track Error] Session resolution failed:", sessionError);
+      return NextResponse.json({ error: "Failed to resolve session" }, { status: 500 });
     }
-    
-    if (!session) {
-      // Create new session
-      const { data: newSession } = await supabase.from("analytics_sessions").insert({
-        visitor_id: visitorId,
-        referrer: payload.referrer || "direct",
-        referrer_source: payload.referrerSource || "direct",
-        landing_page: payload.pathname || "/",
-        exit_page: payload.pathname || "/",
-      }).select().single();
-      if (newSession) {
-        session = newSession;
-        sessionId = session.id;
-      }
-    }
-
-    if (!sessionId) return NextResponse.json({ error: "Failed to resolve session" }, { status: 500 });
 
     // 3. Handle Actions
     if (action === "pageview") {
       // Update session exit page
-      await supabase.from("analytics_sessions").update({ exit_page: payload.pathname }).eq("id", sessionId);
-      
+      await supabase
+        .from("analytics_sessions")
+        .update({ exit_page: payload.pathname })
+        .eq("id", sessionDbId);
+
       await supabase.from("analytics_page_views").insert({
-        session_id: sessionId,
-        visitor_id: visitorId,
+        session_id: sessionDbId,
+        visitor_id: visitorDbId,
         pathname: payload.pathname,
         search_params: payload.searchParams || {},
+        referrer: referrer,
+        referrer_source: referrerInfo.source,
+      });
+
+      // Also insert event for page_view
+      await supabase.from("analytics_events").insert({
+        session_id: sessionDbId,
+        visitor_id: visitorDbId,
+        event_name: "page_view",
+        event_data: { pathname: payload.pathname, referrer: referrerInfo.source },
+        path: payload.pathname,
       });
     } else if (action === "ping") {
       // Update time on page for the latest page view in this session
       const { data: lastView } = await supabase
         .from("analytics_page_views")
         .select("id, time_on_page")
-        .eq("session_id", sessionId)
+        .eq("session_id", sessionDbId)
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
-        
+
       if (lastView) {
         await supabase.from("analytics_page_views").update({
-          time_on_page: lastView.time_on_page + 10 // assuming ping every 10s
+          time_on_page: lastView.time_on_page + 10, // assuming ping every 10s
         }).eq("id", lastView.id);
       }
     } else if (action === "event") {
       await supabase.from("analytics_events").insert({
-        session_id: sessionId,
-        visitor_id: visitorId,
+        session_id: sessionDbId,
+        visitor_id: visitorDbId,
         event_name: payload.eventName,
         event_data: payload.eventData || {},
+        path: payload.pathname || "/",
       });
     }
 
-    return NextResponse.json({ success: true, sessionId });
+    // Create response with visitor_id cookie if newly generated
+    const response = NextResponse.json({ success: true, sessionId: sessionDbId });
+    
+    if (!req.cookies.get(VISITOR_COOKIE_NAME)) {
+      setVisitorIdCookie(response, visitorIdCookie);
+    }
+
+    return response;
   } catch (error) {
     console.error("[Analytics Track Error]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

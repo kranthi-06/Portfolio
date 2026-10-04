@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError, withApiAuth } from '@/lib/server/api-utils';
+import { apiSuccess, apiError, withAdminAuth } from '@/lib/server/admin-auth';
 import { CloudinaryService } from '@/lib/services/cloudinary';
 import { ALLOWED_UPLOAD_TYPES, ALLOWED_IMAGE_TYPES, ALLOWED_PDF_TYPES } from '@/lib/admin/constants';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
@@ -54,3 +54,4 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     return apiError(error, 500);
   }
 });
+

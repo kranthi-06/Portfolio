@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerEnvironment } from "@/lib/server/env";
-import { withApiAuth } from "@/lib/server/api-utils";
+import { withAdminAuth } from "@/lib/server/admin-auth";
 import { z } from "zod";
 import { AIService } from "@/lib/ai/provider";
 import { buildPrompt, AIAction, AITone } from "@/lib/ai/prompts";
@@ -15,7 +15,7 @@ const streamSchema = z.object({
   contextType: z.string().optional(),
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { text, action, customPrompt, tone, contextType } = streamSchema.parse(rawBody);
@@ -60,3 +60,4 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     }
   }) as unknown as NextResponse;
 });
+

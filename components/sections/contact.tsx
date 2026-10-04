@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Send,
@@ -16,6 +16,7 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { GlassCard } from "@/components/ui/glass-card";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { fadeInLeft, fadeInRight } from "@/lib/animations";
+import { toast } from "sonner";
 
 interface FormState {
   name: string;
@@ -25,7 +26,7 @@ interface FormState {
 }
 
 /**
- * Contact section with glassmorphism form, social links, and EmailJS integration
+ * Contact section with glassmorphism form, social links, and API integration
  */
 export function Contact() {
   const [form, setForm] = useState<FormState>({
@@ -37,6 +38,7 @@ export function Contact() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
     "idle"
   );
+  const [csrfToken, setCsrfToken] = useState<string>("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -44,27 +46,52 @@ export function Contact() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    fetch("/api/csrf")
+      .then(res => res.json())
+      .then(data => {
+        if (data.csrfToken) setCsrfToken(data.csrfToken);
+      })
+      .catch(err => console.error("Failed to fetch CSRF token:", err));
+  }, []);
+
+  // Generate cryptographically secure idempotency key for this submission
+  const generateIdempotencyKey = () => {
+    // Use crypto.randomUUID for a secure random key
+    return crypto.randomUUID();
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus("sending");
 
     try {
-      // EmailJS integration — replace with your credentials
-      // import emailjs from "@emailjs/browser";
-      // await emailjs.send(
-      //   "YOUR_SERVICE_ID",
-      //   "YOUR_TEMPLATE_ID",
-      //   { ...form },
-      //   "YOUR_PUBLIC_KEY"
-      // );
+      const idempotencyKey = generateIdempotencyKey();
 
-      // Simulate send for now
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify({ ...form, csrfToken }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to send message");
+      }
+
       setStatus("success");
       setForm({ name: "", email: "", subject: "", message: "" });
+      toast.success("Message sent successfully!");
       setTimeout(() => setStatus("idle"), 4000);
-    } catch (err) { console.error(err);
+    } catch (err) {
+      console.error(err);
       setStatus("error");
+      toast.error(err instanceof Error ? err.message : "Failed to send message");
       setTimeout(() => setStatus("idle"), 4000);
     }
   };
@@ -268,7 +295,7 @@ export function Contact() {
                   <MagneticButton
                     variant="primary"
                     size="lg"
-                    className="w-full sm:w-auto"
+                    className={`w-full sm:w-auto ${status === "sending" ? "opacity-50 cursor-not-allowed" : ""}`}
                     type="submit"
                   >
                     {status === "sending" ? (

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServerEnvironment } from "@/lib/server/env";
-import { apiSuccess, apiError, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, apiError, withAdminAuth } from "@/lib/server/admin-auth";
 import { z } from "zod";
 import { AIService } from "@/lib/ai/provider";
 
@@ -11,7 +11,7 @@ const improveSchema = z.object({
   context: z.string().optional(),
 });
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const rawBody = await request.json();
   const { text, action, context } = improveSchema.parse(rawBody);
@@ -41,3 +41,4 @@ export const POST = withApiAuth(async (request: NextRequest) => {
 
   return apiSuccess({ result }, "Text improved successfully");
 });
+

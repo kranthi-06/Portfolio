@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError, withApiAuth } from '@/lib/server/api-utils';
+import { apiSuccess, apiError, withAdminAuth } from '@/lib/server/admin-auth';
 import { CloudinaryService } from '@/lib/services/cloudinary';
 
-export const POST = withApiAuth(async (request: NextRequest) => {
+export const POST = withAdminAuth(async (request: NextRequest, admin) => {
   try {
     const rawBody = await request.json();
     const { publicId, url, resourceType = 'image' } = rawBody;
@@ -26,3 +26,4 @@ export const POST = withApiAuth(async (request: NextRequest) => {
     return apiError(error, 500);
   }
 });
+

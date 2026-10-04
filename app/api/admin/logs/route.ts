@@ -1,7 +1,8 @@
+import { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { apiSuccess, withApiAuth } from "@/lib/server/api-utils";
+import { apiSuccess, withAdminAuth } from "@/lib/server/admin-auth";
 
-export const GET = withApiAuth(async () => {
+export const GET = withAdminAuth(async (request: NextRequest, admin) => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("activity_logs")
@@ -12,3 +13,4 @@ export const GET = withApiAuth(async () => {
   if (error) throw error;
   return apiSuccess(data);
 });
+

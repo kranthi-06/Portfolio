@@ -60,3 +60,39 @@ export function AnalyticsPieChart({ data }: { data: any[] }) {
     </ResponsiveContainer>
   );
 }
+
+export function AnalyticsBarChart({ data, color = "#6366f1" }: { data: { name: string; value: number; sessions?: number }[]; color?: string }) {
+  if (!data || data.length === 0) return <div className="flex items-center justify-center h-full text-sm text-gray-500">No data available</div>;
+
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <BarChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 40 }}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+        <XAxis 
+          dataKey="name" 
+          axisLine={false} 
+          tickLine={false} 
+          tick={{ fontSize: 10, fill: '#888' }} 
+          dy={8}
+          tickFormatter={(value) => value.length > 12 ? value.substring(0, 12) + "…" : value}
+        />
+        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} dx={-10} />
+        <Tooltip 
+          contentStyle={{ backgroundColor: '#18181b', border: '1px solid #333', borderRadius: '8px', fontSize: '12px' }}
+          formatter={(value: any, name: any) => [value ? Number(value).toLocaleString() : "0", name ? String(name) : ""]}
+          itemStyle={{ color: '#e5e5e5' }}
+        />
+        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
+        <Bar 
+          dataKey="value" 
+          fill={color} 
+          radius={[4, 4, 0, 0]} 
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={color} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
