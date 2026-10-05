@@ -1,4 +1,4 @@
--- 013 — Backfill missing profiles for existing auth users
+-- 013 — Backfill missing profiles for existing users
 -- ============================================================================
 -- ROOT CAUSE of "403 — Admin access required" on /admin:
 --
@@ -10,49 +10,98 @@
 -- The middleware and withAdminAuth both look up `public.profiles.role === 'admin'`.
 -- With no profile row, `maybeSingle()` returns null → state = "forbidden" → 403.
 --
--- This migration is SCHEMA-AGNOSTIC: it inspects the actual columns of
--- public.profiles at runtime and only inserts columns that exist. This makes it
--- safe to apply on any baseline, including projects whose profiles table was
--- created with a different column set.
+-- This migration is FULLY DYNAMIC: it inspects the actual profiles table schema
+-- and foreign-key constraint at runtime, then builds the INSERT accordingly.
+-- It works on any baseline, including projects whose profiles table was created
+-- with a different column set or a different FK target (auth.users vs public.users).
 -- ============================================================================
 
--- 1. Backfill missing profiles (schema-agnostic, idempotent)
---    Uses dynamic SQL so it works regardless of which columns profiles has.
+-- 1. Backfill missing profiles (fully dynamic, idempotent)
 DO $$
 DECLARE
-    v_has_email boolean;
+    v_fk_target_schema text;
+    v_fk_target_table text;
     v_has_full_name boolean;
     v_has_role boolean;
+    v_has_email boolean;
+    v_target_has_email boolean;
+    v_target_has_full_name boolean;
     v_sql text;
+    v_col_list text := 'id';
+    v_val_list text := 't.id';
 BEGIN
-    -- Inspect the actual profiles table columns
+    -- Discover the FK target (e.g. auth.users or public.users)
+    SELECT
+        COALESCE(ns.nspname, 'public'),
+        ct.relname
+    INTO v_fk_target_schema, v_fk_target_table
+    FROM pg_constraint c
+    JOIN pg_class cl ON cl.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = cl.relnamespace
+    JOIN pg_class ct ON ct.oid = c.confrelid
+    JOIN pg_namespace ns ON ns.oid = ct.relnamespace
+    WHERE n.nspname = 'public'
+      AND cl.relname = 'profiles'
+      AND c.contype = 'f'
+      AND c.conname = 'profiles_id_fkey'
+    LIMIT 1;
+
+    -- Fallback: if the FK name differs, find any FK on profiles(id)
+    IF v_fk_target_table IS NULL THEN
+        SELECT COALESCE(ns.nspname, 'public'), ct.relname
+        INTO v_fk_target_schema, v_fk_target_table
+        FROM pg_constraint c
+        JOIN pg_class cl ON cl.oid = c.conrelid
+        JOIN pg_namespace n ON n.oid = cl.relnamespace
+        JOIN pg_class ct ON ct.oid = c.confrelid
+        JOIN pg_namespace ns ON ns.oid = ct.relnamespace
+        JOIN pg_attribute a ON a.attrelid = cl.oid AND a.attnum = c.conkey[1] AND a.attname = 'id'
+        WHERE n.nspname = 'public'
+          AND cl.relname = 'profiles'
+          AND c.contype = 'f'
+        LIMIT 1;
+    END IF;
+
+    -- Final fallback: assume auth.users
+    IF v_fk_target_table IS NULL THEN
+        v_fk_target_schema := 'auth';
+        v_fk_target_table := 'users';
+    END IF;
+
+    -- Discover which columns exist in profiles
     SELECT
         EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='email'),
         EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='full_name'),
         EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='role')
     INTO v_has_email, v_has_full_name, v_has_role;
 
-    -- Build the column list dynamically
-    v_sql := 'INSERT INTO public.profiles (id';
-    IF v_has_email THEN v_sql := v_sql || ', email'; END IF;
-    IF v_has_full_name THEN v_sql := v_sql || ', full_name'; END IF;
-    IF v_has_role THEN v_sql := v_sql || ', role'; END IF;
-    v_sql := v_sql || ') SELECT u.id';
+    -- Discover which columns exist in the FK target table
+    SELECT
+        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=v_fk_target_schema AND table_name=v_fk_target_table AND column_name='email'),
+        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=v_fk_target_schema AND table_name=v_fk_target_table AND column_name='full_name')
+    INTO v_target_has_email, v_target_has_full_name;
 
-    IF v_has_email THEN
-        v_sql := v_sql || ', u.email';
+    -- Build column list and value list dynamically
+    IF v_has_email AND v_target_has_email THEN
+        v_col_list := v_col_list || ', email';
+        v_val_list := v_val_list || ', t.email';
     END IF;
-    IF v_has_full_name THEN
-        v_sql := v_sql || ', COALESCE(u.raw_user_meta_data->>''full_name'', split_part(u.email, ''@'', 1))';
+    IF v_has_full_name AND v_target_has_full_name THEN
+        v_col_list := v_col_list || ', full_name';
+        v_val_list := v_val_list || ', COALESCE(t.raw_user_meta_data->>''full_name'', split_part(t.email, ''@'', 1))';
     END IF;
     IF v_has_role THEN
-        v_sql := v_sql || ', ''admin''';
+        v_col_list := v_col_list || ', role';
+        v_val_list := v_val_list || ', ''admin''';
     END IF;
 
-    v_sql := v_sql || E'\nFROM auth.users u'
-        || E'\nLEFT JOIN public.profiles p ON p.id = u.id'
-        || E'\nWHERE p.id IS NULL'
-        || E'\nON CONFLICT (id) DO NOTHING';
+    -- Build and execute the INSERT
+    v_sql := 'INSERT INTO public.profiles (' || v_col_list || ')'
+        || ' SELECT ' || v_val_list
+        || ' FROM ' || v_fk_target_schema || '.' || v_fk_target_table || ' t'
+        || ' LEFT JOIN public.profiles p ON p.id = t.id'
+        || ' WHERE p.id IS NULL'
+        || ' ON CONFLICT (id) DO NOTHING';
 
     EXECUTE v_sql;
 END $$;

@@ -90,9 +90,9 @@ describe("handle_new_user trigger (migration 013)", () => {
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.handle_new_user");
   });
 
-  it("is schema-agnostic — inspects columns at runtime", () => {
+  it("is schema-agnostic — discovers FK target and columns at runtime", () => {
     // The backfill uses dynamic SQL so it works on any profiles schema.
-    // It must NOT hardcode column names in the INSERT ... SELECT.
+    // It must NOT hardcode column names or the FK target table in the INSERT.
     const fs = require("fs");
     const path = require("path");
     const sql = fs.readFileSync(
@@ -101,9 +101,13 @@ describe("handle_new_user trigger (migration 013)", () => {
     );
 
     // The dynamic SQL builder is present
-    expect(sql).toContain("information_schema.columns");
+    expect(sql).toContain("pg_constraint");
     expect(sql).toContain("v_sql");
     expect(sql).toContain("EXECUTE v_sql");
+
+    // It must discover the FK target dynamically, not hardcode auth.users
+    expect(sql).toContain("v_fk_target_table");
+    expect(sql).toContain("v_fk_target_schema");
   });
 });
 
