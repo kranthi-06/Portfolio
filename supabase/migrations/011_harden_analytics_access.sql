@@ -79,24 +79,54 @@ CREATE POLICY "Read own profile" ON public.profiles
 
 -- ------------------------------------------------------------
 -- 3. Re-assert RLS is enabled (idempotent safety net)
+--    Each statement is guarded so the migration survives on a project
+--    whose baseline differs (e.g. no `messages` table yet).
 -- ------------------------------------------------------------
-ALTER TABLE public.profiles              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.messages              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analytics_visitors    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analytics_sessions    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analytics_page_views  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analytics_events      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.geolocation_cache     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.rate_limits           ENABLE ROW LEVEL SECURITY;
+DO $$
+DECLARE
+    v_table text;
+    v_tables text[] := ARRAY[
+        'profiles', 'messages', 'analytics_visitors', 'analytics_sessions',
+        'analytics_page_views', 'analytics_events', 'geolocation_cache', 'rate_limits'
+    ];
+BEGIN
+    FOREACH v_table IN ARRAY v_tables LOOP
+        IF EXISTS (
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = v_table AND c.relkind = 'r'
+        ) THEN
+            EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', v_table);
+        ELSE
+            RAISE NOTICE 'public.% does not exist, skipping RLS enable', v_table;
+        END IF;
+    END LOOP;
+END $$;
 
 -- ------------------------------------------------------------
 -- 4. Service role keeps full access for backend API writes
+--    Guarded the same way — a missing table must not abort the migration.
 -- ------------------------------------------------------------
-GRANT ALL ON public.analytics_visitors   TO service_role;
-GRANT ALL ON public.analytics_sessions   TO service_role;
-GRANT ALL ON public.analytics_page_views TO service_role;
-GRANT ALL ON public.analytics_events     TO service_role;
-GRANT ALL ON public.messages             TO service_role;
+DO $$
+DECLARE
+    v_table text;
+    v_tables text[] := ARRAY[
+        'analytics_visitors', 'analytics_sessions', 'analytics_page_views',
+        'analytics_events', 'messages'
+    ];
+BEGIN
+    FOREACH v_table IN ARRAY v_tables LOOP
+        IF EXISTS (
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = v_table AND c.relkind = 'r'
+        ) THEN
+            EXECUTE format('GRANT ALL ON public.%I TO service_role', v_table);
+        ELSE
+            RAISE NOTICE 'public.% does not exist, skipping service-role grant', v_table;
+        END IF;
+    END LOOP;
+END $$;
 
 NOTIFY pgrst, 'reload schema';
 
