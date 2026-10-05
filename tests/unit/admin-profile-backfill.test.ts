@@ -59,7 +59,7 @@ describe("handle_new_user trigger (migration 013)", () => {
   // This prevents a future migration from changing the default and silently
   // downgrading every new user to non-admin.
 
-  it("explicitly sets role='admin' in the INSERT", () => {
+  it("explicitly sets role='admin' in the trigger INSERT", () => {
     // Read the actual migration file and verify the trigger body contains the
     // explicit role column assignment.
     const fs = require("fs");
@@ -69,12 +69,8 @@ describe("handle_new_user trigger (migration 013)", () => {
       "utf-8",
     );
 
-    // The trigger must insert with an explicit role column
+    // The trigger body must insert with an explicit role column and value
     expect(sql).toContain("INSERT INTO public.profiles (id, email, full_name, role)");
-    expect(sql).toContain("'admin'");
-
-    // The backfill must also set role='admin'
-    expect(sql).toContain("SELECT");
     expect(sql).toContain("'admin'");
 
     // Must be idempotent
@@ -92,6 +88,22 @@ describe("handle_new_user trigger (migration 013)", () => {
     // DROP TRIGGER IF EXISTS and CREATE OR REPLACE FUNCTION make it re-runnable
     expect(sql).toContain("DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users");
     expect(sql).toContain("CREATE OR REPLACE FUNCTION public.handle_new_user");
+  });
+
+  it("is schema-agnostic — inspects columns at runtime", () => {
+    // The backfill uses dynamic SQL so it works on any profiles schema.
+    // It must NOT hardcode column names in the INSERT ... SELECT.
+    const fs = require("fs");
+    const path = require("path");
+    const sql = fs.readFileSync(
+      path.resolve(__dirname, "../../supabase/migrations/013_backfill_admin_profiles.sql"),
+      "utf-8",
+    );
+
+    // The dynamic SQL builder is present
+    expect(sql).toContain("information_schema.columns");
+    expect(sql).toContain("v_sql");
+    expect(sql).toContain("EXECUTE v_sql");
   });
 });
 

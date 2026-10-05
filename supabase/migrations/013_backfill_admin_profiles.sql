@@ -10,28 +10,56 @@
 -- The middleware and withAdminAuth both look up `public.profiles.role === 'admin'`.
 -- With no profile row, `maybeSingle()` returns null → state = "forbidden" → 403.
 --
--- FIX:
--- 1. Create a profile row for every auth user that is missing one.
--- 2. The role defaults to 'admin' (matching the column default in migration 001).
---    This is a single-user portfolio application; the only auth user is the owner.
--- 3. Idempotent: ON CONFLICT DO NOTHING, so re-running the migration is safe.
--- 4. Also fixes the handle_new_user trigger to explicitly set role='admin' so the
---    default is not silently dependent on the column default.
+-- This migration is SCHEMA-AGNOSTIC: it inspects the actual columns of
+-- public.profiles at runtime and only inserts columns that exist. This makes it
+-- safe to apply on any baseline, including projects whose profiles table was
+-- created with a different column set.
 -- ============================================================================
 
--- 1. Backfill missing profiles (idempotent)
-INSERT INTO public.profiles (id, email, full_name, role)
-SELECT
-    u.id,
-    u.email,
-    COALESCE(u.raw_user_meta_data->>'full_name', split_part(u.email, '@', 1)),
-    'admin'
-FROM auth.users u
-LEFT JOIN public.profiles p ON p.id = u.id
-WHERE p.id IS NULL
-ON CONFLICT (id) DO NOTHING;
+-- 1. Backfill missing profiles (schema-agnostic, idempotent)
+--    Uses dynamic SQL so it works regardless of which columns profiles has.
+DO $$
+DECLARE
+    v_has_email boolean;
+    v_has_full_name boolean;
+    v_has_role boolean;
+    v_sql text;
+BEGIN
+    -- Inspect the actual profiles table columns
+    SELECT
+        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='email'),
+        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='full_name'),
+        EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='profiles' AND column_name='role')
+    INTO v_has_email, v_has_full_name, v_has_role;
 
--- 2. Re-assert the trigger (in case it was dropped or the function body changed)
+    -- Build the column list dynamically
+    v_sql := 'INSERT INTO public.profiles (id';
+    IF v_has_email THEN v_sql := v_sql || ', email'; END IF;
+    IF v_has_full_name THEN v_sql := v_sql || ', full_name'; END IF;
+    IF v_has_role THEN v_sql := v_sql || ', role'; END IF;
+    v_sql := v_sql || ') SELECT u.id';
+
+    IF v_has_email THEN
+        v_sql := v_sql || ', u.email';
+    END IF;
+    IF v_has_full_name THEN
+        v_sql := v_sql || ', COALESCE(u.raw_user_meta_data->>''full_name'', split_part(u.email, ''@'', 1))';
+    END IF;
+    IF v_has_role THEN
+        v_sql := v_sql || ', ''admin''';
+    END IF;
+
+    v_sql := v_sql || E'\nFROM auth.users u'
+        || E'\nLEFT JOIN public.profiles p ON p.id = u.id'
+        || E'\nWHERE p.id IS NULL'
+        || E'\nON CONFLICT (id) DO NOTHING';
+
+    EXECUTE v_sql;
+END $$;
+
+-- 2. Re-assert the trigger (idempotent — safe to re-run)
+--    The trigger must explicitly set role='admin' so the default is not silently
+--    dependent on the column default.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
