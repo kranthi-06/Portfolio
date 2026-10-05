@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPublicSupabaseClient } from "@/lib/supabase/public";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
 
 const CONTACT_RATE_LIMIT = 5; // max submissions per hour
@@ -21,13 +21,21 @@ function getClientIp(req: NextRequest): string {
 
 function getHashSecret(): string {
   const salt = process.env.ANALYTICS_SALT;
-  if (!salt) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("ANALYTICS_SALT environment variable is required in production");
-    }
-    return "portfolio-analytics-secret-salt-dev-only";
+  if (salt) return salt;
+
+  const serverSecret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (serverSecret) {
+    console.warn(
+      "[Contact] ANALYTICS_SALT is not set — deriving the visitor hash salt from SUPABASE_SERVICE_ROLE_KEY. Set ANALYTICS_SALT to keep visitor hashes stable across key rotations.",
+    );
+    return crypto.createHash("sha256").update(`contact-salt:${serverSecret}`).digest("hex");
   }
-  return salt;
+
+  if (process.env.NODE_ENV === "production") {
+    console.warn("[Contact] ANALYTICS_SALT and SUPABASE_SERVICE_ROLE_KEY are both unset — falling back to the development salt.");
+  }
+
+  return "portfolio-analytics-secret-salt-dev-only";
 }
 
 function hashIp(ip: string, userAgent: string): string {
@@ -96,11 +104,11 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.toLowerCase().trim();
     const ip = getClientIp(request);
     
-    const supabase = createPublicSupabaseClient();
-    if (!supabase) {
-      console.error("[Contact Form Error]: Supabase public client configuration missing");
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-    }
+    // Server-only Supabase client (service role). The public contact form writes
+    // messages, analytics rows and rate-limit counters that RLS intentionally
+    // restricts to the service role, so the anon key cannot perform them.
+    // The service-role key always stays on the server and is never shipped to the browser.
+    const supabase = createSupabaseAdminClient();
 
     // Check email-based rate limit
     const { data: emailRateLimit } = await supabase.rpc("check_rate_limit", {

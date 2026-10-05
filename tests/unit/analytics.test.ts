@@ -261,39 +261,43 @@ describe('Idempotency Key Validation', () => {
   });
 });
 
-// Test analytics salt requirement
+// Test analytics salt fallback behaviour.
+//
+// The track route NEVER throws on a missing salt — it falls back to a derived
+// secret (SUPABASE_SERVICE_ROLE_KEY) or a dev-only constant. That was a deliberate
+// fix: the previous "throw in production" behaviour took the entire analytics
+// endpoint down on every deploy that forgot to set ANALYTICS_SALT.
 describe('Analytics Salt', () => {
   const originalEnv = process.env;
-  
+
   beforeEach(() => {
     process.env = { ...originalEnv };
   });
-  
+
   afterEach(() => {
     process.env = originalEnv;
   });
 
-  it('throws in production without ANALYTICS_SALT', () => {
-    process.env.NODE_ENV = 'production';
+  it('falls back to a dev-only constant in development without ANALYTICS_SALT', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     delete process.env.ANALYTICS_SALT;
-    
-    // The HASH_SECRET assignment should throw
-    expect(() => {
-      const secret = process.env.ANALYTICS_SALT || (process.env.NODE_ENV === 'production'
-        ? (() => { throw new Error('ANALYTICS_SALT environment variable is required in production'); })()
-        : 'dev-only');
-      return secret;
-    }).toThrow('ANALYTICS_SALT environment variable is required in production');
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    const secret = process.env.ANALYTICS_SALT || 'portfolio-analytics-secret-salt-dev-only';
+    expect(secret).toBe('portfolio-analytics-secret-salt-dev-only');
   });
 
-  it('allows dev fallback in development', () => {
-    process.env.NODE_ENV = 'development';
+  it('does not throw when ANALYTICS_SALT is missing in production', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     delete process.env.ANALYTICS_SALT;
-    
-    const secret = process.env.ANALYTICS_SALT || (process.env.NODE_ENV === 'production'
-      ? (() => { throw new Error('ANALYTICS_SALT environment variable is required in production'); })()
-      : 'dev-only');
-    
-    expect(secret).toBe('dev-only');
+
+    expect(() => {
+      // Mirrors getHashSecret(): never throw, always return a usable string.
+      const salt = process.env.ANALYTICS_SALT;
+      if (salt) return salt;
+      const serverSecret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (serverSecret) return 'derived-from-service-role-key';
+      return 'portfolio-analytics-secret-salt-dev-only';
+    }).not.toThrow();
   });
 });

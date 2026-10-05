@@ -62,15 +62,18 @@ export function AnalyticsTracker() {
     intervalRef.current = setInterval(() => {
       const sessionId = getSessionId();
       if (!sessionId.startsWith("temp_")) {
-        // Use sendBeacon if available, fallback to fetch
-        const payload = JSON.stringify({ action: "ping", sessionId });
+        // Heartbeat: the server uses this to refresh the session's `ended_at`
+        // and to record "time on page" for the most recent page view. The
+        // server updates the session's exit page only on explicit pageviews,
+        // not on pings, so the pathname here is informational.
+        const body = JSON.stringify({ action: "ping", sessionId, payload: { pathname } });
         if (navigator.sendBeacon) {
-          navigator.sendBeacon("/api/analytics/track", payload);
+          navigator.sendBeacon("/api/analytics/track", body);
         } else {
           fetch("/api/analytics/track", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: payload,
+            body,
             keepalive: true,
           }).catch(() => {});
         }
