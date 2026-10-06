@@ -263,7 +263,7 @@ export default function AnalyticsDashboard() {
               </div>
             )}
           </div>
-          <div className="admin-card-body p-0 flex-1 relative bg-[#0a0a0c] overflow-hidden min-h-[500px]">
+          <div className="admin-card-body p-0 relative bg-[#0a0a0c] overflow-hidden aspect-video min-h-[380px] max-h-[600px] lg:aspect-[16/9] lg:min-h-[420px] lg:max-h-[520px]">
             {drilldownLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0c]">
                 <div className="w-12 h-12 rounded-full border-t-2 border-indigo-500 animate-spin"></div>
@@ -313,6 +313,7 @@ export default function AnalyticsDashboard() {
                     data={stateData.map(s => ({ name: s.name, value: s.visitors }))} 
                     onStateClick={handleStateClick}
                     selectedState={selectedState || undefined}
+                    onBack={handleBack}
                   />
                   {!drilldownLoading && stateData.length > 0 && (
                     <div className="absolute bottom-4 left-4 bg-[#18181b]/80 backdrop-blur-md border border-white/10 rounded-lg p-3 w-64 max-h-64 overflow-y-auto">

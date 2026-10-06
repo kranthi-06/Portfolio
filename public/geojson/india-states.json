@@ -4,187 +4,298 @@
     {
       "type": "Feature",
       "properties": { "name": "Andhra Pradesh", "code": "AP" },
-      "geometry": { "type": "Polygon", "coordinates": [[[76.8, 12.6], [84.8, 12.6], [84.8, 19.9], [76.8, 19.9], [76.8, 12.6]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[80.3, 12.6], [84.8, 12.6], [84.8, 19.9], [80.3, 19.9], [80.3, 12.6]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Arunachal Pradesh", "code": "AR" },
-      "geometry": { "type": "Polygon", "coordinates": [[[91.5, 26.5], [97.5, 26.5], [97.5, 29.5], [91.5, 29.5], [91.5, 26.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[91.5, 26.5], [97.5, 26.5], [97.5, 29.5], [91.5, 29.5], [91.5, 26.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Assam", "code": "AS" },
-      "geometry": { "type": "Polygon", "coordinates": [[[88.5, 24.0], [96.5, 24.0], [96.5, 28.0], [88.5, 28.0], [88.5, 24.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[88.5, 24.0], [96.5, 24.0], [96.5, 28.0], [88.5, 28.0], [88.5, 24.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Bihar", "code": "BR" },
-      "geometry": { "type": "Polygon", "coordinates": [[[83.5, 24.0], [88.5, 24.0], [88.5, 27.5], [83.5, 27.5], [83.5, 24.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[83.5, 24.0], [88.5, 24.0], [88.5, 27.5], [83.5, 27.5], [83.5, 24.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Chhattisgarh", "code": "CG" },
-      "geometry": { "type": "Polygon", "coordinates": [[[80.0, 17.5], [84.5, 17.5], [84.5, 24.5], [80.0, 24.5], [80.0, 17.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[80.0, 17.5], [84.5, 17.5], [84.5, 24.5], [80.0, 24.5], [80.0, 17.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Goa", "code": "GA" },
-      "geometry": { "type": "Polygon", "coordinates": [[[73.7, 15.5], [74.3, 15.5], [74.3, 15.8], [73.7, 15.8], [73.7, 15.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[73.7, 15.5], [74.3, 15.5], [74.3, 15.8], [73.7, 15.8], [73.7, 15.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Gujarat", "code": "GJ" },
-      "geometry": { "type": "Polygon", "coordinates": [[[68.2, 20.0], [74.5, 20.0], [74.5, 24.5], [68.2, 24.5], [68.2, 20.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[68.2, 20.0], [74.5, 20.0], [74.5, 24.5], [68.2, 24.5], [68.2, 20.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Haryana", "code": "HR" },
-      "geometry": { "type": "Polygon", "coordinates": [[[74.5, 27.5], [77.5, 27.5], [77.5, 30.5], [74.5, 30.5], [74.5, 27.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[74.5, 27.5], [77.5, 27.5], [77.5, 30.5], [74.5, 30.5], [74.5, 27.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Himachal Pradesh", "code": "HP" },
-      "geometry": { "type": "Polygon", "coordinates": [[[75.5, 30.5], [79.0, 30.5], [79.0, 33.5], [75.5, 33.5], [75.5, 30.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[75.5, 30.5], [79.0, 30.5], [79.0, 33.5], [75.5, 33.5], [75.5, 30.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Jharkhand", "code": "JH" },
-      "geometry": { "type": "Polygon", "coordinates": [[[83.5, 22.0], [87.5, 22.0], [87.5, 25.5], [83.5, 25.5], [83.5, 22.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[83.5, 22.0], [87.5, 22.0], [87.5, 25.5], [83.5, 25.5], [83.5, 22.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Karnataka", "code": "KA" },
-      "geometry": { "type": "Polygon", "coordinates": [[[74.0, 11.5], [78.5, 11.5], [78.5, 18.5], [74.0, 18.5], [74.0, 11.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[74.0, 11.5], [78.5, 11.5], [78.5, 18.5], [74.0, 18.5], [74.0, 11.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Kerala", "code": "KL" },
-      "geometry": { "type": "Polygon", "coordinates": [[[74.0, 8.0], [77.5, 8.0], [77.5, 12.5], [74.0, 12.5], [74.0, 8.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[74.0, 8.0], [77.5, 8.0], [77.5, 12.5], [74.0, 12.5], [74.0, 8.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Madhya Pradesh", "code": "MP" },
-      "geometry": { "type": "Polygon", "coordinates": [[[74.0, 21.0], [82.5, 21.0], [82.5, 26.5], [74.0, 26.5], [74.0, 21.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[74.0, 21.0], [82.5, 21.0], [82.5, 26.5], [74.0, 26.5], [74.0, 21.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Maharashtra", "code": "MH" },
-      "geometry": { "type": "Polygon", "coordinates": [[[72.5, 15.5], [80.5, 15.5], [80.5, 22.0], [72.5, 22.0], [72.5, 15.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[72.5, 15.5], [80.5, 15.5], [80.5, 22.0], [72.5, 22.0], [72.5, 15.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Manipur", "code": "MN" },
-      "geometry": { "type": "Polygon", "coordinates": [[[93.0, 23.5], [94.5, 23.5], [94.5, 25.5], [93.0, 25.5], [93.0, 23.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[93.0, 23.5], [94.5, 23.5], [94.5, 25.5], [93.0, 25.5], [93.0, 23.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Meghalaya", "code": "ML" },
-      "geometry": { "type": "Polygon", "coordinates": [[[89.5, 25.0], [92.5, 25.0], [92.5, 26.5], [89.5, 26.5], [89.5, 25.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[89.5, 25.0], [92.5, 25.0], [92.5, 26.5], [89.5, 26.5], [89.5, 25.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Mizoram", "code": "MZ" },
-      "geometry": { "type": "Polygon", "coordinates": [[[92.0, 21.5], [93.5, 21.5], [93.5, 24.5], [92.0, 24.5], [92.0, 21.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[92.0, 21.5], [93.5, 21.5], [93.5, 24.5], [92.0, 24.5], [92.0, 21.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Nagaland", "code": "NL" },
-      "geometry": { "type": "Polygon", "coordinates": [[[93.5, 25.0], [95.0, 25.0], [95.0, 27.0], [93.5, 27.0], [93.5, 25.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[93.5, 25.0], [95.0, 25.0], [95.0, 27.0], [93.5, 27.0], [93.5, 25.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Odisha", "code": "OD" },
-      "geometry": { "type": "Polygon", "coordinates": [[[81.5, 17.5], [87.5, 17.5], [87.5, 22.5], [81.5, 22.5], [81.5, 17.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[81.5, 17.5], [87.5, 17.5], [87.5, 22.5], [81.5, 22.5], [81.5, 17.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Punjab", "code": "PB" },
-      "geometry": { "type": "Polygon", "coordinates": [[[73.5, 29.5], [76.5, 29.5], [76.5, 32.5], [73.5, 32.5], [73.5, 29.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[73.5, 29.5], [76.5, 29.5], [76.5, 32.5], [73.5, 32.5], [73.5, 29.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Rajasthan", "code": "RJ" },
-      "geometry": { "type": "Polygon", "coordinates": [[[69.5, 23.5], [78.5, 23.5], [78.5, 30.5], [69.5, 30.5], [69.5, 23.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[69.5, 23.5], [78.5, 23.5], [78.5, 30.5], [69.5, 30.5], [69.5, 23.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Sikkim", "code": "SK" },
-      "geometry": { "type": "Polygon", "coordinates": [[[88.0, 27.0], [89.0, 27.0], [89.0, 28.0], [88.0, 28.0], [88.0, 27.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[88.0, 27.0], [89.0, 27.0], [89.0, 28.0], [88.0, 28.0], [88.0, 27.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Tamil Nadu", "code": "TN" },
-      "geometry": { "type": "Polygon", "coordinates": [[[76.0, 8.0], [80.5, 8.0], [80.5, 13.5], [76.0, 13.5], [76.0, 8.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[76.0, 8.0], [80.5, 8.0], [80.5, 13.5], [76.0, 13.5], [76.0, 8.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Telangana", "code": "TG" },
-      "geometry": { "type": "Polygon", "coordinates": [[[77.0, 15.5], [81.5, 15.5], [81.5, 19.5], [77.0, 19.5], [77.0, 15.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[77.0, 15.5], [81.5, 15.5], [81.5, 19.5], [77.0, 19.5], [77.0, 15.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Tripura", "code": "TR" },
-      "geometry": { "type": "Polygon", "coordinates": [[[91.0, 23.0], [92.5, 23.0], [92.5, 24.5], [91.0, 24.5], [91.0, 23.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[91.0, 23.0], [92.5, 23.0], [92.5, 24.5], [91.0, 24.5], [91.0, 23.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Uttar Pradesh", "code": "UP" },
-      "geometry": { "type": "Polygon", "coordinates": [[[77.0, 23.5], [84.5, 23.5], [84.5, 30.5], [77.0, 30.5], [77.0, 23.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[77.0, 23.5], [84.5, 23.5], [84.5, 30.5], [77.0, 30.5], [77.0, 23.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Uttarakhand", "code": "UK" },
-      "geometry": { "type": "Polygon", "coordinates": [[[77.5, 28.5], [81.0, 28.5], [81.0, 31.5], [77.5, 31.5], [77.5, 28.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[77.5, 28.5], [81.0, 28.5], [81.0, 31.5], [77.5, 31.5], [77.5, 28.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "West Bengal", "code": "WB" },
-      "geometry": { "type": "Polygon", "coordinates": [[[85.5, 21.5], [89.5, 21.5], [89.5, 27.0], [85.5, 27.0], [85.5, 21.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[85.5, 21.5], [89.5, 21.5], [89.5, 27.0], [85.5, 27.0], [85.5, 21.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Andaman and Nicobar Islands", "code": "AN" },
-      "geometry": { "type": "Polygon", "coordinates": [[[92.0, 6.5], [94.0, 6.5], [94.0, 14.0], [92.0, 14.0], [92.0, 6.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[92.0, 6.5], [94.0, 6.5], [94.0, 14.0], [92.0, 14.0], [92.0, 6.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Chandigarh", "code": "CH" },
-      "geometry": { "type": "Polygon", "coordinates": [[[76.8, 30.7], [76.9, 30.7], [76.9, 30.8], [76.8, 30.8], [76.8, 30.7]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[76.8, 30.7], [76.9, 30.7], [76.9, 30.8], [76.8, 30.8], [76.8, 30.7]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Dadra and Nagar Haveli", "code": "DN" },
-      "geometry": { "type": "Polygon", "coordinates": [[[73.0, 20.0], [73.2, 20.0], [73.2, 20.3], [73.0, 20.3], [73.0, 20.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[73.0, 20.0], [73.2, 20.0], [73.2, 20.3], [73.0, 20.3], [73.0, 20.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Daman and Diu", "code": "DD" },
-      "geometry": { "type": "Polygon", "coordinates": [[[72.8, 20.4], [72.9, 20.4], [72.9, 20.5], [72.8, 20.5], [72.8, 20.4]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[72.8, 20.4], [72.9, 20.4], [72.9, 20.5], [72.8, 20.5], [72.8, 20.4]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Delhi", "code": "DL" },
-      "geometry": { "type": "Polygon", "coordinates": [[[76.8, 28.4], [77.3, 28.4], [77.3, 28.9], [76.8, 28.9], [76.8, 28.4]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[76.8, 28.4], [77.3, 28.4], [77.3, 28.9], [76.8, 28.9], [76.8, 28.4]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Jammu and Kashmir", "code": "JK" },
-      "geometry": { "type": "Polygon", "coordinates": [[[73.5, 32.5], [80.5, 32.5], [80.5, 37.0], [73.5, 37.0], [73.5, 32.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[73.5, 32.5], [80.5, 32.5], [80.5, 37.0], [73.5, 37.0], [73.5, 32.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Ladakh", "code": "LA" },
-      "geometry": { "type": "Polygon", "coordinates": [[[75.0, 32.5], [80.0, 32.5], [80.0, 37.0], [75.0, 37.0], [75.0, 32.5]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[75.0, 32.5], [80.0, 32.5], [80.0, 37.0], [75.0, 37.0], [75.0, 32.5]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Lakshadweep", "code": "LD" },
-      "geometry": { "type": "Polygon", "coordinates": [[[71.0, 8.0], [74.0, 8.0], [74.0, 12.0], [71.0, 12.0], [71.0, 8.0]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[71.0, 8.0], [74.0, 8.0], [74.0, 12.0], [71.0, 12.0], [71.0, 8.0]]]]
+      }
     },
     {
       "type": "Feature",
       "properties": { "name": "Puducherry", "code": "PY" },
-      "geometry": { "type": "Polygon", "coordinates": [[[79.8, 11.9], [79.9, 11.9], [79.9, 12.0], [79.8, 12.0], [79.8, 11.9]]] }
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[79.8, 11.9], [79.9, 11.9], [79.9, 12.0], [79.8, 12.0], [79.8, 11.9]]]]
+      }
     }
   ]
 }
