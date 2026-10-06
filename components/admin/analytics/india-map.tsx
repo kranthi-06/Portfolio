@@ -3,7 +3,7 @@
 import React, { memo, useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoMercator, geoPath } from "d3-geo";
-import indiaStates from "@/public/geojson/india-states.json";
+import indiaStates from "@/public/geojson/india-telangana.json";
 import { AlertCircle, ChevronLeft } from "lucide-react";
 
 interface IndiaMapProps {
@@ -222,7 +222,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
         <Geographies geography={indiaStates as any}>
           {({ geographies }) =>
             geographies.map((geo: any) => {
-              const geoStateName = geo.properties?.NAME_1;
+              const geoStateName = geo.properties?.NAME_1 || geo.properties?.name;
               
               const d = getDataForState(geoStateName || '');
               const analyticsName = getAnalyticsName(geoStateName || '');
