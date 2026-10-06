@@ -21,8 +21,16 @@ function setCsrfTokenCookie(response: NextResponse, token: string) {
 }
 
 function getCsrfTokenFromRequest(req: NextRequest): string | null {
-  const cookie = req.cookies.get(CSRF_TOKEN_NAME);
-  return cookie?.value || null;
+  // Parse cookie from header directly since request.cookies.getAll() returns empty for this route
+  const cookieHeader = req.headers.get("cookie") || "";
+  const cookies = cookieHeader.split(";").map(c => c.trim());
+  for (const cookie of cookies) {
+    const [name, ...valueParts] = cookie.split("=");
+    if (name.trim() === CSRF_TOKEN_NAME) {
+      return valueParts.join("=").trim();
+    }
+  }
+  return null;
 }
 
 export async function GET(request: NextRequest) {
