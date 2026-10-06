@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useEffect, useState, useRef, useMemo } from "react";
+import React, { memo, useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { geoMercator, geoPath } from "d3-geo";
 import indiaStates from "@/public/geojson/india-states.json";
@@ -69,6 +69,13 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
   
   const max = Math.max(...data.map(d => d.value), 1);
 
+  // Provide a sensible default projection immediately (will be refined on resize)
+  const [defaultProjectionConfig] = useState(() => {
+    // India bounds: ~68-98 lon, 6-38 lat, center ~83, 22
+    // For a typical 16:9 container (~800x450), scale ~1000 works
+    return { scale: 1000, center: [82.85, 21.75] as [number, number] };
+  });
+
   // Normalize state names for matching (must be before early returns for hook rules)
   const normalizeName = (name: string) => name.toLowerCase().trim();
   const dataByNorm = useMemo(() => {
@@ -83,6 +90,16 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
     return dataByNorm.get(normalizeName(stateName)) || dataByNorm.get(normalizeName(stateCode));
   };
 
+  // Synchronous initial dimension measurement
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    }
+  }, []);
+
   // Handle resize to recalculate projection
   useEffect(() => {
     const updateDimensions = () => {
@@ -92,7 +109,6 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
       }
     };
     
-    updateDimensions();
     const observer = new ResizeObserver(updateDimensions);
     if (containerRef.current) observer.observe(containerRef.current);
     window.addEventListener('resize', updateDimensions);
@@ -102,7 +118,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
     };
   }, []);
 
-  // Validate the imported GeoJSON once on mount and calculate projection
+  // Validate the imported GeoJSON once on mount
   useEffect(() => {
     if (!indiaStates || !indiaStates.features || indiaStates.features.length === 0) {
       setLoadError("India geographic data is missing or empty");
@@ -121,24 +137,21 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
         dataKeys: data.slice(0, 3).map(d => d.name),
       });
     }
-    
-    // Calculate initial projection once we have dimensions
-    if (dimensions.width > 0 && dimensions.height > 0) {
+  }, [data]);
+
+  // Calculate projection when dimensions are available
+  useEffect(() => {
+    if (geoJsonLoaded && dimensions.width > 0 && dimensions.height > 0) {
       const config = calculateProjectionConfig(indiaStates, dimensions.width, dimensions.height);
       setProjectionConfig(config);
       if (process.env.NODE_ENV === 'development') {
         console.log('[IndiaMap] Calculated projection:', config);
       }
     }
-  }, [dimensions.width, dimensions.height, data]);
-
-  // Recalculate projection on resize
-  useEffect(() => {
-    if (geoJsonLoaded && dimensions.width > 0 && dimensions.height > 0) {
-      const config = calculateProjectionConfig(indiaStates, dimensions.width, dimensions.height);
-      setProjectionConfig(config);
-    }
   }, [dimensions.width, dimensions.height, geoJsonLoaded]);
+
+  // Use default projection until calculated one is ready
+  const effectiveProjectionConfig = projectionConfig || defaultProjectionConfig;
 
   if (loadError) {
     return (
@@ -158,7 +171,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
     );
   }
 
-  if (!projectionConfig || !geoJsonLoaded || dimensions.width === 0 || dimensions.height === 0) {
+  if (!geoJsonLoaded) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
         <div className="w-12 h-12 rounded-full border-t-2 border-indigo-500 animate-spin mb-4" />
@@ -183,7 +196,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
       )}
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={projectionConfig}
+        projectionConfig={effectiveProjectionConfig}
         style={{ width: "100%", height: "100%", background: "transparent" }}
       >
         <Geographies geography={indiaStates as any}>
