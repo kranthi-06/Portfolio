@@ -10,10 +10,17 @@ function generateCsrfToken(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "")).join("");
 }
 
-function setCsrfTokenCookie(response: NextResponse, token: string) {
+function setCsrfTokenCookie(response: NextResponse, token: string, request?: NextRequest) {
+  // Check if we're on localhost
+  let isLocalhost = process.env.NODE_ENV !== "production";
+  if (!isLocalhost && request) {
+    const host = request.headers.get("host") || "";
+    isLocalhost = host.startsWith("localhost:") || host.startsWith("127.0.0.1:") || host === "localhost";
+  }
+  
   response.cookies.set(CSRF_TOKEN_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: !isLocalhost, // Only secure in production (not localhost)
     sameSite: "lax",
     maxAge: CSRF_TOKEN_MAX_AGE,
     path: "/",
@@ -47,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = NextResponse.json({ csrfToken: token });
-    setCsrfTokenCookie(response, token);
+    setCsrfTokenCookie(response, token, request);
     
     return response;
   } catch (err) {
