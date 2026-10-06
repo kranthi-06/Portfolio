@@ -49,13 +49,10 @@ function calculateProjectionConfig(
     .center([0, 0]); // Will be set via invert
   
   // Convert pixel center back to geographic coordinates
-  const invertFn = centeredProjection.invert as (point: [number, number]) => [number, number] | null;
-  const inverted = invertFn([centerX, centerY]);
-  let centerLon = 82.85;
-  let centerLat = 21.75;
-  if (inverted) {
-    [centerLon, centerLat] = inverted;
-  }
+  // Use the geographic center directly since we know India's bounds
+  // The projection center for Mercator should be the geographic center of the bounds
+  const centerLon = (bounds[0][0] + bounds[1][0]) / 2;
+  const centerLat = (bounds[0][1] + bounds[1][1]) / 2;
   
   return {
     scale,
