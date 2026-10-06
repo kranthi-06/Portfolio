@@ -57,11 +57,6 @@ function getCsrfTokenFromRequest(req: NextRequest): string | null {
 
 function validateCsrfToken(req: NextRequest, bodyToken: string | null): boolean {
   const cookieToken = getCsrfTokenFromRequest(req);
-  const fs = require('fs');
-  fs.appendFileSync('contact-debug.log', `[Contact CSRF Debug] cookieToken: ${cookieToken}, bodyToken: ${bodyToken}\n`);
-  fs.appendFileSync('contact-debug.log', `[Contact CSRF Debug] All cookies (req.cookies): ${JSON.stringify(req.cookies.getAll().map(c => ({ name: c.name, value: c.value })))}\n`);
-  const cookieHeader = req.headers.get("cookie") || "";
-  fs.appendFileSync('contact-debug.log', `[Contact CSRF Debug] Cookie header: ${cookieHeader}\n`);
   return !!cookieToken && !!bodyToken && cookieToken === bodyToken;
 }
 
