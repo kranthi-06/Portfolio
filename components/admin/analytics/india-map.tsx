@@ -1,7 +1,8 @@
 "use client";
 
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useState, useRef, useMemo } from "react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { geoMercator, geoPath } from "d3-geo";
 import indiaStates from "@/public/geojson/india-states.json";
 import { AlertCircle, ChevronLeft } from "lucide-react";
 
@@ -12,40 +13,130 @@ interface IndiaMapProps {
   onBack?: () => void;
 }
 
+// Calculate proper projection config that fits the GeoJSON to the container
+function calculateProjectionConfig(
+  geojson: any,
+  width: number,
+  height: number,
+  padding = 20
+) {
+  // Create a path generator with default projection to get bounds
+  const projection = geoMercator().scale(1).translate([0, 0]);
+  const path = geoPath().projection(projection);
+  
+  // Get bounds of the GeoJSON in projection units
+  const bounds = path.bounds(geojson);
+  if (!bounds) return { scale: 1000, center: [82.85, 21.75] };
+  
+  const [[x0, y0], [x1, y1]] = bounds;
+  const geoWidth = x1 - x0;
+  const geoHeight = y1 - y0;
+  
+  // Calculate scale to fit with padding
+  const scale = Math.min(
+    (width - padding * 2) / geoWidth,
+    (height - padding * 2) / geoHeight
+  ) * 0.95; // Slight margin
+  
+  // Calculate center to center the map
+  const centerX = (x0 + x1) / 2;
+  const centerY = (y0 + y1) / 2;
+  
+  // Create new projection with calculated scale and get the geographic center
+  const centeredProjection = geoMercator()
+    .scale(scale)
+    .translate([width / 2, height / 2])
+    .center([0, 0]); // Will be set via invert
+  
+  // Convert pixel center back to geographic coordinates
+  const inverted = centeredProjection.invert([centerX, centerY]);
+  const [centerLon, centerLat] = inverted ?? [82.85, 21.75];
+  
+  return {
+    scale,
+    center: [centerLon, centerLat] as [number, number],
+  };
+}
+
 const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [projectionConfig, setProjectionConfig] = useState<{ scale: number; center: [number, number] } | null>(null);
   const [geoJsonLoaded, setGeoJsonLoaded] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   
   const max = Math.max(...data.map(d => d.value), 1);
 
-  // Validate the imported GeoJSON once on mount
+  // Normalize state names for matching (must be before early returns for hook rules)
+  const normalizeName = (name: string) => name.toLowerCase().trim();
+  const dataByNorm = useMemo(() => {
+    const map = new Map<string, { name: string; value: number }>();
+    data.forEach(item => {
+      map.set(normalizeName(item.name), item);
+    });
+    return map;
+  }, [data]);
+
+  const getDataForState = (stateName: string, stateCode: string) => {
+    return dataByNorm.get(normalizeName(stateName)) || dataByNorm.get(normalizeName(stateCode));
+  };
+
+  // Handle resize to recalculate projection
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    };
+    
+    updateDimensions();
+    const observer = new ResizeObserver(updateDimensions);
+    if (containerRef.current) observer.observe(containerRef.current);
+    window.addEventListener('resize', updateDimensions);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
+
+  // Validate the imported GeoJSON once on mount and calculate projection
   useEffect(() => {
     if (!indiaStates || !indiaStates.features || indiaStates.features.length === 0) {
       setLoadError("India geographic data is missing or empty");
       if (process.env.NODE_ENV === 'development') {
         console.error('[IndiaMap] GeoJSON validation failed:', indiaStates);
       }
-    } else {
-      setGeoJsonLoaded(true);
-      // Calculate proper projection for India using the GeoJSON bounds
-      // India bounds approximately: [68.1, 6.5] to [97.4, 37.6]
-      // Center: [78.96, 22.0], Scale: ~1000 for mercator
-      setProjectionConfig({
-        scale: 1000,
-        center: [78.96, 22.0],
+      return;
+    }
+    
+    setGeoJsonLoaded(true);
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[IndiaMap] GeoJSON loaded:', {
+        featureCount: indiaStates.features.length,
+        sampleFeature: indiaStates.features[0]?.properties,
+        dataKeys: data.slice(0, 3).map(d => d.name),
       });
-      
+    }
+    
+    // Calculate initial projection once we have dimensions
+    if (dimensions.width > 0 && dimensions.height > 0) {
+      const config = calculateProjectionConfig(indiaStates, dimensions.width, dimensions.height);
+      setProjectionConfig(config);
       if (process.env.NODE_ENV === 'development') {
-        console.log('[IndiaMap] GeoJSON loaded:', {
-          featureCount: indiaStates.features.length,
-          sampleFeature: indiaStates.features[0]?.properties,
-          dataKeys: data.slice(0, 3).map(d => d.name),
-        });
+        console.log('[IndiaMap] Calculated projection:', config);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dimensions.width, dimensions.height, data]);
+
+  // Recalculate projection on resize
+  useEffect(() => {
+    if (geoJsonLoaded && dimensions.width > 0 && dimensions.height > 0) {
+      const config = calculateProjectionConfig(indiaStates, dimensions.width, dimensions.height);
+      setProjectionConfig(config);
+    }
+  }, [dimensions.width, dimensions.height, geoJsonLoaded]);
 
   if (loadError) {
     return (
@@ -65,7 +156,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
     );
   }
 
-  if (!projectionConfig || !geoJsonLoaded) {
+  if (!projectionConfig || !geoJsonLoaded || dimensions.width === 0 || dimensions.height === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
         <div className="w-12 h-12 rounded-full border-t-2 border-indigo-500 animate-spin mb-4" />
@@ -75,7 +166,11 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div 
+      ref={containerRef}
+      className="relative w-full h-full"
+      style={{ background: "transparent" }}
+    >
       {onBack && (
         <button
           onClick={onBack}
@@ -95,20 +190,18 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
               const stateName = geo.properties?.name;
               const stateCode = geo.properties?.code;
               
-              // Match against both name and code, case-insensitive
-              const d = data.find(item => 
-                item.name.toLowerCase() === stateName?.toLowerCase() || 
-                item.name.toLowerCase() === stateCode?.toLowerCase()
+              const d = getDataForState(stateName || '', stateCode || '');
+              const isSelected = selectedState && (
+                normalizeName(selectedState) === normalizeName(stateName || '') || 
+                normalizeName(selectedState) === normalizeName(stateCode || '')
               );
-              const isSelected = selectedState?.toLowerCase() === stateName?.toLowerCase() || 
-                                 selectedState?.toLowerCase() === stateCode?.toLowerCase();
 
               const fill = d
-                ? `rgba(99, 102, 241, ${0.2 + (d.value / max) * 0.7})`
-                : "rgba(255,255,255,0.03)";
+                ? `rgba(99, 102, 241, ${0.35 + (d.value / max) * 0.65})`
+                : "rgba(255,255,255,0.05)";
 
-              const stroke = isSelected ? "#fbbf24" : "rgba(255,255,255,0.1)";
-              const strokeWidth = isSelected ? 2 : 0.5;
+              const stroke = isSelected ? "#fbbf24" : "rgba(255,255,255,0.15)";
+              const strokeWidth = isSelected ? 2 : 0.75;
 
               return (
                 <Geography
@@ -122,7 +215,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
                   }}
                   style={{
                     default: { outline: "none", cursor: "pointer" },
-                    hover: { fill: isSelected ? "#fbbf24" : "#8b5cf6", outline: "none", cursor: "pointer" },
+                    hover: { fill: isSelected ? "#fbbf24" : "#a5b4fc", outline: "none", cursor: "pointer" },
                     pressed: { fill: "#6366f1", outline: "none" },
                   }}
                 />
