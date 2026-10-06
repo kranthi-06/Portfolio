@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { Mail, Github, Linkedin, Send, Check } from "lucide-react";
+import { useState, type FormEvent, useEffect } from "react";
+import { Mail, Github, Linkedin, Send, Check, AlertCircle } from "lucide-react";
 import { usePortfolio } from "@/components/portfolio-provider";
 import { Reveal } from "@/components/ui/reveal";
 import { Magnetic } from "@/components/ui/magnetic";
+import { toast } from "sonner";
 
 const iconMap = {
   mail: Mail,
@@ -12,8 +13,24 @@ const iconMap = {
   linkedin: Linkedin,
 };
 
+interface FormState {
+  name: string;
+  email: string;
+  message: string;
+}
+
+interface FormStatus {
+  status: "idle" | "sending" | "success" | "error" | "loading";
+}
+
 export function CollaborateSection() {
-  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState<FormState>({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [formStatus, setFormStatus] = useState<FormStatus>({ status: "loading" });
+  const [csrfToken, setCsrfToken] = useState<string>("");
   const { personalInfo, socialLinks } = usePortfolio();
 
   const channels = [
@@ -26,17 +43,69 @@ export function CollaborateSection() {
     }))
   ];
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const values = new FormData(e.currentTarget);
-    const name = String(values.get("name") ?? "").trim();
-    const email = String(values.get("email") ?? "").trim();
-    const message = String(values.get("message") ?? "").trim();
-    const subject = encodeURIComponent(`Collaboration${name ? ` from ${name}` : ""}`);
-    const body = encodeURIComponent(`${message}\n\nFrom: ${name}\nReply to: ${email}`);
-    window.location.href = `mailto:${personalInfo.email || "hello@example.com"}?subject=${subject}&body=${body}`;
-    setSubmitted(true);
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    fetch("/api/csrf", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.csrfToken) {
+          setCsrfToken(data.csrfToken);
+          setFormStatus({ status: "idle" });
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch CSRF token:", err);
+        setFormStatus({ status: "idle" });
+      });
+  }, []);
+
+  // Generate cryptographically secure idempotency key for this submission
+  const generateIdempotencyKey = () => {
+    return crypto.randomUUID();
   };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setFormStatus({ status: "sending" });
+
+    try {
+      const idempotencyKey = generateIdempotencyKey();
+
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify({ ...form, subject: "Collaboration", csrfToken }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to send message");
+      }
+
+      setFormStatus({ status: "success" });
+      setForm({ name: "", email: "", message: "" });
+      toast.success("Message sent successfully!");
+      setTimeout(() => setFormStatus({ status: "idle" }), 4000);
+    } catch (err) {
+      console.error(err);
+      setFormStatus({ status: "error" });
+      toast.error(err instanceof Error ? err.message : "Failed to send message");
+      setTimeout(() => setFormStatus({ status: "idle" }), 4000);
+    }
+  };
+
+  const inputClasses =
+    "w-full px-4 py-3 rounded-xl text-sm outline-none transition-shadow duration-200 focus:shadow-md";
+  const inputStyle = { background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink)" };
 
   return (
     <section
@@ -90,7 +159,7 @@ export function CollaborateSection() {
               className="p-8 md:p-10 rounded-3xl"
               style={{ background: "var(--bg-elevated)", border: "1px solid var(--line)" }}
             >
-              {submitted ? (
+              {formStatus.status === "success" && (
                 <div className="text-center py-8" aria-live="polite">
                   <div
                     className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-6"
@@ -99,21 +168,38 @@ export function CollaborateSection() {
                     <Check size={24} style={{ color: "var(--accent)" }} />
                   </div>
                   <h3 className="font-display text-xl font-medium mb-3" style={{ color: "var(--ink)" }}>
-                    Your email draft is ready.
+                    Message sent!
                   </h3>
                   <p className="text-sm mb-6" style={{ color: "var(--ink-secondary)" }}>
-                    Your email app should have opened with the details filled in.
+                    Thanks for reaching out. I&apos;ll get back to you soon.
                   </p>
                   <button
                     type="button"
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => setFormStatus({ status: "idle" })}
                     className="text-sm font-medium underline"
                     style={{ color: "var(--ink-muted)" }}
                   >
                     Send another message
                   </button>
                 </div>
-              ) : (
+              )}
+
+              {formStatus.status === "error" && (
+                <div className="text-center py-4" aria-live="polite" style={{ color: "var(--danger)" }}>
+                  <AlertCircle size={24} className="mx-auto mb-2" />
+                  <p className="text-sm mb-4">Failed to send message</p>
+                  <button
+                    type="button"
+                    onClick={() => setFormStatus({ status: "idle" })}
+                    className="text-sm font-medium underline"
+                    style={{ color: "var(--ink-muted)" }}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {formStatus.status === "idle" || formStatus.status === "sending" ? (
                 <div className="space-y-5">
                   <div>
                     <label htmlFor="name" className="block text-[11px] font-bold uppercase tracking-[0.1em] mb-2" style={{ color: "var(--ink-muted)" }}>
@@ -124,8 +210,11 @@ export function CollaborateSection() {
                       name="name"
                       required
                       placeholder="How should I address you?"
-                      className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-shadow duration-200 focus:shadow-md"
-                      style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink)" }}
+                      value={form.name}
+                      onChange={handleChange}
+                      disabled={formStatus.status === "sending"}
+                      className={inputClasses}
+                      style={inputStyle}
                     />
                   </div>
                   <div>
@@ -138,8 +227,11 @@ export function CollaborateSection() {
                       type="email"
                       required
                       placeholder="you@company.com"
-                      className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-shadow duration-200 focus:shadow-md"
-                      style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink)" }}
+                      value={form.email}
+                      onChange={handleChange}
+                      disabled={formStatus.status === "sending"}
+                      className={inputClasses}
+                      style={inputStyle}
                     />
                   </div>
                   <div>
@@ -152,17 +244,33 @@ export function CollaborateSection() {
                       required
                       rows={4}
                       placeholder="Tell me about the idea, problem, or opportunity."
-                      className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none transition-shadow duration-200 focus:shadow-md"
-                      style={{ background: "var(--bg-subtle)", border: "1px solid var(--line)", color: "var(--ink)" }}
+                      value={form.message}
+                      onChange={handleChange}
+                      disabled={formStatus.status === "sending"}
+                      className={`${inputClasses} resize-none`}
+                      style={inputStyle}
                     />
                   </div>
                   <Magnetic className="w-full">
-                    <button type="submit" className="btn btn-primary w-full">
-                      Open email draft <Send size={15} />
+                    <button 
+                      type="submit" 
+                      disabled={!["idle", "success", "error"].includes(formStatus.status as any)}
+                      className={`btn btn-primary w-full ${!["idle", "success", "error"].includes(formStatus.status as any) ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      {formStatus.status === "sending" ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2 inline-block" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          Send Message <Send size={15} />
+                        </>
+                      )}
                     </button>
                   </Magnetic>
                 </div>
-              )}
+              ) : null}
             </form>
           </Reveal>
         </div>

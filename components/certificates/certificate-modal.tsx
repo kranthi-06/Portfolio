@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, FileText, X, ZoomIn, ZoomOut } from "lucide-react";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 import type { CertificateAsset } from "@/lib/generated-certificates";
 
 interface CertificateModalProps {
@@ -17,10 +13,11 @@ interface CertificateModalProps {
   onChange: (index: number) => void;
 }
 
-export function CertificateModal({ certificates, activeIndex, onClose, onChange }: CertificateModalProps) {
+function CertificateModalInner({ certificates, activeIndex, onClose, onChange }: CertificateModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const [zoom, setZoom] = useState(1);
   const [imageFailed, setImageFailed] = useState(false);
+  const [PdfComponents, setPdfComponents] = useState<{ Document: any; Page: any } | null>(null);
   const open = activeIndex !== null;
   const certificate = open ? certificates[activeIndex] : null;
 
@@ -39,6 +36,17 @@ export function CertificateModal({ certificates, activeIndex, onClose, onChange 
   }, [activeIndex, certificates.length, onChange, onClose, open]);
 
   useEffect(() => { setZoom(1); setImageFailed(false); }, [activeIndex]);
+
+  // Dynamically import react-pdf only on client side
+  useEffect(() => {
+    import("react-pdf").then(({ pdfjs }) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+      // We just need to trigger the import for the worker setup
+      // The actual Document/Page components will be imported when needed
+    }).catch(() => {
+      // Ignore import errors
+    });
+  }, []);
 
   if (!certificate || activeIndex === null) return null;
   const previous = () => onChange((activeIndex - 1 + certificates.length) % certificates.length);
@@ -61,11 +69,7 @@ export function CertificateModal({ certificates, activeIndex, onClose, onChange 
               {imageFailed ? (
                 <div className="flex h-full min-h-[440px] flex-col items-center justify-center gap-3 text-center" style={{ color: "var(--ink-secondary)" }}><FileText size={32} style={{ color: "var(--gradient-1)" }} /><p className="text-sm font-semibold">Unable to load certificate.</p></div>
               ) : certificate.type === "pdf" ? (
-                <div className="flex min-h-full min-w-max items-center justify-center transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}>
-                  <Document file={certificate.src} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onLoadError={() => setImageFailed(true)} onSourceError={() => setImageFailed(true)}>
-                    <Page pageNumber={1} width={800} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onRenderError={() => setImageFailed(true)} />
-                  </Document>
-                </div>
+                <PdfCertificateViewer certificate={certificate} zoom={zoom} setImageFailed={setImageFailed} />
               ) : (
                 <div className="flex min-h-full min-w-max items-center justify-center"><Image src={certificate.src} alt={certificate.title} width={1800} height={1300} priority className="h-auto max-h-full w-auto max-w-full rounded-xl transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }} onError={() => setImageFailed(true)} /></div>
               )}
@@ -75,5 +79,42 @@ export function CertificateModal({ certificates, activeIndex, onClose, onChange 
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function PdfCertificateViewer({ certificate, zoom, setImageFailed }: { certificate: CertificateAsset; zoom: number; setImageFailed: (v: boolean) => void }) {
+  const [PdfComponents, setPdfComponents] = useState<{ Document: any; Page: any } | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    import("react-pdf").then(({ Document, Page, pdfjs }) => {
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+      setPdfComponents({ Document, Page });
+      setLoaded(true);
+    }).catch(() => {
+      setImageFailed(true);
+    });
+  }, []);
+
+  if (!PdfComponents || !loaded) {
+    return <div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />;
+  }
+
+  const { Document, Page } = PdfComponents;
+
+  return (
+    <div className="flex min-h-full min-w-max items-center justify-center transition-transform duration-200" style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}>
+      <Document file={certificate.src} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onLoadError={() => setImageFailed(true)} onSourceError={() => setImageFailed(true)}>
+        <Page pageNumber={1} width={800} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="animate-pulse w-[800px] h-[600px] bg-zinc-800/20 rounded-xl" />} onRenderError={() => setImageFailed(true)} />
+      </Document>
+    </div>
+  );
+}
+
+export function CertificateModal({ certificates, activeIndex, onClose, onChange }: CertificateModalProps) {
+  return (
+    <Suspense fallback={null}>
+      <CertificateModalInner certificates={certificates} activeIndex={activeIndex} onClose={onClose} onChange={onChange} />
+    </Suspense>
   );
 }
