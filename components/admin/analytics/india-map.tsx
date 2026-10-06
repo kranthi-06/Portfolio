@@ -78,6 +78,25 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
 
   // Normalize state names for matching (must be before early returns for hook rules)
   const normalizeName = (name: string) => name.toLowerCase().trim();
+  
+  // Map GeoJSON state names to analytics state names
+  const geoToAnalyticsMap: Record<string, string> = {
+    "Andaman and Nicobar": "Andaman and Nicobar Islands",
+    "Orissa": "Odisha",
+    "Uttaranchal": "Uttarakhand",
+    "Telangana": "Telangana", // may not exist in older dataset
+  };
+  
+  const analyticsToGeoMap: Record<string, string> = {
+    "Andaman and Nicobar Islands": "Andaman and Nicobar",
+    "Odisha": "Orissa",
+    "Uttarakhand": "Uttaranchal",
+    "TS": "Telangana",
+  };
+
+  const getGeoName = (analyticsName: string) => analyticsToGeoMap[analyticsName] || analyticsName;
+  const getAnalyticsName = (geoName: string) => geoToAnalyticsMap[geoName] || geoName;
+
   const dataByNorm = useMemo(() => {
     const map = new Map<string, { name: string; value: number }>();
     data.forEach(item => {
@@ -86,8 +105,9 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
     return map;
   }, [data]);
 
-  const getDataForState = (stateName: string, stateCode: string) => {
-    return dataByNorm.get(normalizeName(stateName)) || dataByNorm.get(normalizeName(stateCode));
+  const getDataForState = (geoStateName: string) => {
+    const analyticsName = getAnalyticsName(geoStateName);
+    return dataByNorm.get(normalizeName(analyticsName));
   };
 
   // Synchronous initial dimension measurement
@@ -202,13 +222,13 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
         <Geographies geography={indiaStates as any}>
           {({ geographies }) =>
             geographies.map((geo: any) => {
-              const stateName = geo.properties?.name;
-              const stateCode = geo.properties?.code;
+              const geoStateName = geo.properties?.NAME_1;
               
-              const d = getDataForState(stateName || '', stateCode || '');
+              const d = getDataForState(geoStateName || '');
+              const analyticsName = getAnalyticsName(geoStateName || '');
               const isSelected = selectedState && (
-                normalizeName(selectedState) === normalizeName(stateName || '') || 
-                normalizeName(selectedState) === normalizeName(stateCode || '')
+                normalizeName(selectedState) === normalizeName(analyticsName) || 
+                normalizeName(selectedState) === normalizeName(geoStateName || '')
               );
 
               const fill = d
@@ -226,7 +246,7 @@ const MapChart = ({ data, onStateClick, selectedState, onBack }: IndiaMapProps) 
                   stroke={stroke}
                   strokeWidth={strokeWidth}
                   onClick={() => {
-                    if (onStateClick && stateName) onStateClick(stateName);
+                    if (onStateClick && geoStateName) onStateClick(getAnalyticsName(geoStateName));
                   }}
                   style={{
                     default: { outline: "none", cursor: "pointer" },
