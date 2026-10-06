@@ -19,7 +19,7 @@ function calculateProjectionConfig(
   width: number,
   height: number,
   padding = 20
-) {
+): { scale: number; center: [number, number] } {
   // Create a path generator with default projection to get bounds
   const projection = geoMercator().scale(1).translate([0, 0]);
   const path = geoPath().projection(projection);
@@ -49,8 +49,13 @@ function calculateProjectionConfig(
     .center([0, 0]); // Will be set via invert
   
   // Convert pixel center back to geographic coordinates
-  const inverted = centeredProjection.invert([centerX, centerY]);
-  const [centerLon, centerLat] = inverted ?? [82.85, 21.75];
+  const invertFn = centeredProjection.invert as (point: [number, number]) => [number, number] | null;
+  const inverted = invertFn([centerX, centerY]);
+  let centerLon = 82.85;
+  let centerLat = 21.75;
+  if (inverted) {
+    [centerLon, centerLat] = inverted;
+  }
   
   return {
     scale,
